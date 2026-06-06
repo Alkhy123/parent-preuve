@@ -1,15 +1,23 @@
 import { extractText, getDocumentProxy } from "unpdf";
 import { ciblerDispositif } from "@/lib/dispositif";
+import { analyserDispositif } from "@/lib/extractionRegles";
 
 // Cette route a besoin du moteur Node (pas "edge") pour lire un PDF.
 export const runtime = "nodejs";
 
 const TAILLE_MAX_MO = 10;
-// En dessous de ce nombre de caractères, on considère qu'il n'y a pas de texte
-// exploitable (PDF scanné / image). Un dispositif de jugement est bien plus long.
 const SEUIL_TEXTE_MINI = 100;
 
 export async function POST(request: Request) {
+  // La clé Mistral est nécessaire pour l'analyse finale (et l'OCR éventuel).
+  const cle = process.env.MISTRAL_API_KEY;
+  if (!cle) {
+    return Response.json(
+      { erreur: "Clé MISTRAL_API_KEY absente du .env.local" },
+      { status: 500 }
+    );
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -57,26 +65,16 @@ export async function POST(request: Request) {
     );
   }
 
-  // 3. On détermine le texte final et sa provenance.
+  // 3. Texte final + provenance.
   let texteFinal: string;
   let source: "texte" | "ocr";
 
   if (texteBrut.length >= SEUIL_TEXTE_MINI) {
-    // PDF numérique.
     texteFinal = texteBrut;
     source = "texte";
   } else if (!ocrAutorise) {
-    // PDF scanné, OCR pas encore autorisé : on signale, rien n'est envoyé.
     return Response.json({ scanne: true });
   } else {
-    // PDF scanné, OCR autorisé : reconnaissance de texte via Mistral.
-    const cle = process.env.MISTRAL_API_KEY;
-    if (!cle) {
-      return Response.json(
-        { erreur: "Clé MISTRAL_API_KEY absente du .env.local" },
-        { status: 500 }
-      );
-    }
     let texteOcr: string;
     try {
       const base64 = Buffer.from(await fichier.arrayBuffer()).toString("base64");
@@ -126,14 +124,18 @@ export async function POST(request: Request) {
   // 4. Ciblage du dispositif (commun aux deux sources).
   const cible = ciblerDispositif(texteFinal);
 
+  // 5. Analyse des 4 règles via le moteur partagé.
+  const analyse = await analyserDispositif(cible.texte, cle);
+  if (!analyse.ok) {
+    return Response.json({ erreur: analyse.erreur }, { status: analyse.status });
+  }
+
   return Response.json({
     ok: true,
     source,
     dispositifTrouve: cible.dispositifTrouve,
     tronque: cible.tronque,
     avertissement: cible.avertissement,
-    nbCaracteresTotal: texteFinal.length,
-    nbCaracteresCible: cible.texte.length,
-    apercu: cible.texte.slice(0, 400),
+    sections: analyse.sections,
   });
 }

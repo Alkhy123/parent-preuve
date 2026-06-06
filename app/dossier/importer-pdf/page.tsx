@@ -5,14 +5,26 @@ import PageHeader from "@/components/PageHeader";
 
 const TAILLE_MAX_MO = 10;
 
+type Champ = {
+  valeur: number | string | boolean | null;
+  confiance: string;
+  citation: string | null;
+};
+type Section = { table: string; champs: Record<string, Champ>; avertissements: string[] };
+type Sections = { pension: Section; frais: Section; dvh: Section; decision: Section };
 type Resultat = {
   source: "texte" | "ocr";
   dispositifTrouve: boolean;
   tronque: boolean;
   avertissement: string | null;
-  nbCaracteresTotal: number;
-  nbCaracteresCible: number;
-  apercu: string;
+  sections: Sections;
+};
+
+const TITRES: Record<keyof Sections, string> = {
+  pension: "Pension alimentaire",
+  frais: "Frais partagés",
+  dvh: "Droit de visite et d'hébergement",
+  decision: "Décision (statut)",
 };
 
 function tailleLisible(octets: number): string {
@@ -36,10 +48,8 @@ export default function ImporterPdfPage() {
   function choisirFichier(e: React.ChangeEvent<HTMLInputElement>) {
     reinitialiser();
     setFichier(null);
-
     const f = e.target.files?.[0];
     if (!f) return;
-
     const estPdf =
       f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
     if (!estPdf) {
@@ -56,7 +66,6 @@ export default function ImporterPdfPage() {
     setFichier(f);
   }
 
-  // avecOcr = false : lecture normale ; true : l'utilisateur a autorisé l'envoi à l'OCR.
   async function envoyer(avecOcr: boolean) {
     if (!fichier) return;
     setEnCours(true);
@@ -132,10 +141,9 @@ export default function ImporterPdfPage() {
           disabled={!fichier || enCours}
           className="rounded-md bg-[#15233F] px-4 py-2 font-medium text-white hover:bg-[#1d2f54] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {enCours ? "Lecture en cours…" : "Analyser le jugement"}
+          {enCours ? "Analyse en cours…" : "Analyser le jugement"}
         </button>
 
-        {/* PDF scanné : autorisation explicite avant tout envoi à l'OCR */}
         {scanne && (
           <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
             <h2 className="font-display text-lg text-[#15233F]">Ce PDF est un scan</h2>
@@ -157,26 +165,60 @@ export default function ImporterPdfPage() {
         )}
 
         {resultat && (
-          <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-2">
-            <p className="font-display text-lg text-[#15233F]">
-              Dispositif ciblé : {resultat.nbCaracteresCible} caractères
-            </p>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-[#C2A24C] bg-[#F8F6F1] p-4 space-y-1">
+              <p className="text-sm text-[#1F2733]">
+                {resultat.source === "ocr"
+                  ? "Texte obtenu par reconnaissance (OCR Mistral)."
+                  : "Texte lu directement dans le PDF."}{" "}
+                {resultat.dispositifTrouve
+                  ? "« PAR CES MOTIFS » trouvé."
+                  : "« PAR CES MOTIFS » non trouvé."}
+              </p>
+              {resultat.avertissement && (
+                <p className="text-sm text-amber-700">{resultat.avertissement}</p>
+              )}
+              <p className="text-xs text-gray-500">
+                Propositions à vérifier — rien n&apos;est enregistré tant que vous ne validez pas.
+              </p>
+            </div>
+
+            {(Object.keys(TITRES) as Array<keyof Sections>).map((nom) => {
+              const sec = resultat.sections[nom];
+              const remplis = Object.entries(sec.champs).filter(
+                ([, c]) => c.valeur !== null
+              );
+              return (
+                <div
+                  key={nom}
+                  className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-2"
+                >
+                  <h3 className="font-display text-lg text-[#15233F]">{TITRES[nom]}</h3>
+                  {sec.avertissements.map((a, i) => (
+                    <p key={i} className="text-sm text-amber-700">
+                      {a}
+                    </p>
+                  ))}
+                  {remplis.length === 0 ? (
+                    <p className="text-sm text-gray-500">Aucune information détectée.</p>
+                  ) : (
+                    <ul className="space-y-1 text-sm text-[#1F2733]">
+                      {remplis.map(([k, c]) => (
+                        <li key={k}>
+                          <span className="font-medium">{k}</span> : {String(c.valeur)}{" "}
+                          <span className="text-gray-500">({c.confiance})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+
             <p className="text-xs text-gray-500">
-              {resultat.source === "ocr"
-                ? "Texte obtenu par reconnaissance (OCR Mistral)"
-                : "Texte lu directement dans le PDF"}{" "}
-              · document complet : {resultat.nbCaracteresTotal} caractères ·{" "}
-              {resultat.dispositifTrouve
-                ? "« PAR CES MOTIFS » trouvé."
-                : "« PAR CES MOTIFS » non trouvé."}
+              Affichage provisoire. Les encarts éditables à valider (les mêmes que le hub)
+              arrivent à l&apos;étape suivante.
             </p>
-            {resultat.avertissement && (
-              <p className="text-sm text-amber-700">{resultat.avertissement}</p>
-            )}
-            <p className="text-xs text-gray-500">Aperçu de ce qui sera analysé :</p>
-            <pre className="whitespace-pre-wrap rounded bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
-              {resultat.apercu}
-            </pre>
           </div>
         )}
       </div>
