@@ -20,7 +20,7 @@ export default function EncartPliable({
   const [replie, setReplie] = useState(pliable ? replieParDefaut : false);
 
   return (
-    <div className="rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-5 text-[#1F2733]">
+    <div className="carte rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-5 text-[#1F2733]">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className="font-display text-xl text-[#15233F]">{titre}</h2>

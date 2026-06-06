@@ -75,7 +75,7 @@ export default function ExtrairePage() {
         <ConsentementIA fonctionnalite="extraction">
           {/* Étape 1 : description libre + analyse */}
           {!resultat && (
-            <div className="rounded-xl border border-black/5 bg-white p-6 shadow-sm">
+            <div className="carte rounded-xl border border-black/5 bg-white p-6">
               <label className="text-sm font-medium text-[#15233F]">
                 Description de votre situation (telle que dans le dispositif du jugement)
               </label>

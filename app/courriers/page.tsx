@@ -53,7 +53,7 @@ export default function CourriersPage() {
               <Link
                 key={m.href}
                 href={m.href}
-                className="group rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#C2A24C] hover:shadow"
+                className="carte group rounded-lg border border-slate-200 bg-white p-5 transition hover:border-[#C2A24C]"
               >
                 <h2 className="font-display text-lg text-[#15233F]">{m.titre}</h2>
                 <p className="mt-1 text-sm text-slate-600">{m.description}</p>

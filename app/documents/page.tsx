@@ -135,7 +135,7 @@ export default function DocumentsPage() {
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
 
         {/* Formulaire d'envoi */}
-        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Libellé</label>
             <input
@@ -206,7 +206,7 @@ export default function DocumentsPage() {
             <p className="text-slate-500">Aucun document enregistré.</p>
           )}
           {documents.map((doc) => (
-            <div key={doc.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div key={doc.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">

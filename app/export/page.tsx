@@ -211,7 +211,7 @@ export default function ExportPage() {
           <ControleDossier du={du} au={au} onChange={setPeutExporter} />
         </div>
 
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+        <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <p className="text-sm text-slate-600">
             Choisissez une période (facultatif). Laissez vide pour tout inclure.
           </p>

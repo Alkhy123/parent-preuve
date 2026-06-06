@@ -115,7 +115,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
 
   if (problemes === null) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
         Vérification du dossier…
       </div>
     );
@@ -124,7 +124,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
   const resume = resumeControle(problemes);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
       <h2 className="font-display text-lg text-[#15233F]">Contrôle du dossier</h2>
 
       {erreur && <p className="mt-2 text-sm text-slate-500">{erreur}</p>}

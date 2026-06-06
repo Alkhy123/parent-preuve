@@ -11,7 +11,7 @@ export default function MentionsLegalesPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
         {/* Avertissement */}
-        <div className="rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
+        <div className="carte rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
           <strong>Modèle à faire vérifier.</strong> Ce texte est un modèle de départ. Il doit
           être complété (champs entre crochets) et <strong>validé par un professionnel du
           droit</strong> avant toute mise en ligne publique.

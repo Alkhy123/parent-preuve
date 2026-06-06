@@ -129,18 +129,18 @@ export default function FraisPage() {
 
         {/* Bandeau de totaux */}
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="carte rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Reste à percevoir</p>
             <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(resteAPercevoir)}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="carte rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Déjà remboursé</p>
             <p className="mt-1 text-2xl font-bold text-slate-500">{euros(dejaRembourse)}</p>
           </div>
         </div>
 
         {/* Formulaire */}
-        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Libellé</label>
             <input
@@ -218,7 +218,7 @@ export default function FraisPage() {
           {frais.map((f) => (
             <div
               key={f.id}
-              className={`rounded-xl border p-4 shadow-sm ${
+              className={`carte rounded-xl border p-4 ${
                 f.rembourse ? "border-slate-200 bg-slate-100" : "border-slate-200 bg-white"
               }`}
             >

@@ -103,7 +103,7 @@ export default function ReformulerPage() {
 
         {/* État : pas encore de consentement → l'encart RGPD */}
         {consentement === false && (
-          <div className="rounded-lg border border-[#C2A24C] bg-white p-6 space-y-4">
+          <div className="carte rounded-lg border border-[#C2A24C] bg-white p-6 space-y-4">
             <h2 className="font-display text-xl text-[#15233F]">
               Avant d'utiliser cette aide
             </h2>
@@ -160,7 +160,7 @@ export default function ReformulerPage() {
             {erreur && <p className="text-sm text-red-600">{erreur}</p>}
 
             {reformule && (
-              <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
+              <div className="carte rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-lg text-[#15233F]">
                     Version neutre proposée

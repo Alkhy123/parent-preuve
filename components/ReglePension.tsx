@@ -132,7 +132,7 @@ export default function ReglePension({
 
   if (chargement) {
     return (
-      <div className="rounded-xl border border-black/5 bg-[#F8F6F1] p-6 shadow-sm">
+      <div className="carte rounded-xl border border-black/5 bg-[#F8F6F1] p-6">
         <p className="text-[#1F2733]/50">Chargement de la règle…</p>
       </div>
     );
@@ -142,7 +142,7 @@ export default function ReglePension({
     const champ =
       "w-full rounded-lg border border-black/10 bg-white p-2 text-[#1F2733] focus:border-[#C2A24C] focus:outline-none";
     return (
-      <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-6 shadow-sm">
+      <div className="carte rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-6">
         <h2 className="font-display text-xl font-semibold text-[#15233F]">Règle de pension</h2>
         <p className="mt-1 text-sm text-[#1F2733]/60">
           Saisissez ce que le jugement impose (le dispositif), pas une demande.
@@ -262,7 +262,7 @@ export default function ReglePension({
 
   if (!regle) {
     return (
-      <div className="rounded-xl border border-black/5 bg-[#F8F6F1] p-6 shadow-sm">
+      <div className="carte rounded-xl border border-black/5 bg-[#F8F6F1] p-6">
         <h2 className="font-display text-xl font-semibold text-[#15233F]">Règle de pension</h2>
         <p className="mt-1 text-sm text-[#1F2733]/60">Aucune règle enregistrée pour le moment.</p>
         {erreur && <p className="mt-2 text-sm text-red-600">{erreur}</p>}

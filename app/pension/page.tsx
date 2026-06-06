@@ -108,13 +108,13 @@ export default function PensionPage() {
           </div>
 
           {/* Total restant dû */}
-          <div className="mt-6 rounded-xl border border-[#C2A24C]/20 bg-white p-4 shadow-sm">
+          <div className="mt-6 carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
             <p className="text-sm text-[#1F2733]/60">Total restant dû (tous mois)</p>
             <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(totalDu)}</p>
           </div>
 
           {/* Formulaire */}
-          <div className="mt-8 rounded-xl border border-[#C2A24C]/20 bg-white p-5 shadow-sm space-y-4">
+          <div className="mt-8 carte rounded-xl border border-[#C2A24C]/20 bg-white p-5 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">Mois concerné</label>
@@ -170,7 +170,7 @@ export default function PensionPage() {
             {paiements.map((p) => {
               const s = statut(p);
               return (
-                <div key={p.id} className="rounded-xl border border-[#C2A24C]/20 bg-white p-4 shadow-sm">
+                <div key={p.id} className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">

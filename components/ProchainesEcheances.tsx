@@ -79,7 +79,7 @@ export default function ProchainesEcheances() {
     j <= 0 ? "Aujourd'hui" : j === 1 ? "Demain" : "Dans " + j + " jours";
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="carte rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between gap-3 mb-3">
         <h2 className="font-display text-xl text-[#15233F]">Prochaines échéances de garde</h2>
         {permission !== "granted" && (

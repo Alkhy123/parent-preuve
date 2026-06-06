@@ -45,7 +45,7 @@ export default function CalendrierMensuel({ regle }: { regle: RegleGarde | null 
   const titreMois = MOIS[mois].charAt(0).toUpperCase() + MOIS[mois].slice(1);
 
   return (
-    <section className="rounded-lg border border-gray-200 bg-white p-5">
+    <section className="carte rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex items-center justify-between mb-4">
         <button onClick={moisPrecedent} className="rounded-md px-3 py-1 text-[#15233F] hover:bg-gray-100">‹</button>
         <h2 className="font-display text-xl text-[#15233F]">{titreMois} {annee}</h2>

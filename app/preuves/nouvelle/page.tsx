@@ -252,7 +252,7 @@ export default function NouvellePreuvePage() {
 
       <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
         {/* Sélection / capture */}
-        <div className="rounded-lg border border-[#C2A24C]/40 bg-white p-6">
+        <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-6">
           <label className="block text-sm font-medium text-[#1F2733] mb-2">
             Photo
           </label>
@@ -302,7 +302,7 @@ export default function NouvellePreuvePage() {
 
         {/* Aperçu + détails + champs */}
         {fichier && !enCours && (
-          <div className="rounded-lg border border-[#C2A24C]/40 bg-white p-6 space-y-5">
+          <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-6 space-y-5">
             {apercu && (
               <img
                 src={apercu}

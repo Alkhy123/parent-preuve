@@ -69,7 +69,7 @@ export default function EnfantsPage() {
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
 
         {/* Formulaire d'ajout */}
-        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">
@@ -112,7 +112,7 @@ export default function EnfantsPage() {
           {enfants.map((enfant) => (
             <div
               key={enfant.id}
-              className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              className="carte flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4"
             >
               <div>
                 <p className="font-semibold text-[#15233F]">

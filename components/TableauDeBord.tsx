@@ -70,7 +70,7 @@ export default function TableauDeBord() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {/* Carte Frais */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
           Frais — reste dû
         </h2>
@@ -89,7 +89,7 @@ export default function TableauDeBord() {
       </div>
 
       {/* Carte Pension */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
           Pension — solde
         </h2>
@@ -117,7 +117,7 @@ export default function TableauDeBord() {
       </div>
 
       {/* Carte Preuves */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
           Preuves scellées
         </h2>

@@ -37,7 +37,7 @@ export default function Home() {
                     "rounded-xl px-4 py-4 text-center text-sm font-medium transition " +
                     (action.principal
                       ? "bg-[#15233F] text-[#F8F6F1] hover:bg-[#1d3057]"
-                      : "border border-[#15233F]/20 bg-white text-[#15233F] hover:border-[#15233F] hover:bg-[#15233F]/5")
+                      : "carte border border-[#15233F]/20 bg-white text-[#15233F] hover:border-[#15233F] hover:bg-[#15233F]/5")
                   }
                 >
                   {action.libelle}

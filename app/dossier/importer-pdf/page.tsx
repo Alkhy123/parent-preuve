@@ -140,7 +140,7 @@ export default function ImporterPdfPage() {
               {erreur && <p className="text-sm text-red-600">{erreur}</p>}
 
               {fichier && (
-                <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-1">
+                <div className="carte rounded-lg border border-[#C2A24C] bg-white p-5 space-y-1">
                   <p className="font-display text-lg text-[#15233F]">Fichier sélectionné</p>
                   <p className="text-sm text-[#1F2733]">
                     <strong>{fichier.name}</strong> — {tailleLisible(fichier.size)}
@@ -158,7 +158,7 @@ export default function ImporterPdfPage() {
               </button>
 
               {scanne && (
-                <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
+                <div className="carte rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
                   <h2 className="font-display text-lg text-[#15233F]">Ce PDF est un scan</h2>
                   <p className="text-sm leading-relaxed text-[#1F2733]">
                     Ce document ne contient pas de texte lisible directement (c&apos;est une

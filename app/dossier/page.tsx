@@ -136,7 +136,7 @@ export default function DossierPage() {
           <div className="space-y-6">
 
             {/* Bloc 1 : toi */}
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="carte rounded-lg border border-slate-200 bg-white p-6">
               <h2 className="font-display text-xl text-[#15233F]">Vous</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Champ label="Civilité" value={form.declarant_civilite} onChange={(v) => maj("declarant_civilite", v)} placeholder="M. ou Mme" />
@@ -151,7 +151,7 @@ export default function DossierPage() {
             </section>
 
             {/* Bloc 2 : l'autre parent */}
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="carte rounded-lg border border-slate-200 bg-white p-6">
               <h2 className="font-display text-xl text-[#15233F]">L'autre parent</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Champ label="Civilité" value={form.autre_parent_civilite} onChange={(v) => maj("autre_parent_civilite", v)} placeholder="M. ou Mme" />
@@ -164,7 +164,7 @@ export default function DossierPage() {
             </section>
 
             {/* Bloc 3 : le jugement */}
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="carte rounded-lg border border-slate-200 bg-white p-6">
               <h2 className="font-display text-xl text-[#15233F]">Le jugement en vigueur</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Champ label="Juridiction" value={form.jugement_juridiction} onChange={(v) => maj("jugement_juridiction", v)} placeholder="Tribunal judiciaire de…" />

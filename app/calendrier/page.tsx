@@ -159,7 +159,7 @@ export default function CalendrierPage() {
               </select>
             </div>
 
-            <section className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
+            <section className="carte rounded-lg border border-gray-200 bg-white p-5 space-y-4">
               <h2 className="font-display text-xl text-[#15233F]">Règle de garde</h2>
 
               <div>
@@ -222,7 +222,7 @@ export default function CalendrierPage() {
               {message && <p className="text-sm text-[#1F2733]">{message}</p>}
             </section>
 
-            <section className="rounded-lg border border-gray-200 bg-white p-5">
+            <section className="carte rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>
               {apercu.length === 0 ? (
                 <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l'aperçu.</p>

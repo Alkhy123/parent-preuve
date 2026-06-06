@@ -120,7 +120,7 @@ ${corps(d, vals)}`;
               </div>
             )}
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="carte rounded-lg border border-slate-200 bg-white p-6 space-y-4">
               <h2 className="font-display text-xl text-[#15233F]">À compléter</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <ChampTexte label="Lieu" value={lieu} onChange={setLieu} placeholder="Ville d'envoi" />
@@ -158,7 +158,7 @@ ${corps(d, vals)}`;
             </section>
 
             {brouillon && (
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+              <section className="carte rounded-lg border border-slate-200 bg-white p-6 space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-xl text-[#15233F]">Brouillon</h2>
                   <div className="flex gap-2">

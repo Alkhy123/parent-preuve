@@ -222,7 +222,7 @@ export default function PreuvesPage() {
         )}
 
         {!chargement && preuves.length === 0 && (
-          <div className="rounded-lg border border-[#C2A24C]/40 bg-white p-8 text-center">
+          <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-8 text-center">
             <p className="text-[#1F2733]/70">
               Aucune preuve pour le moment.
             </p>
@@ -245,7 +245,7 @@ export default function PreuvesPage() {
               {liste.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-lg border border-[#C2A24C]/40 bg-white p-5 space-y-3"
+                  className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-5 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
