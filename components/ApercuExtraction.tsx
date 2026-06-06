@@ -1,27 +1,38 @@
 // components/ApercuExtraction.tsx
 //
 // Affiche, au-dessus d'une règle proposée par l'IA, ce que l'assistant a "lu" :
-// son niveau de confiance et les passages du jugement qu'il a cités.
-// Composant générique : il fonctionne pour les quatre sections (pension, frais,
-// DVH, décision). Aucune écriture, purement informatif.
+// le détail champ par champ (libellé, valeur, niveau de confiance) et les
+// passages du jugement qu'il a cités. Composant générique : il fonctionne pour
+// les quatre sections. Aucune écriture, purement informatif.
 
 import type { Champ } from "@/lib/regleConvertisseurs";
 
+// Valeur courte et lisible pour une puce (ex. true -> "oui", 180 -> "180").
+function formatValeur(v: number | string | boolean | null): string {
+  if (v === true) return "oui";
+  if (v === false) return "non";
+  if (typeof v === "number") return String(v);
+  if (typeof v === "string") return v.length > 32 ? v.slice(0, 32) + "…" : v;
+  return "";
+}
+
 export default function ApercuExtraction({
   champs,
+  libelles = {},
 }: {
   champs: Record<string, Champ>;
+  libelles?: Record<string, string>;
 }) {
-  // On ne regarde que les champs réellement remplis (valeur non nulle).
-  const remplis = Object.values(champs).filter((c) => c.valeur !== null);
+  // On ne garde que les champs réellement remplis (valeur non nulle).
+  const remplis = Object.entries(champs).filter(([, c]) => c.valeur !== null);
 
-  const haute = remplis.filter((c) => c.confiance === "haute").length;
-  const moyenne = remplis.filter((c) => c.confiance === "moyenne").length;
+  const haute = remplis.filter(([, c]) => c.confiance === "haute").length;
+  const moyenne = remplis.filter(([, c]) => c.confiance === "moyenne").length;
 
   // Citations uniques (un même passage peut servir à plusieurs champs).
   const citations = Array.from(
     new Set(
-      remplis.map((c) => (c.citation ?? "").trim()).filter((t) => t.length > 0)
+      remplis.map(([, c]) => (c.citation ?? "").trim()).filter((t) => t.length > 0)
     )
   );
 
@@ -48,6 +59,38 @@ export default function ApercuExtraction({
         )}
       </summary>
 
+      {/* Détail champ par champ */}
+      <p className="mt-3 text-xs uppercase tracking-wide text-[#9b833f]">
+        Détail des valeurs proposées
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {remplis.map(([cle, c]) => {
+          const libelle = libelles[cle] ?? cle;
+          const valeur = formatValeur(c.valeur);
+          const estHaute = c.confiance === "haute";
+          return (
+            <span
+              key={cle}
+              className={
+                "rounded px-2 py-1 text-xs " +
+                (estHaute
+                  ? "bg-[#0F6E56]/10 text-[#0F6E56]"
+                  : "bg-[#854F0B]/10 text-[#854F0B]")
+              }
+              title={estHaute ? "Confiance haute" : "À revérifier (confiance moyenne)"}
+            >
+              {libelle}
+              {valeur ? ` : ${valeur}` : ""}
+            </span>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-[#1F2733]/50">
+        Vert : confiance haute · Ambre : à revérifier. Les valeurs restent modifiables
+        dans le formulaire ci-dessous.
+      </p>
+
+      {/* Passages cités */}
       {citations.length > 0 ? (
         <div className="mt-3 space-y-2">
           <p className="text-xs uppercase tracking-wide text-[#9b833f]">

@@ -11,6 +11,13 @@ import RegleDecision from "@/components/RegleDecision";
 import ApercuExtraction from "@/components/ApercuExtraction";
 
 import {
+  LIBELLES_PENSION,
+  LIBELLES_FRAIS,
+  LIBELLES_DVH,
+  LIBELLES_DECISION,
+} from "@/lib/libellesRegles";
+
+import {
   type Sections,
   versReglePension,
   versRegleFrais,
@@ -221,7 +228,7 @@ export default function ExtrairePage() {
 
               {/* Règle de pension pré-remplie */}
               <div className="space-y-2">
-                <ApercuExtraction champs={resultat.sections.pension.champs} />
+              <ApercuExtraction champs={resultat.sections.pension.champs} libelles={LIBELLES_PENSION} />
                 <ReglePension
                   valeursInitiales={versReglePension(resultat.sections.pension.champs)}
                   origineIA
@@ -230,7 +237,7 @@ export default function ExtrairePage() {
 
               {/* Règle de frais pré-remplie */}
               <div className="space-y-2">
-                <ApercuExtraction champs={resultat.sections.frais.champs} />
+              <ApercuExtraction champs={resultat.sections.frais.champs} libelles={LIBELLES_FRAIS} />
                 <RegleFrais
                   valeursInitiales={versRegleFrais(resultat.sections.frais.champs)}
                   origineIA
@@ -239,7 +246,7 @@ export default function ExtrairePage() {
 
               {/* Modalités de DVH pré-remplies */}
               <div className="space-y-2">
-                <ApercuExtraction champs={resultat.sections.dvh.champs} />
+              <ApercuExtraction champs={resultat.sections.dvh.champs} libelles={LIBELLES_DVH} />
                 <RegleDVH
                   valeursInitiales={versRegleDVH(resultat.sections.dvh.champs)}
                   origineIA
@@ -248,7 +255,7 @@ export default function ExtrairePage() {
 
               {/* Nature et échéances de la décision pré-remplies */}
               <div className="space-y-2">
-                <ApercuExtraction champs={resultat.sections.decision.champs} />
+              <ApercuExtraction champs={resultat.sections.decision.champs} libelles={LIBELLES_DECISION} />
                 <RegleDecision
                   valeursInitiales={versRegleDecision(resultat.sections.decision.champs)}
                   origineIA
