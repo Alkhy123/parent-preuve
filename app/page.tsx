@@ -1,14 +1,16 @@
+import Link from "next/link";
 import ProchainesEcheances from "@/components/ProchainesEcheances";
 import TableauDeBord from "@/components/TableauDeBord";
 import PageHeader from "@/components/PageHeader";
 
 export default function Home() {
-  const sections = [
-    { titre: "Journal", description: "Vos événements datés et factuels." },
-    { titre: "Frais", description: "Frais, remboursements et soldes." },
-    { titre: "Pension", description: "Paiements mensuels et retards." },
-    { titre: "Documents", description: "Justificatifs, factures et captures." },
-    { titre: "Dossier", description: "Vos exports PDF prêts à transmettre." },
+  // Les 4 gestes du quotidien, toujours au même endroit.
+  // Le premier est l'action principale (navy plein), les autres en contour.
+  const actions = [
+    { libelle: "Ajouter un fait", href: "/journal", principal: true },
+    { libelle: "Nouvelle preuve", href: "/preuves/nouvelle", principal: false },
+    { libelle: "Courrier", href: "/courriers", principal: false },
+    { libelle: "Export PDF", href: "/export", principal: false },
   ];
 
   return (
@@ -24,23 +26,25 @@ export default function Home() {
             <TableauDeBord />
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            {sections.map((section) => (
-              <div
-                key={section.titre}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <h2 className="text-xl font-semibold text-[#15233F]">
-                  {section.titre}
-                </h2>
-                <p className="mt-1 text-slate-600">{section.description}</p>
-              </div>
-            ))}
+          <div className="mt-10">
+            <h2 className="font-display text-xl text-[#15233F]">Actions rapides</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {actions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={
+                    "rounded-xl px-4 py-4 text-center text-sm font-medium transition " +
+                    (action.principal
+                      ? "bg-[#15233F] text-[#F8F6F1] hover:bg-[#1d3057]"
+                      : "border border-[#15233F]/20 bg-white text-[#15233F] hover:border-[#15233F] hover:bg-[#15233F]/5")
+                  }
+                >
+                  {action.libelle}
+                </Link>
+              ))}
+            </div>
           </div>
-
-          <p className="mt-10 text-sm text-slate-400">
-            Bientôt disponible — version en construction.
-          </p>
 
           <div className="mt-10">
             <ProchainesEcheances />
