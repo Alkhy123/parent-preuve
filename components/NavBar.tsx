@@ -15,6 +15,7 @@ const GROUPES = [
     liens: [
       { href: "/dossier", label: "Socle (état civil)" },
       { href : "/dossier/extraire", label: "Analyse du jugement"},
+      { href : "/dossier/importer-pdf", label : "Importer un jugement"},
       { href: "/enfants", label: "Enfants" },
     ],
   },
