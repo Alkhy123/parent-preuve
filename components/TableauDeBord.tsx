@@ -1,14 +1,15 @@
 "use client";
 
-// src/components/TableauDeBord.tsx
+// components/TableauDeBord.tsx
 //
 // Petit tableau de bord chiffré pour l'accueil.
 // Il lit les MÊMES fonctions de calcul que l'export (dossierCalculs.ts),
 // donc les chiffres ne peuvent pas diverger entre les écrans.
 //
-// Vue d'ensemble (toutes les données, sans filtre de période) :
-//   - Frais : ce qui reste dû par l'autre parent
+// Trois cartes "vue d'ensemble" (toutes les données, sans filtre de période) :
+//   - Frais   : ce qui reste dû par l'autre parent
 //   - Pension : le solde (dû − payé)
+//   - Preuves : nombre de preuves scellées + état de l'horodatage
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -20,23 +21,37 @@ import {
   type TotauxPension,
 } from "@/lib/dossierCalculs";
 
+// Compteur simple pour la carte Preuves.
+type StatPreuves = {
+  total: number;
+  aRefaire: number; // horodatage à refaire
+};
+
 export default function TableauDeBord() {
   const [frais, setFrais] = useState<TotauxFrais | null>(null);
   const [pension, setPension] = useState<TotauxPension | null>(null);
+  const [preuves, setPreuves] = useState<StatPreuves | null>(null);
 
   useEffect(() => {
     let annule = false;
 
     async function charger() {
       // RLS limite déjà aux données de l'utilisateur connecté.
-      const [frRes, peRes] = await Promise.all([
+      const [frRes, peRes, prRes] = await Promise.all([
         supabase.from("expenses").select("part_autre, rembourse"),
         supabase.from("pension_payments").select("montant_du, montant_paye"),
+        supabase.from("preuves_photo").select("horodatage_statut"),
       ]);
 
       if (annule) return;
       setFrais(totauxFrais(frRes.data ?? []));
       setPension(totauxPension(peRes.data ?? []));
+
+      const lignes = prRes.data ?? [];
+      setPreuves({
+        total: lignes.length,
+        aRefaire: lignes.filter((l) => l.horodatage_statut === "a_refaire").length,
+      });
     }
 
     charger();
@@ -53,7 +68,7 @@ export default function TableauDeBord() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {/* Carte Frais */}
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
@@ -98,6 +113,32 @@ export default function TableauDeBord() {
               </>
             );
           })()
+        )}
+      </div>
+
+      {/* Carte Preuves */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+          Preuves scellées
+        </h2>
+        {preuves === null ? (
+          <p className="mt-2 text-sm text-slate-400">Chargement…</p>
+        ) : preuves.total === 0 ? (
+          <>
+            <p className="mt-1 text-3xl font-bold text-[#15233F]">0</p>
+            <p className="mt-1 text-sm text-slate-500">Aucune preuve pour l'instant.</p>
+          </>
+        ) : (
+          <>
+            <p className="mt-1 text-3xl font-bold text-[#15233F]">{preuves.total}</p>
+            {preuves.aRefaire > 0 ? (
+              <p className="mt-1 text-sm font-medium text-amber-700">
+                {preuves.aRefaire} à horodater de nouveau.
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-slate-500">Toutes horodatées.</p>
+            )}
+          </>
         )}
       </div>
     </div>

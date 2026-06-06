@@ -2,19 +2,23 @@
 
 > Document à lire en début de conversation pour reprendre le développement avec tout le contexte.
 >
-> **Dernière mise à jour : brique A — la porte « description libre » est TERMINÉE pour les 4 tables
-> règles** (`pension_regle`, `frais_regle`, `dvh_regle`, `decision_regle`). La route serveur
-> `/api/ia/extraire` prend une description libre et renvoie **un seul JSON sectionné**
-> (`{ sections: { pension, frais, dvh, decision } }`) en **un seul appel Mistral**. L'écran
-> `/dossier/extraire` est devenu un **hub** : une description → 4 encarts pré-remplis, **validables
-> indépendamment**. Chaque écriture est tracée `source='ia'`, `valide=false` jusqu'à validation
-> humaine. Voir §2, §4, §5, §8.
+> **Dernière mise à jour : brique A — porte 2 IMPORT PDF du jugement TERMINÉE.** L'écran
+> `/dossier/importer-pdf` importe un PDF (numérique **ou** scanné), en extrait le texte côté
+> serveur (`unpdf`), bascule sur l'**OCR Mistral** si le PDF est un scan (après clic explicite),
+> **cible le dispositif** (« PAR CES MOTIFS »), puis appelle le **moteur d'extraction partagé**
+> (`lib/extractionRegles.ts`) → mêmes 4 encarts pré-remplis et validables que le hub. Le PDF n'est
+> ni conservé ni journalisé ; `source='ia'`, `valide=false` jusqu'à validation. Voir §5, §6, §8.
 >
-> **Prochain grand chantier : porte 2 — IMPORT PDF du jugement** (extraction depuis un fichier,
-> et non plus depuis du texte collé). Voir §8 et le prompt de lancement dédié. À ouvrir dans une
-> **nouvelle conversation**.
+> Pour mémoire, la **porte « description libre »** reste opérationnelle : `/api/ia/extraire` prend
+> un texte collé et renvoie le même JSON sectionné (`{ sections: { pension, frais, dvh, decision } }`)
+> en un seul appel Mistral ; `/dossier/extraire` est le **hub**.
 >
-> ⚠️ Ce document décrit l'intention ; en cas de doute, **le code fait foi**.
+> **Prochain grand chantier : DESIGN / UI** (harmonisation visuelle de l'ensemble). À ouvrir dans
+> une **nouvelle conversation**. Petits restes techniques : lien NavBar vers `/dossier/importer-pdf`.
+>
+> ⚠️ Ce document décrit l'intention ; en cas de doute, **le code fait foi**. ⚠️ Le dépôt réel n'a
+> **pas** de dossier `src/` : les chemins sont `app/...`, `components/...`, `lib/...` (les `src/`
+> de ce document sont historiques).
 >
 > **En attente (bloqué) : étape 5 eIDAS** — prestataire qualifié (QTSP, RFC 3161), quand le compte
 > sera ouvert (§7).
@@ -22,7 +26,8 @@
 > Historique : briques C et D (déterministes) ✅ ; horodatage eIDAS plomberie (non qualifié) ✅ ;
 > calendrier de garde + rappels (web) ✅ ; 1ʳᵉ route IA + consentement ✅ ; brique B (reformulation)
 > ✅ ; audit de cohérence appliqué ✅ ; brique A — 4 tables règles + encarts pliables ✅ ;
-> **brique A — extraction IA des 4 tables règles (porte « description libre »)** ✅.
+> brique A — extraction IA (porte « description libre ») ✅ ;
+> **brique A — porte 2 import PDF (numérique + OCR scanné)** ✅.
 
 ---
 
@@ -381,6 +386,45 @@ par le prompt (voir « Apprentissages » plus bas).
 
 ---
 
+### Brique A — porte 2 : IMPORT PDF du jugement (TERMINÉ)
+
+> Pipeline complet : **PDF (numérique ou scanné) → texte → ciblage du dispositif → moteur
+> d'extraction partagé → 4 encarts pré-remplis, validés par l'utilisateur.** Aucune écriture
+> automatique ; `source='ia'`, `valide=false` jusqu'à validation. Le PDF n'est ni conservé ni
+> journalisé.
+
+**Décisions d'architecture retenues** (les « pistes » du §8 ont été tranchées ainsi) :
+- **Texte extrait côté serveur** avec `unpdf` (pur JS, `export const runtime = "nodejs"`). Le PDF
+  ne quitte le serveur que dans le cas scanné. Dépendance ajoutée : `unpdf`.
+- **Deux types de PDF.** *Numérique* : `unpdf` lit la couche texte, gratuit, rien n'est envoyé à
+  l'IA pour la lecture. *Scanné* (< 100 caractères extraits) : **OCR Mistral**
+  (`mistral-ocr-latest`, endpoint `/v1/ocr`, document en base64), déclenché **uniquement après un
+  clic explicite** (le document complet part alors chez Mistral → encart d'avertissement dédié).
+- **Ciblage du dispositif** (`lib/dispositif.ts`, `ciblerDispositif`) : dernière occurrence de
+  « PAR CES MOTIFS » (regex insensible casse/espaces, tolérante au markdown OCR) → on n'envoie que
+  le dispositif (cappé à 5000 car.). Formule absente → on envoie la fin du document + avertissement.
+- **Moteur d'extraction partagé** : le cœur de `/api/ia/extraire` (prompt `CONSIGNE` + validateurs)
+  est sorti dans **`lib/extractionRegles.ts`** (`analyserDispositif(texte, cle)`), appelé par les
+  **deux** routes → un seul prompt, une seule vérité.
+- **Convertisseurs partagés** : `versRegleX` + types dans **`lib/regleConvertisseurs.ts`**, utilisés
+  par le hub et par la page d'import.
+- **Consentement** : page d'import derrière `<ConsentementIA fonctionnalite="extraction">`.
+
+**Fichiers de la porte 2 :**
+- `app/dossier/importer-pdf/page.tsx` (upload 10 Mo max, contrôle navigateur + serveur, cas scanné,
+  4 encarts `RegleX` éditables/validables).
+- `app/api/ia/extraire-pdf/route.ts` (POST `FormData` `fichier`/`ocr` → `{ ok, source,
+  dispositifTrouve, tronque, avertissement, sections }`).
+- `lib/dispositif.ts`, `lib/extractionRegles.ts`, `lib/regleConvertisseurs.ts`.
+
+**Apprentissages :**
+- **Ne jamais déposer de `page.tsx` sous `app/api/...`** → Next.js lève « Conflicting route and
+  page ». Les fichiers d'API sont des `route.ts`.
+- `unpdf` est ESM-only ; `extractText(pdf, { mergePages: true })` renvoie `{ totalPages, text }`.
+- OCR Mistral facturé à l'usage (~1 $ / 1000 pages) ; on ne demande pas les images en retour.
+
+---
+
 ## 6. Carte des fichiers (repères)
 
 ```
@@ -392,6 +436,7 @@ src/
     globals.css             (.font-display)
     dossier/page.tsx        (socle + StatutConsentementIA + <RegleDecision/>)
     dossier/extraire/page.tsx (HUB extraction IA : consentement + texte + 4 encarts pré-remplis)
+    dossier/importer-pdf/page.tsx (PORTE 2 : import PDF/OCR → 4 encarts pré-remplis ; consentement)
     courriers/              (page.tsx + 4 modèles)
     export/page.tsx         (export PDF : ControleDossier + bordereau + calculs ; titre corrigé)
     reformuler/page.tsx     (brique B — reformulation)
@@ -402,6 +447,7 @@ src/
       horodatage/route.ts
       ia/reformuler/route.ts (brique B)
       ia/extraire/route.ts   (extraction IA des 4 tables règles — JSON sectionné, 1 appel Mistral)
+      ia/extraire-pdf/route.ts (PORTE 2 : PDF→texte/OCR→dispositif→moteur partagé→JSON sectionné)
     preuves/ enfants/ journal/ documents/
   components/
     NavBar.tsx              (+ lien « Analyse du jugement » → /dossier/extraire, famille Mon dossier)
@@ -427,6 +473,9 @@ src/
     preuvePdf.ts
     controleDossier.ts      (brique C)
     dossierCalculs.ts       (totauxFrais, totauxPension, euros — source unique)
+    dispositif.ts           (PORTE 2 : ciblerDispositif — isole « PAR CES MOTIFS », cap 5000)
+    extractionRegles.ts     (cœur PARTAGÉ : prompt CONSIGNE + validateurs + analyserDispositif)
+    regleConvertisseurs.ts  (cœur PARTAGÉ : types + versRegleX, hub + import PDF)
 ```
 (`.env.local` : `HORODATAGE_SECRET`, `MISTRAL_API_KEY`, `NODE_OPTIONS=--use-system-ca`.)
 
@@ -467,21 +516,15 @@ matériel oui, moral jamais** ; **ne rien inférer** (§1/§5).
 6. ✅ **EXTENSION de l'extraction aux 3 autres tables** (frais → dvh → decision), JSON sectionné,
    hub à 4 encarts. **FAIT** (méthode : route d'abord, test PowerShell, composant pré-remplissable,
    puis branchement hub ; voir §5 « Apprentissages »).
-7. ⏳ **Porte 2 : IMPORT PDF du jugement** (extraction depuis un fichier) ← **PROCHAIN GRAND CHANTIER**.
+7. ✅ **Porte 2 : IMPORT PDF du jugement** (numérique + OCR scanné) — **TERMINÉE** (voir §5).
 
-> **Pistes pour la porte 2 (import PDF) — à trancher en début de prochaine conversation :**
-> - **Où extrait-on le texte du PDF ?** Côté serveur (route) de préférence. Options : extraire le
->   **texte** du PDF puis l'envoyer à la route d'extraction existante (minimisation : on n'envoie
->   que du texte) ; OU utiliser une capacité document/OCR de Mistral (à vérifier : disponibilité,
->   coût, et compatibilité RGPD — **jamais** de données de santé, Mistral non HDS).
-> - **Réutiliser `/api/ia/extraire` ou créer `/api/ia/extraire-pdf` ?** Le cœur (prompt + format
->   sectionné + validation) est réutilisable ; seul l'amont (obtenir le texte) change.
-> - **Limite des 5000 caractères** : un jugement est long → découpage/ciblage du **dispositif**
->   (« PAR CES MOTIFS »…), ou augmentation maîtrisée de la limite, ou résumé d'abord. À cadrer.
-> - **RGPD renforcé** : le jugement est une **donnée très sensible** (état civil, enfants). Upload
->   temporaire ? pas de conservation du PDF ? consentement spécifique ? À définir.
-> - **Réutiliser tout l'aval** : les 4 `RegleX` pré-remplissables et le hub existent déjà — la porte
->   2 doit retomber sur le **même** rendu (4 encarts à valider).
+> **Porte 2 (import PDF) — décisions retenues (TERMINÉE, détail en §5) :**
+> - Texte extrait **côté serveur** (`unpdf`) ; OCR **Mistral** (`/v1/ocr`) en secours pour les
+>   scans, après clic explicite. Le PDF n'est ni conservé ni journalisé.
+> - **Ciblage du dispositif** (« PAR CES MOTIFS », `lib/dispositif.ts`) avant l'IA, cap 5000 car.
+> - **Cœur partagé** : `lib/extractionRegles.ts` (prompt + validation) et `lib/regleConvertisseurs.ts`
+>   (convertisseurs `versRegleX`), utilisés par `/api/ia/extraire` **et** `/api/ia/extraire-pdf`.
+> - Aval réutilisé : mêmes 4 encarts `RegleX` validables ; page derrière la porte de consentement.
 
 ### Brique B ✅ FAIT · Brique C ✅ FAIT · Brique D ✅ FAIT
 
@@ -491,8 +534,8 @@ courriers ; synthèse factuelle pour avocat (cadrage strict, pas de conclusions)
 
 ### Ordre global
 1. ~~C~~ ✅ · 2. ~~D~~ ✅ · 3. ~~1ʳᵉ route IA + consentement~~ ✅ · 4. ~~B~~ ✅ ·
-5. **A** — 4 tables règles ✅ ; **extraction des 4 tables (porte « description libre ») ✅** ;
-**porte 2 import PDF = prochain** · 6. supplémentaires.
+5. **A** — 4 tables règles ✅ ; **extraction (porte « description libre ») ✅** ;
+**porte 2 import PDF ✅** · 6. **DESIGN / UI = prochain** · 7. supplémentaires.
 
 ---
 
