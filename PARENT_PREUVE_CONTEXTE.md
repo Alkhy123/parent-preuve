@@ -560,6 +560,22 @@ journal d'horodatage ; QR de vérification ; auth renforcée (KYC).
 pour avocat (cadrage strict) ; **exploiter les 4 tables règles dans les courriers et l'export**
 (ex. rappeler la règle de frais dans la relance de remboursement).
 
+**COFFRE FORT de documents (brique D+)** : système centralisé de gestion des pièces jointes
+réutilisables. Architecture proposée : 
+- **Page `/documents/coffre-fort`** : liste des documents (table `documents` + `preuves_photo`),
+  catégorisés, avec recherche/filtrage par type (jugements, justificatifs frais, preuves, courriers,
+  etc.).
+- **Pré-sélection dans la génération de courriers** : lors de la génération d'un courrier (ex.
+  relance de remboursement), sélecteur multi-choix « Documents à joindre » peuplé depuis le coffre
+  fort.
+- **Automatisation du bordereau** : le PDF exporté génère automatiquement un bordereau de pièces
+  listant les documents du coffre fort attachés.
+- **Cas d'usage** : stocker le jugement une fois, le joindre à tous les courriers pertinents ;
+  joindre les justificatifs de frais directement à un courrier de relance ; lier les événements du
+  journal aux documents (ex. « courrier reçu de l'autre parent → document stocké »).
+- **Distinction** : `documents` = pièces justificatives ordinaires ; `preuves_photo` = preuves
+  scellées/horodatées (distinction de nature juridique à respecter).
+
 **Mobile / divers :** menu hamburger ; capture native / blocage galerie / détection mock
 location-root ; résidence alternée ; vacances scolaires ; vraie push (service worker + VAPID) ;
 couleur de texte par défaut dans `globals.css`.
