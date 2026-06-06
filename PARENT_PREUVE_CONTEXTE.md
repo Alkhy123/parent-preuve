@@ -2,7 +2,14 @@
 
 > Document à lire en début de conversation pour reprendre le développement avec tout le contexte.
 >
-> **Dernière mise à jour : brique A — porte 2 IMPORT PDF du jugement TERMINÉE.** L'écran
+> **Dernière mise à jour : passe de DESIGN / UI — TERMINÉE.** Accueil refondu (3 cartes indicateurs
+> dont « preuves scellées » + grille « Actions rapides »), **fond global assombri** (`#ECE7DC`),
+> **ombres `.carte`** sur tous les encarts, **hub d'extraction redessiné** (fil d'étapes + bandeau
+> d'avertissements hiérarchisé) et **aperçu IA** au-dessus de chaque règle (confiance, citations du
+> jugement, puces nommées). Nouveaux fichiers : `components/ApercuExtraction.tsx`,
+> `lib/libellesRegles.ts`. Voir §3 et §5.
+>
+> **Jalon précédent : brique A — porte 2 IMPORT PDF du jugement TERMINÉE.** L'écran
 > `/dossier/importer-pdf` importe un PDF (numérique **ou** scanné), en extrait le texte côté
 > serveur (`unpdf`), bascule sur l'**OCR Mistral** si le PDF est un scan (après clic explicite),
 > **cible le dispositif** (« PAR CES MOTIFS »), puis appelle le **moteur d'extraction partagé**
@@ -13,8 +20,10 @@
 > un texte collé et renvoie le même JSON sectionné (`{ sections: { pension, frais, dvh, decision } }`)
 > en un seul appel Mistral ; `/dossier/extraire` est le **hub**.
 >
-> **Prochain grand chantier : DESIGN / UI** (harmonisation visuelle de l'ensemble). À ouvrir dans
-> une **nouvelle conversation**. Petits restes techniques : lien NavBar vers `/dossier/importer-pdf`.
+> **Prochain grand chantier : COFFRE-FORT de documents** (`/documents/coffre-fort`, voir §9) —
+> centraliser `documents` + `preuves_photo`, pièces réutilisables dans les courriers, bordereau
+> automatique. À ouvrir dans une **nouvelle conversation**. Petits restes techniques : lien NavBar
+> vers `/dossier/importer-pdf`.
 >
 > ⚠️ Ce document décrit l'intention ; en cas de doute, **le code fait foi**. ⚠️ Le dépôt réel n'a
 > **pas** de dossier `src/` : les chemins sont `app/...`, `components/...`, `lib/...` (les `src/`
@@ -27,7 +36,8 @@
 > calendrier de garde + rappels (web) ✅ ; 1ʳᵉ route IA + consentement ✅ ; brique B (reformulation)
 > ✅ ; audit de cohérence appliqué ✅ ; brique A — 4 tables règles + encarts pliables ✅ ;
 > brique A — extraction IA (porte « description libre ») ✅ ;
-> **brique A — porte 2 import PDF (numérique + OCR scanné)** ✅.
+> brique A — porte 2 import PDF (numérique + OCR scanné) ✅ ;
+> **passe de design / UI** ✅.
 
 ---
 
@@ -128,6 +138,13 @@ PowerShell** (§11).
   **Production** (courriers + export PDF + reformulation). Ajouter un lien = l'insérer dans la
   bonne famille de `GROUPES`. Limite : barre qui passe à la ligne sur petit écran (menu hamburger
   à prévoir).
+- **Fond des pages :** crème profond **`#ECE7DC`** (`min-h-screen bg-[#ECE7DC]` sur chaque `<main>`),
+  choisi pour réduire l'éblouissement. Le crème clair `#F8F6F1` reste réservé aux **cartes/encarts**,
+  qui ressortent ainsi sur le fond. `--background` dans `globals.css` vaut aussi `#ECE7DC` (futures pages).
+- **Ombres `.carte` :** classe utilitaire dans `globals.css` donnant un léger relief 3D à toutes les
+  cartes/encarts (ombre teintée navy `#15233F`). Source unique : ajuster l'intensité = changer les
+  deux opacités dans `.carte`. Appliquée partout (TableauDeBord, EncartPliable, RegleX,
+  ProchainesEcheances, hub d'extraction, etc.).
 
 > **Astuce (texte invisible) :** champs en `bg-white text-[#1F2733]`. À terme, couleur par défaut
 > dans `globals.css`.
@@ -351,6 +368,8 @@ par le prompt (voir « Apprentissages » plus bas).
   analyse ». **Le hub n'écrit jamais lui-même** : chaque encart écrit dans sa table, indépendamment.
   Convertisseurs `versReglePension` / `versRegleFrais` / `versRegleDVH` / `versRegleDecision`
   (lecteurs sûrs `lireNombre`/`lireBool`/`lireTexte`).
+  *(Mise à jour design : le hub affiche aussi un fil d'étapes, un bandeau d'avertissements
+  hiérarchisé et un `ApercuExtraction` au-dessus de chaque règle — voir « Passe de design » plus bas.)*
 - **Les 4 composants `RegleX` étendus** (sans casser leur usage sur leur page d'origine) :
   - Props optionnelles `valeursInitiales?` (format « règle » : nombres/booléens/null/`AAAA-MM-JJ`)
     et `origineIA?: boolean`.
@@ -425,17 +444,49 @@ par le prompt (voir « Apprentissages » plus bas).
 
 ---
 
+### Passe de design / UI (TERMINÉ)
+
+> Refonte visuelle **sans changer l'identité** (navy/or/crème, Playfair Display). Tout reste
+> sobre et lisible pour un parent non-juriste.
+
+- **Accueil (`app/page.tsx` + `components/TableauDeBord.tsx`)** : `TableauDeBord` passe à **3 cartes
+  indicateurs** (frais reste dû · solde pension · **preuves scellées**, avec compteur des
+  horodatages `a_refaire`), en grille 3 colonnes sur grand écran. Les cartes de sections
+  décoratives + la mention « Bientôt disponible » sont remplacées par une grille **« Actions
+  rapides »** (4 liens : `/journal`, `/preuves/nouvelle`, `/courriers`, `/export`).
+- **Fond global** : `bg-[#F8F6F1]` → **`bg-[#ECE7DC]`** sur tous les `<main>` (moins d'éblouissement) ;
+  `--background` aligné dans `globals.css`. Le crème clair `#F8F6F1` reste réservé aux cartes/encarts.
+  Voir §3.
+- **Ombres `.carte`** : classe utilitaire dans `globals.css` (ombre teintée navy) appliquée à tous
+  les encarts pour un léger relief 3D homogène. Source unique : ajuster les deux opacités dans
+  `.carte`. Voir §3.
+- **`components/ProchainesEcheances.tsx`** : cadre harmonisé (`.carte`), petite tuile colorée par
+  ligne (dorée pour mes gardes, grise pour l'autre parent).
+- **Hub d'extraction (`app/dossier/extraire/page.tsx`) — Track A** : **fil d'étapes** « Décrire →
+  Vérifier et valider », avertissement « données de santé » rendu **visible** sous la zone de texte,
+  bandeau d'avertissements de l'étape 2 réécrit en **3 lignes hiérarchisées** (rien enregistré sans
+  validation / à relire / pas de données de santé).
+- **Aperçu IA — Track B** : nouveau composant **`components/ApercuExtraction.tsx`** affiché
+  au-dessus de chaque règle dans le hub. Il lit `confiance`/`citation` **directement** depuis
+  `resultat.sections.X.champs` (les convertisseurs ne sont **pas** modifiés). Il affiche : un résumé
+  de confiance (haute / à revérifier), des **puces nommées par champ** (vert = haute, ambre =
+  moyenne) via **`lib/libellesRegles.ts`** (libellés FR des 4 sections), et les **passages cités**
+  du jugement (bloc `<details>` repliable). Composant **générique**, réutilisable.
+  *Reste possible : surfacer aussi `confiance`/`citation` côté `/dossier/importer-pdf`.*
+
+---
+
 ## 6. Carte des fichiers (repères)
 
 ```
 src/
   app/
-    page.tsx                (ACCUEIL — PageHeader + TableauDeBord + ProchainesEcheances)
+    page.tsx                (ACCUEIL — PageHeader + TableauDeBord [3 cartes] + Actions rapides + ProchainesEcheances)
     calendrier/page.tsx     (règle de garde + <RegleDVH/>)
     layout.tsx              (NavBar + polices)
-    globals.css             (.font-display)
+    globals.css             (.font-display + .carte [ombre] + --background = #ECE7DC)
     dossier/page.tsx        (socle + StatutConsentementIA + <RegleDecision/>)
-    dossier/extraire/page.tsx (HUB extraction IA : consentement + texte + 4 encarts pré-remplis)
+    dossier/extraire/page.tsx (HUB extraction IA : consentement + fil d'étapes + texte + ApercuExtraction + 4 encarts pré-remplis)
     dossier/importer-pdf/page.tsx (PORTE 2 : import PDF/OCR → 4 encarts pré-remplis ; consentement)
     courriers/              (page.tsx + 4 modèles)
     export/page.tsx         (export PDF : ControleDossier + bordereau + calculs ; titre corrigé)
@@ -452,12 +503,13 @@ src/
   components/
     NavBar.tsx              (+ lien « Analyse du jugement » → /dossier/extraire, famille Mon dossier)
     CalendrierMensuel.tsx
-    ProchainesEcheances.tsx (utilisé par l'accueil)
-    TableauDeBord.tsx       (utilisé par l'accueil ; importe dossierCalculs)
+    ProchainesEcheances.tsx (utilisé par l'accueil ; cadre .carte, tuile par ligne)
+    TableauDeBord.tsx       (accueil ; 3 cartes : frais/pension/preuves ; importe dossierCalculs)
     ControleDossier.tsx     (brique C)
     ConsentementIA.tsx      (porte de consentement, prop `fonctionnalite` → consentements_ia)
     StatutConsentementIA.tsx(statut + retrait, prop `fonctionnalite`)
     EncartPliable.tsx       (encart crème pliable réutilisable)
+    ApercuExtraction.tsx    (aperçu IA dans le hub : confiance + citations + puces nommées par champ)
     ReglePension.tsx        (règle pension ; ÉTENDU IA : valeursInitiales + origineIA + valider ; fond crème)
     RegleFrais.tsx          (règle frais ; ÉTENDU IA : valeursInitiales + origineIA + valider)
     RegleDVH.tsx            (modalités DVH ; ÉTENDU IA : valeursInitiales + origineIA + valider + coercition enum)
@@ -475,7 +527,8 @@ src/
     dossierCalculs.ts       (totauxFrais, totauxPension, euros — source unique)
     dispositif.ts           (PORTE 2 : ciblerDispositif — isole « PAR CES MOTIFS », cap 5000)
     extractionRegles.ts     (cœur PARTAGÉ : prompt CONSIGNE + validateurs + analyserDispositif)
-    regleConvertisseurs.ts  (cœur PARTAGÉ : types + versRegleX, hub + import PDF)
+    regleConvertisseurs.ts  (cœur PARTAGÉ : types Champ/Section/Sections + versRegleX, hub + import PDF)
+    libellesRegles.ts       (libellés FR des champs des 4 sections — puces de ApercuExtraction)
 ```
 (`.env.local` : `HORODATAGE_SECRET`, `MISTRAL_API_KEY`, `NODE_OPTIONS=--use-system-ca`.)
 
@@ -535,18 +588,18 @@ courriers ; synthèse factuelle pour avocat (cadrage strict, pas de conclusions)
 ### Ordre global
 1. ~~C~~ ✅ · 2. ~~D~~ ✅ · 3. ~~1ʳᵉ route IA + consentement~~ ✅ · 4. ~~B~~ ✅ ·
 5. **A** — 4 tables règles ✅ ; **extraction (porte « description libre ») ✅** ;
-**porte 2 import PDF ✅** · 6. **DESIGN / UI = prochain** · 7. supplémentaires.
+**porte 2 import PDF ✅** · 6. **DESIGN / UI ✅** · 7. **coffre-fort = prochain** · 8. supplémentaires.
 
 ---
 
 ## 9. Backlog (à choisir selon l'envie)
 
-**Brique A (suite) :** **porte 2 : import PDF** du jugement (prochain, §8) ; **gérer `enfant_id`
-dans les `RegleX`** (sélecteur d'enfant choisi par l'humain + lecture par enfant au lieu d'une
-seule règle active) ; moteur d'indexation INSEE (fonction pure mettant à jour `montant_courant`) ;
-comparaison « dû selon la règle » vs « payé » (croiser `pension_regle` ↔ `pension_payments`,
-`frais_regle` ↔ `expenses`) ; afficher un « reste dû global » (pension + frais non remboursés) en
-exploitant `s_ajoute_a_pension`.
+**Brique A (suite) :** **gérer `enfant_id` dans les `RegleX`** (sélecteur d'enfant choisi par
+l'humain + lecture par enfant au lieu d'une seule règle active) ; moteur d'indexation INSEE
+(fonction pure mettant à jour `montant_courant`) ; comparaison « dû selon la règle » vs « payé »
+(croiser `pension_regle` ↔ `pension_payments`, `frais_regle` ↔ `expenses`) ; afficher un « reste dû
+global » (pension + frais non remboursés) en exploitant `s_ajoute_a_pension` ; surfacer
+`confiance`/`citation` (ApercuExtraction) aussi côté import PDF.
 
 **Débloque des contrôles de la brique C :**
 - Colonne `statut` sur `events` (`brouillon`|`valide`|`exporte`).
@@ -607,9 +660,9 @@ couleur de texte par défaut dans `globals.css`.
   seules en PowerShell (§11). **Méthode rodée brique A** : route d'abord (test PowerShell isolé) →
   composant pré-remplissable (test « pas de régression » sur sa page d'origine) → branchement hub
   (test de bout en bout). Ajouter une section au JSON **ne casse pas** le hub (clés en trop ignorées).
-- **claude.ai ne voit pas le projet** (coller les fichiers). **Claude Code voit le disque** mais
-  **pas** le fil claude.ai ; le pont est ce document. Pour qu'il le lise d'office : ajouter
-  `@PARENT_PREUVE_CONTEXTE.md` dans `CLAUDE.md` (à côté de `@AGENTS.md`).
+- **claude.ai ne voit pas le projet** (coller les fichiers, ou pointer vers le dépôt GitHub public).
+  **Claude Code voit le disque** mais **pas** le fil claude.ai ; le pont est ce document. Pour qu'il
+  le lise d'office : ajouter `@PARENT_PREUVE_CONTEXTE.md` dans `CLAUDE.md` (à côté de `@AGENTS.md`).
 
 ---
 
