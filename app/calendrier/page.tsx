@@ -135,7 +135,7 @@ export default function CalendrierPage() {
   const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1]">
+    <main className="min-h-screen bg-[#ECE7DC]">
       <PageHeader
         eyebrow="Organisation"
         title="Calendrier de garde"

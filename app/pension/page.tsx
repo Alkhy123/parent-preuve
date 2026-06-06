@@ -101,7 +101,7 @@ export default function PensionPage() {
         title="Pension alimentaire"
         subtitle="Suivez mois par mois ce qui est dû et ce qui a été payé."
       />
-      <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
         <div className="mx-auto max-w-2xl px-6 py-12">
           <div className="mt-6">
             <ReglePension />

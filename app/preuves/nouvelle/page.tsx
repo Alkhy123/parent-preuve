@@ -243,7 +243,7 @@ export default function NouvellePreuvePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1]">
+    <main className="min-h-screen bg-[#ECE7DC]">
       <PageHeader
         eyebrow="Preuve photo"
         title="Nouvelle preuve"

@@ -108,7 +108,7 @@ export default function ImporterPdfPage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1]">
+    <main className="min-h-screen bg-[#ECE7DC]">
       <PageHeader
         eyebrow="Mon dossier"
         title="Import du jugement (PDF)"

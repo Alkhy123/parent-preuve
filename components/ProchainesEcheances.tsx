@@ -79,7 +79,7 @@ export default function ProchainesEcheances() {
     j <= 0 ? "Aujourd'hui" : j === 1 ? "Demain" : "Dans " + j + " jours";
 
   return (
-    <section className="rounded-lg border border-gray-200 bg-white p-5">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-3">
         <h2 className="font-display text-xl text-[#15233F]">Prochaines échéances de garde</h2>
         {permission !== "granted" && (
@@ -109,9 +109,16 @@ export default function ProchainesEcheances() {
           {echeances.map((e, i) => (
             <li key={i} className="py-3 flex items-center gap-3">
               <span
-                className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: e.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
-              />
+                className={
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md " +
+                  (e.chezQui === "moi" ? "bg-[#C2A24C]/15" : "bg-gray-100")
+                }
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: e.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
+                />
+              </span>
               <div className="flex-1 text-[#1F2733]">
                 <span className="font-medium">{e.enfantNom}</span> — {fmt(e.debut)} {fmtHeure(e.debut)}
                 <span className="block text-xs text-gray-500">

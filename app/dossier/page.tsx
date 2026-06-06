@@ -122,7 +122,7 @@ export default function DossierPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
         eyebrow="Socle"
         title="Mon dossier"

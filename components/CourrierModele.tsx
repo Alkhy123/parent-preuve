@@ -105,7 +105,7 @@ ${corps(d, vals)}`;
   const dossierVide = !dossier || (!dossier.declarant_nom && !dossier.autre_parent_nom);
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader eyebrow={eyebrow} title={titre} subtitle={sousTitre} />
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
         {chargement ? (

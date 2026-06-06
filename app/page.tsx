@@ -20,7 +20,7 @@ export default function Home() {
         title="Parent Preuve"
         subtitle="Centralisez frais, pension, justificatifs et événements pour préparer un dossier clair, daté et factuel."
       />
-      <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
         <div className="mx-auto max-w-3xl px-6 py-16">
           <div className="mt-10">
             <TableauDeBord />

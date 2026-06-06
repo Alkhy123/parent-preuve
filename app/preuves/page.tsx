@@ -200,7 +200,7 @@ export default function PreuvesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1]">
+    <main className="min-h-screen bg-[#ECE7DC]">
       <PageHeader
         eyebrow="Preuve photo"
         title="Mes preuves"

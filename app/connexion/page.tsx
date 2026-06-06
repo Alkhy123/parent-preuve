@@ -40,7 +40,7 @@ export default function ConnexionPage() {
   // Vue quand on EST connecté
   if (utilisateur) {
     return (
-      <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
         <div className="mx-auto max-w-md px-6 py-20 text-center">
           <h1 className="text-2xl font-bold text-[#15233F]">Vous êtes connecté</h1>
           <p className="mt-2 text-slate-600">{utilisateur.email}</p>
@@ -57,7 +57,7 @@ export default function ConnexionPage() {
 
   // Vue quand on n'est PAS connecté
   return (
-    <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <div className="mx-auto max-w-md px-6 py-16">
         <h1 className="text-2xl font-bold text-[#15233F]">Connexion</h1>
         <p className="mt-2 text-slate-600">Accédez à votre espace Parent Preuve.</p>

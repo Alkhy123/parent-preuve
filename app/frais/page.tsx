@@ -115,7 +115,7 @@ export default function FraisPage() {
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
         eyebrow="Finances"
         title="Frais partagés"

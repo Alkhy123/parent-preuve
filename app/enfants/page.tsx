@@ -60,7 +60,7 @@ export default function EnfantsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F6F1] text-[#1F2733]">
+    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
         eyebrow="Profils"
         title="Mes enfants"
