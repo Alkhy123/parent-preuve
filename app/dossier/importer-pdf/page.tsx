@@ -5,6 +5,16 @@ import PageHeader from "@/components/PageHeader";
 
 const TAILLE_MAX_MO = 10;
 
+type Resultat = {
+  source: "texte" | "ocr";
+  dispositifTrouve: boolean;
+  tronque: boolean;
+  avertissement: string | null;
+  nbCaracteresTotal: number;
+  nbCaracteresCible: number;
+  apercu: string;
+};
+
 function tailleLisible(octets: number): string {
   if (octets < 1024 * 1024) return (octets / 1024).toFixed(0) + " Ko";
   return (octets / (1024 * 1024)).toFixed(1) + " Mo";
@@ -14,11 +24,17 @@ export default function ImporterPdfPage() {
   const [fichier, setFichier] = useState<File | null>(null);
   const [erreur, setErreur] = useState("");
   const [enCours, setEnCours] = useState(false);
-  const [infoServeur, setInfoServeur] = useState("");
+  const [scanne, setScanne] = useState(false);
+  const [resultat, setResultat] = useState<Resultat | null>(null);
+
+  function reinitialiser() {
+    setErreur("");
+    setScanne(false);
+    setResultat(null);
+  }
 
   function choisirFichier(e: React.ChangeEvent<HTMLInputElement>) {
-    setErreur("");
-    setInfoServeur("");
+    reinitialiser();
     setFichier(null);
 
     const f = e.target.files?.[0];
@@ -40,15 +56,17 @@ export default function ImporterPdfPage() {
     setFichier(f);
   }
 
-  // Envoie le PDF à la route serveur, qui revérifie de son côté.
-  async function analyser() {
+  // avecOcr = false : lecture normale ; true : l'utilisateur a autorisé l'envoi à l'OCR.
+  async function envoyer(avecOcr: boolean) {
     if (!fichier) return;
     setEnCours(true);
     setErreur("");
-    setInfoServeur("");
+    setResultat(null);
+    if (!avecOcr) setScanne(false);
     try {
       const donnees = new FormData();
       donnees.append("fichier", fichier);
+      if (avecOcr) donnees.append("ocr", "true");
       const reponse = await fetch("/api/ia/extraire-pdf", {
         method: "POST",
         body: donnees,
@@ -58,9 +76,12 @@ export default function ImporterPdfPage() {
         setErreur(data.erreur ?? "Une erreur est survenue.");
         return;
       }
-      setInfoServeur(
-        `PDF bien reçu côté serveur : ${data.nom} (${tailleLisible(data.taille)}).`
-      );
+      if (data.scanne) {
+        setScanne(true);
+        return;
+      }
+      setScanne(false);
+      setResultat(data);
     } catch {
       setErreur("Connexion impossible. Réessayez.");
     } finally {
@@ -107,14 +128,57 @@ export default function ImporterPdfPage() {
 
         <button
           type="button"
-          onClick={analyser}
+          onClick={() => envoyer(false)}
           disabled={!fichier || enCours}
           className="rounded-md bg-[#15233F] px-4 py-2 font-medium text-white hover:bg-[#1d2f54] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {enCours ? "Envoi en cours…" : "Analyser le jugement"}
+          {enCours ? "Lecture en cours…" : "Analyser le jugement"}
         </button>
 
-        {infoServeur && <p className="text-sm text-green-700">{infoServeur}</p>}
+        {/* PDF scanné : autorisation explicite avant tout envoi à l'OCR */}
+        {scanne && (
+          <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-3">
+            <h2 className="font-display text-lg text-[#15233F]">Ce PDF est un scan</h2>
+            <p className="text-sm leading-relaxed text-[#1F2733]">
+              Ce document ne contient pas de texte lisible directement (c&apos;est une image).
+              Pour le lire, le PDF sera envoyé à <strong>Mistral</strong> (société française,
+              hébergement en Union européenne, sans conservation durable) afin d&apos;en
+              reconnaître le texte. Vous validerez ensuite les informations proposées.
+            </p>
+            <button
+              type="button"
+              onClick={() => envoyer(true)}
+              disabled={enCours}
+              className="rounded-md bg-[#15233F] px-4 py-2 font-medium text-white hover:bg-[#1d2f54] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {enCours ? "Reconnaissance en cours…" : "Lancer la reconnaissance de texte"}
+            </button>
+          </div>
+        )}
+
+        {resultat && (
+          <div className="rounded-lg border border-[#C2A24C] bg-white p-5 space-y-2">
+            <p className="font-display text-lg text-[#15233F]">
+              Dispositif ciblé : {resultat.nbCaracteresCible} caractères
+            </p>
+            <p className="text-xs text-gray-500">
+              {resultat.source === "ocr"
+                ? "Texte obtenu par reconnaissance (OCR Mistral)"
+                : "Texte lu directement dans le PDF"}{" "}
+              · document complet : {resultat.nbCaracteresTotal} caractères ·{" "}
+              {resultat.dispositifTrouve
+                ? "« PAR CES MOTIFS » trouvé."
+                : "« PAR CES MOTIFS » non trouvé."}
+            </p>
+            {resultat.avertissement && (
+              <p className="text-sm text-amber-700">{resultat.avertissement}</p>
+            )}
+            <p className="text-xs text-gray-500">Aperçu de ce qui sera analysé :</p>
+            <pre className="whitespace-pre-wrap rounded bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
+              {resultat.apercu}
+            </pre>
+          </div>
+        )}
       </div>
     </>
   );
