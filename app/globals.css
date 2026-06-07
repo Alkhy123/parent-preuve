@@ -35,3 +35,13 @@ h1, h2 {
               0 10px 40px -2px rgba(21, 35, 63, 0.48);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+.lien-pied {
+  color: #F8F6F1;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+.lien-pied:hover {
+  color: #C2A24C;
+}

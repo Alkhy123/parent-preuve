@@ -13,16 +13,10 @@ export default function Footer() {
         </p>
 
         <nav className="mt-5 flex flex-col gap-2 text-sm sm:flex-row sm:gap-6">
-          <Link
-            href="/mentions-legales"
-            className="text-[#F8F6F1] underline underline-offset-4 hover:text-[#C2A24C]"
-          >
+          <Link href="/mentions-legales" className="lien-pied">
             Mentions légales
           </Link>
-          <Link
-            href="/confidentialite"
-            className="text-[#F8F6F1] underline underline-offset-4 hover:text-[#C2A24C]"
-          >
+          <Link href="/confidentialite" className="lien-pied">
             Politique de confidentialité
           </Link>
         </nav>

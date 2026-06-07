@@ -76,7 +76,7 @@ export default function TableauDeBord() {
   return (
     <>
       {/* Bannière : reste dû global */}
-      <div className="mb-4 rounded-xl border border-[#C2A24C]/40 bg-[#15233F] p-5 text-[#F8F6F1]">
+      <div className="mb-6 rounded-xl border border-[#C2A24C]/40 bg-[#15233F] p-5 text-[#F8F6F1]">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
           Reste dû global
         </h2>
@@ -103,33 +103,33 @@ export default function TableauDeBord() {
       </div>
 
       {/* Trois cartes de détail */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {/* Carte Frais */}
-        <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+        <div className="carte rounded-xl bg-white p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
             Frais — reste dû
           </h2>
           {frais === null ? (
-            <p className="mt-2 text-sm text-slate-400">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
           ) : frais.resteDu > 0 ? (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">{euros(frais.resteDu)}</p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-[#5A6473]">
                 Sur {euros(frais.totalDemande)} demandés.
               </p>
             </>
           ) : (
-            <p className="mt-2 text-lg font-semibold text-emerald-700">À jour</p>
+            <p className="mt-2 text-lg font-semibold text-[#2E6A4D]">À jour</p>
           )}
         </div>
 
         {/* Carte Pension */}
-        <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+        <div className="carte rounded-xl bg-white p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
             Pension — solde
           </h2>
           {pension === null ? (
-            <p className="mt-2 text-sm text-slate-400">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
           ) : (
             (() => {
               const l = libellePension(pension);
@@ -137,12 +137,12 @@ export default function TableauDeBord() {
                 <>
                   <p
                     className={`mt-1 text-3xl font-bold ${
-                      l.alerte ? "text-red-700" : "text-[#15233F]"
+                      l.alerte ? "text-[#9B2C2C]" : "text-[#15233F]"
                     }`}
                   >
                     {l.texte}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-[#5A6473]">
                     Dû {euros(pension.totalDu)} · payé {euros(pension.totalPaye)}.
                   </p>
                 </>
@@ -152,26 +152,26 @@ export default function TableauDeBord() {
         </div>
 
         {/* Carte Preuves */}
-        <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+        <div className="carte rounded-xl bg-white p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
             Preuves scellées
           </h2>
           {preuves === null ? (
-            <p className="mt-2 text-sm text-slate-400">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
           ) : preuves.total === 0 ? (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">0</p>
-              <p className="mt-1 text-sm text-slate-500">Aucune preuve pour l'instant.</p>
+              <p className="mt-1 text-sm text-[#5A6473]">Aucune preuve pour l'instant.</p>
             </>
           ) : (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">{preuves.total}</p>
               {preuves.aRefaire > 0 ? (
-                <p className="mt-1 text-sm font-medium text-amber-700">
+                <p className="mt-1 text-sm font-medium text-[#8A5A12]">
                   {preuves.aRefaire} à horodater de nouveau.
                 </p>
               ) : (
-                <p className="mt-1 text-sm text-slate-500">Toutes horodatées.</p>
+                <p className="mt-1 text-sm text-[#5A6473]">Toutes horodatées.</p>
               )}
             </>
           )}
