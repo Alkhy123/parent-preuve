@@ -2,6 +2,7 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { ciblerDispositif } from "@/lib/dispositif";
 import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+import { utilisateurDeLaRequete } from "@/lib/authServeur";
 
 // Cette route a besoin du moteur Node (pas "edge") pour lire un PDF.
 export const runtime = "nodejs";
@@ -18,6 +19,13 @@ export async function POST(request: Request) {
       { status: 429 }
     );
   }
+
+  // Authentification : seul un utilisateur connecté peut appeler cette route.
+  const utilisateur = await utilisateurDeLaRequete(request);
+  if (!utilisateur) {
+    return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
+  }
+
   // La clé Mistral est nécessaire pour l'analyse finale (et l'OCR éventuel).
   const cle = process.env.MISTRAL_API_KEY;
   if (!cle) {

@@ -2,6 +2,7 @@
 // La clé Mistral reste côté serveur. L'IA propose ; l'utilisateur relit et valide.
 
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+import { utilisateurDeLaRequete } from "@/lib/authServeur";
 
 // Le "rôle" qu'on donne à l'IA. C'est le cœur du garde-fou : neutre, factuel, sans invention.
 const CONSIGNE = `Tu es un assistant qui reformule des messages entre parents séparés, dans un contexte de coparentalité.
@@ -24,6 +25,12 @@ export async function POST(request: Request) {
       { erreur: `Trop de demandes de reformulation. Réessayez dans ${limite.resteSecondes} secondes.` },
       { status: 429 }
     );
+  }
+
+  // Authentification : seul un utilisateur connecté peut appeler cette route.
+  const utilisateur = await utilisateurDeLaRequete(request);
+  if (!utilisateur) {
+    return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
   }
 
   // 1. La clé reste côté serveur

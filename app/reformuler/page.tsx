@@ -3,6 +3,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase"; // ⚠️ adapte si tes autres pages importent autrement
 import PageHeader from "@/components/PageHeader";
+import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+import { utilisateurDeLaRequete } from "@/lib/authServeur";
 
 <p className="text-sm">
   <Link href="/mentions-legales" className="text-[#15233F] underline">

@@ -5,6 +5,7 @@
 
 import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+import { utilisateurDeLaRequete } from "@/lib/authServeur";
 
 export async function POST(request: Request) {
   // 0. Garde-fou de fréquence : 10 appels max par minute et par appelant.
@@ -16,6 +17,12 @@ export async function POST(request: Request) {
       },
       { status: 429 }
     );
+  }
+
+  // Authentification : seul un utilisateur connecté peut appeler cette route.
+  const utilisateur = await utilisateurDeLaRequete(request);
+  if (!utilisateur) {
+    return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
   }
 
   const cle = process.env.MISTRAL_API_KEY;
