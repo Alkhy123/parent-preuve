@@ -14,6 +14,7 @@ import {
   versRegleDVH,
   versRegleDecision,
 } from "@/lib/regleConvertisseurs";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 const TAILLE_MAX_MO = 10;
 
@@ -76,7 +77,9 @@ export default function ImporterPdfPage() {
       if (avecOcr) donnees.append("ocr", "true");
       const reponse = await fetch("/api/ia/extraire-pdf", {
         method: "POST",
+        headers: { ...(await enteteAuth()) },
         body: donnees,
+      
       });
       const data = await reponse.json();
       if (!reponse.ok) {

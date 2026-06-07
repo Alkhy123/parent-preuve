@@ -3,6 +3,7 @@ import { ciblerDispositif } from "@/lib/dispositif";
 import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 // Cette route a besoin du moteur Node (pas "edge") pour lire un PDF.
 export const runtime = "nodejs";

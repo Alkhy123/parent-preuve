@@ -6,6 +6,7 @@
 import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 export async function POST(request: Request) {
   // 0. Garde-fou de fréquence : 10 appels max par minute et par appelant.

@@ -3,6 +3,7 @@
 
 import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 // Le "rôle" qu'on donne à l'IA. C'est le cœur du garde-fou : neutre, factuel, sans invention.
 const CONSIGNE = `Tu es un assistant qui reformule des messages entre parents séparés, dans un contexte de coparentalité.

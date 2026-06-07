@@ -9,6 +9,7 @@ import RegleFrais from "@/components/RegleFrais";
 import RegleDVH from "@/components/RegleDVH";
 import RegleDecision from "@/components/RegleDecision";
 import ApercuExtraction from "@/components/ApercuExtraction";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 import {
   LIBELLES_PENSION,
@@ -107,7 +108,7 @@ export default function ExtrairePage() {
     try {
       const reponse = await fetch("/api/ia/extraire", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
         body: JSON.stringify({ texte }),
       });
       const data = await reponse.json();

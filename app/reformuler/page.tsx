@@ -3,8 +3,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase"; // ⚠️ adapte si tes autres pages importent autrement
 import PageHeader from "@/components/PageHeader";
-import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
-import { utilisateurDeLaRequete } from "@/lib/authServeur";
+import { enteteAuth } from "@/lib/enteteAuth";
 
 <p className="text-sm">
   <Link href="/mentions-legales" className="text-[#15233F] underline">
@@ -66,7 +65,7 @@ export default function ReformulerPage() {
     try {
       const reponse = await fetch("/api/ia/reformuler", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
         body: JSON.stringify({ texte }),
       });
       const data = await reponse.json();
