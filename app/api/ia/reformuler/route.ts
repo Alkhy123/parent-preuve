@@ -1,6 +1,8 @@
 // Brique B — Reformulation neutre d'un message.
 // La clé Mistral reste côté serveur. L'IA propose ; l'utilisateur relit et valide.
 
+import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+
 // Le "rôle" qu'on donne à l'IA. C'est le cœur du garde-fou : neutre, factuel, sans invention.
 const CONSIGNE = `Tu es un assistant qui reformule des messages entre parents séparés, dans un contexte de coparentalité.
 
@@ -15,6 +17,15 @@ Règles strictes :
 - Réponds UNIQUEMENT avec le texte reformulé, sans introduction ni commentaire.`;
 
 export async function POST(request: Request) {
+  // 0. Garde-fou de fréquence : 15 appels max par minute et par appelant.
+  const limite = verifierLimite(cleAppelant(request), 15, 60);
+  if (!limite.autorise) {
+    return Response.json(
+      { erreur: `Trop de demandes de reformulation. Réessayez dans ${limite.resteSecondes} secondes.` },
+      { status: 429 }
+    );
+  }
+
   // 1. La clé reste côté serveur
   const cle = process.env.MISTRAL_API_KEY;
   if (!cle) {

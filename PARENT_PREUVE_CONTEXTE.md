@@ -2,6 +2,11 @@
 
 > Document à lire en début de conversation pour reprendre le développement avec tout le contexte.
 >
+> **⚠️ Claude.ai (claude.ai/code) : exécutez aussi les skills attachés à ce compte, se connecter au github en utilisation la synchronisation dans claude ou en se rendant à l'adresse https://github.com/Alkhy123/parent-preuve ** Les skills activés
+> (ex. `/code-review`, `/run`, `/verify`, etc.) améliorent l'analyse et les tests. Voir paramètres du
+> compte ou workspace Parent Preuve.
+
+>
 > **Dernière mise à jour : passe de DESIGN / UI — TERMINÉE.** Accueil refondu (3 cartes indicateurs
 > dont « preuves scellées » + grille « Actions rapides »), **fond global assombri** (`#ECE7DC`),
 > **ombres `.carte`** sur tous les encarts, **hub d'extraction redessiné** (fil d'étapes + bandeau
@@ -62,6 +67,59 @@
 - ✅ **Fond de `ReglePension` harmonisé** : ses cartes (chargement, édition, « aucune règle »)
   passées de `bg-white` à **`bg-[#F8F6F1]`** (crème), pour s'aligner sur `RegleFrais` / `RegleDVH`
   / `RegleDecision` dans le hub. Les champs de saisie restent blancs (`bg-white`).
+  ## Étapes appliquées (07/06/2026)
+
+  ## Étapes appliquées (07/06/2026) — sessions limiteur IA + contrôles brique C
+
+- **Limiteur de fréquence IA** — `lib/limiteurAppels.ts` (en mémoire, par IP ;
+  fonctions `verifierLimite(cle, max, fenetreSecondes)` et `cleAppelant(request)`).
+  Branché sur les 3 routes : `/api/ia/extraire` (10/60s), `/api/ia/reformuler`
+  (15/60s), `/api/ia/extraire-pdf` (5/120s, plus strict car OCR). Renvoie **429**
+  avec `resteSecondes`. Limites assumées : repart à zéro au redémarrage, non partagé
+  entre instances (à renforcer si déploiement multi-instance : auth serveur + base,
+  ou magasin externe type Upstash).
+  ⚠️ **Constat important** : les routes IA **ne sont pas authentifiées côté serveur**
+  (`lib/supabase.ts` = client anon navigateur, pas de lecture de session). Le limiteur
+  est donc aujourd'hui le **seul rempart** contre le martèlement et l'appel anonyme.
+
+- **Cycle de vie des événements** — colonne `statut` sur `events`
+  (`brouillon` | `valide` | `exporte`, défaut `brouillon`, contrainte
+  `events_statut_check`). Valeur héritée `draft` convertie en `brouillon`.
+  `/journal` : badges colorés + boutons « Marquer comme validé » / « Repasser en
+  brouillon ». Comptage branché dans `ControleDossier.tsx` → avertissement `/export`.
+
+- **Lien frais ↔ justificatif** — colonne `document_id uuid` sur `expenses`
+  (FK `documents`, `on delete set null` → suppression d'un document délie le frais
+  sans erreur). `/frais` : sélecteur à la création, liaison/déliaison + « Ouvrir »
+  (URL signée 60 s) sur chaque frais existant. Comptage `document_id is null` branché
+  dans `ControleDossier.tsx` → avertissement `/export`.
+
+- **Brique C — état des contrôles** : 🔴 socle / 🔴 enfants / 🔴 période = actifs ;
+  🟠 frais sans justificatif + 🟠 événements en brouillon + 🟠 preuves à refaire =
+  **branchés** ; 🟠 pièces non rattachées = encore à 0 (attend que `documents` puisse
+  pointer vers un frais/événement).
+
+  ## Étapes appliquées (07/06/2026) — confiance IA, mobile, reste dû
+
+- **Confiance IA (étape 4)** : constat que l'affichage existait déjà via
+  `components/ApercuExtraction.tsx` (rendu au-dessus des 4 RegleX dans
+  `/dossier/extraire` : compteurs haute/à-revérifier, pastilles vert/ambre par champ,
+  passages cités). Seul ajout : `<details open={moyenne > 0}>` pour ouvrir le récap
+  automatiquement quand il y a des champs à revérifier.
+- **Menu hamburger (étape 5)** : `components/NavBar.tsx`. Version bureau inchangée
+  (`hidden md:flex`) ; bouton ☰ `md:hidden` ouvrant un panneau vertical listant les 5
+  familles `GROUPES` et leurs liens. Fermeture auto au clic sur un lien, au changement
+  de page, au clic extérieur et sur Échap.
+- **Reste dû global (étape 6)** : fonction pure `resteDuGlobal(pensionSolde, fraisResteDu)`
+  dans `lib/dossierCalculs.ts` (factuelle : pension impayée + frais non remboursés ;
+  trop-perçu de pension exposé à part, jamais déduit). Bannière navy en tête de
+  `components/TableauDeBord.tsx` (accueil). Aucune qualification juridique.
+
+- ⚠️ **Écarts doc/code constatés** (le code fait foi) : **pas de dossier `src/`**
+  (tout à la racine : `app/`, `components/`, `lib/`). L'**import PDF est déjà
+  construit** (`app/dossier/importer-pdf/page.tsx`, `app/api/ia/extraire-pdf/route.ts`,
+  `lib/dispositif.ts`, `lib/extractionRegles.ts`, `lib/regleConvertisseurs.ts`,
+  `components/ApercuExtraction.tsx`).
 
 > **Deux affirmations de l'ancien contexte étaient FAUSSES** (corrigées ici) : l'accueil
 > **délègue bien** à `TableauDeBord` (qui importe `dossierCalculs.ts`) — il ne recalcule pas à la

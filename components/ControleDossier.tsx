@@ -63,6 +63,18 @@ export default function ControleDossier({ du, au, onChange }: Props) {
           .select("id")
           .eq("horodatage_statut", "a_refaire");
 
+        // 3 bis) Les événements encore en brouillon.
+        const { data: brouillonsRows } = await supabase
+          .from("events")
+          .select("id")
+          .eq("statut", "brouillon");
+
+        // 3 ter) Les frais sans justificatif lié.
+        const { data: fraisSansJustifRows } = await supabase
+          .from("expenses")
+          .select("id")
+          .is("document_id", null);
+
         // 4) On traduit tout ça dans la forme attendue par le moteur.
         //    Les trois compteurs à 0 (frais/brouillons/pièces) ne sont pas encore
         //    calculables faute de colonnes en base : ils ne déclencheront donc rien.
@@ -81,8 +93,8 @@ export default function ControleDossier({ du, au, onChange }: Props) {
             : null,
           nombreEnfants: enfantsRows?.length ?? 0,
           periode: { du, au },
-          fraisSansJustificatif: 0, // à brancher quand la base reliera frais ↔ justificatif
-          evenementsEnBrouillon: 0, // à brancher quand `events` aura une colonne de statut
+          fraisSansJustificatif: fraisSansJustifRows?.length ?? 0,
+          evenementsEnBrouillon: brouillonsRows?.length ?? 0,
           piecesNonRattachees: 0, // à brancher quand un document pourra pointer vers un frais/événement
           preuvesHorodatageARefaire: preuvesRows?.length ?? 0,
         };

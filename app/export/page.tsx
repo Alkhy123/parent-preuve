@@ -6,7 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PageHeader from "@/components/PageHeader";
 import ControleDossier from "@/components/ControleDossier";
-import { totauxFrais, totauxPension, euros } from "@/lib/dossierCalculs";
+import { totauxFrais, totauxPension, resteDuGlobal, euros } from "@/lib/dossierCalculs";
 
 
 
@@ -74,6 +74,11 @@ export default function ExportPage() {
       const nomEnfant = (id: string | null) =>
         enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";
 
+      // Totaux calculés une seule fois (mêmes fonctions que l'accueil).
+      const calculFrais = totauxFrais(frais);
+      const calculPension = totauxPension(pension);
+      const synth = resteDuGlobal(calculPension.solde, calculFrais.resteDu);
+
       // 2) On construit le PDF
       const doc = new jsPDF();
       const periode =
@@ -90,9 +95,27 @@ export default function ExportPage() {
       doc.text(periode, 105, 65, { align: "center" });
       doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, 105, 72, { align: "center" });
 
+      // Synthèse « reste dû » (même calcul que la bannière de l'accueil).
+      doc.setFontSize(11);
+      doc.text(
+        `Reste dû${du || au ? " sur la période" : ""} : ${euros(synth.total)}`,
+        105,
+        80,
+        { align: "center" }
+      );
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(
+        `Pension impayée ${euros(synth.pensionResteDu)} · frais non remboursés ${euros(synth.fraisResteDu)}`,
+        105,
+        86,
+        { align: "center" }
+      );
+      doc.setTextColor(0);
+
       // --- Chronologie des événements ---
       autoTable(doc, {
-        startY: 90,
+        startY: 105,
         head: [["Date", "Heure", "Catégorie", "Titre", "Description"]],
         body: events.map((e) => [
           e.date_evenement,
@@ -105,14 +128,11 @@ export default function ExportPage() {
         headStyles: { fillColor: [51, 65, 85] },
         didDrawPage: () => {
           doc.setFontSize(13);
-          doc.text("1. Chronologie des événements", 14, 85);
+          doc.text("1. Chronologie des événements", 14, 100);
         },
       });
 
       // --- Tableau des frais ---
-      const calculFrais = totauxFrais(frais);
-      const calculPension = totauxPension(pension);
-
       let y = (doc as any).lastAutoTable.finalY + 15;
       doc.setFontSize(13);
       doc.text("2. Frais partagés", 14, y);

@@ -14,6 +14,7 @@ type Evenement = {
   heure_evenement: string | null;
   description_factuelle: string | null;
   child_id: string | null;
+  statut: string;
 };
 
 const CATEGORIES = ["Remise d'enfant", "Santé", "École", "Communication", "Frais", "Autre"];
@@ -23,6 +24,15 @@ const MOTS_SENSIBLES = [
   "toujours", "jamais", "menteur", "menteuse", "irresponsable",
   "égoïste", "nul", "incapable", "honteux", "honte", "évidemment",
 ];
+
+// Apparence du badge selon le statut.
+function badgeStatut(s: string) {
+  if (s === "valide")
+    return { texte: "Validé", classe: "border-emerald-200 bg-emerald-50 text-emerald-800" };
+  if (s === "exporte")
+    return { texte: "Exporté", classe: "border-slate-200 bg-slate-100 text-slate-600" };
+  return { texte: "Brouillon", classe: "border-amber-200 bg-amber-50 text-amber-800" };
+}
 
 export default function JournalPage() {
   const [evenements, setEvenements] = useState<Evenement[]>([]);
@@ -49,7 +59,7 @@ export default function JournalPage() {
   async function chargerEvenements() {
     const { data, error } = await supabase
       .from("events")
-      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id")
+      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut")
       .order("date_evenement", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setEvenements(data ?? []);
@@ -65,6 +75,8 @@ export default function JournalPage() {
     if (!titre.trim()) return setMessage("Le titre est obligatoire.");
     if (!dateEvenement) return setMessage("La date est obligatoire.");
 
+    // On n'envoie pas `statut` : la base applique son défaut « brouillon »
+    // (même logique que source/valide/actif sur les tables règles).
     const { error } = await supabase.from("events").insert({
       titre: titre.trim(),
       categorie,
@@ -81,6 +93,13 @@ export default function JournalPage() {
       setHeureEvenement(""); setDescription(""); setChildId("");
       chargerEvenements();
     }
+  }
+
+  // Fait passer un événement de brouillon à validé (et inversement).
+  async function changerStatut(id: string, nouveau: "brouillon" | "valide") {
+    const { error } = await supabase.from("events").update({ statut: nouveau }).eq("id", id);
+    if (error) setMessage("Erreur : " + error.message);
+    else chargerEvenements();
   }
 
   async function supprimerEvenement(id: string) {
@@ -210,31 +229,58 @@ export default function JournalPage() {
           {evenementsFiltres.length === 0 && (
             <p className="text-slate-500">Aucun événement pour cette sélection.</p>
           )}
-          {evenementsFiltres.map((ev) => (
-            <div key={ev.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                    {ev.categorie}
-                  </span>
-                  <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
-                  <p className="text-sm text-slate-500">
-                    {ev.date_evenement}{ev.heure_evenement ? ` à ${ev.heure_evenement}` : ""}
-                    {nomEnfant(ev.child_id) ? ` · ${nomEnfant(ev.child_id)}` : ""}
-                  </p>
-                  {ev.description_factuelle && (
-                    <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
-                  )}
+          {evenementsFiltres.map((ev) => {
+            const badge = badgeStatut(ev.statut);
+            return (
+              <div key={ev.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                        {ev.categorie}
+                      </span>
+                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
+                        {badge.texte}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
+                    <p className="text-sm text-slate-500">
+                      {ev.date_evenement}{ev.heure_evenement ? ` à ${ev.heure_evenement}` : ""}
+                      {nomEnfant(ev.child_id) ? ` · ${nomEnfant(ev.child_id)}` : ""}
+                    </p>
+                    {ev.description_factuelle && (
+                      <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
+                    )}
+                  </div>
+
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    {ev.statut !== "valide" && (
+                      <button
+                        onClick={() => changerStatut(ev.id, "valide")}
+                        className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                      >
+                        Marquer comme validé
+                      </button>
+                    )}
+                    {ev.statut !== "brouillon" && (
+                      <button
+                        onClick={() => changerStatut(ev.id, "brouillon")}
+                        className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-600 hover:bg-slate-50"
+                      >
+                        Repasser en brouillon
+                      </button>
+                    )}
+                    <button
+                      onClick={() => supprimerEvenement(ev.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => supprimerEvenement(ev.id)}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Supprimer
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </main>

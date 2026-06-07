@@ -1,11 +1,23 @@
 // app/api/ia/extraire/route.ts
 // Route serveur : description libre d'un jugement -> JSON "règles".
-// Le cœur (prompt + validation) est désormais dans lib/extractionRegles.ts,
+// Le cœur (prompt + validation) est dans lib/extractionRegles.ts,
 // partagé avec /api/ia/extraire-pdf. L'IA propose ; rien n'est écrit en base ici.
 
 import { analyserDispositif } from "@/lib/extractionRegles";
+import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
 
 export async function POST(request: Request) {
+  // 0. Garde-fou de fréquence : 10 appels max par minute et par appelant.
+  const limite = verifierLimite(cleAppelant(request), 10, 60);
+  if (!limite.autorise) {
+    return Response.json(
+      {
+        erreur: `Trop de demandes d'analyse. Réessayez dans ${limite.resteSecondes} secondes.`,
+      },
+      { status: 429 }
+    );
+  }
+
   const cle = process.env.MISTRAL_API_KEY;
   if (!cle) {
     return Response.json({ erreur: "Clé Mistral absente côté serveur." }, { status: 500 });

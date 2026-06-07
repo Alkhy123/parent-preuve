@@ -8,6 +8,9 @@ import RegleFrais from '@/components/RegleFrais';
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
+// Vue allégée d'un document, pour le proposer comme justificatif.
+type DocLite = { id: string; libelle: string; categorie: string; chemin_fichier: string };
+
 type Frais = {
   id: string;
   libelle: string;
@@ -17,6 +20,7 @@ type Frais = {
   date_frais: string;
   rembourse: boolean;
   child_id: string | null;
+  document_id: string | null;
 };
 
 const CATEGORIES = ["Santé", "École", "Activités", "Vêtements", "Garde", "Autre"];
@@ -24,6 +28,7 @@ const CATEGORIES = ["Santé", "École", "Activités", "Vêtements", "Garde", "Au
 export default function FraisPage() {
   const [frais, setFrais] = useState<Frais[]>([]);
   const [enfants, setEnfants] = useState<Enfant[]>([]);
+  const [documents, setDocuments] = useState<DocLite[]>([]);
 
   const [libelle, setLibelle] = useState("");
   const [categorie, setCategorie] = useState("Autre");
@@ -31,6 +36,7 @@ export default function FraisPage() {
   const [partAutre, setPartAutre] = useState("");
   const [dateFrais, setDateFrais] = useState("");
   const [childId, setChildId] = useState("");
+  const [documentId, setDocumentId] = useState("");
   const [message, setMessage] = useState("");
 
   async function chargerEnfants() {
@@ -41,10 +47,18 @@ export default function FraisPage() {
     setEnfants(data ?? []);
   }
 
+  async function chargerDocuments() {
+    const { data } = await supabase
+      .from("documents")
+      .select("id, libelle, categorie, chemin_fichier")
+      .order("created_at", { ascending: false });
+    setDocuments(data ?? []);
+  }
+
   async function chargerFrais() {
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, libelle, categorie, montant, part_autre, date_frais, rembourse, child_id")
+      .select("id, libelle, categorie, montant, part_autre, date_frais, rembourse, child_id, document_id")
       .order("date_frais", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setFrais(data ?? []);
@@ -52,6 +66,7 @@ export default function FraisPage() {
 
   useEffect(() => {
     chargerEnfants();
+    chargerDocuments();
     chargerFrais();
   }, []);
 
@@ -74,15 +89,37 @@ export default function FraisPage() {
       part_autre: isNaN(partNum) ? 0 : partNum,
       date_frais: dateFrais,
       child_id: childId || null,
+      document_id: documentId || null,
     });
 
     if (error) {
       setMessage("Erreur : " + error.message);
     } else {
       setLibelle(""); setCategorie("Autre"); setMontant("");
-      setPartAutre(""); setDateFrais(""); setChildId("");
+      setPartAutre(""); setDateFrais(""); setChildId(""); setDocumentId("");
       chargerFrais();
     }
+  }
+
+  // Lier (ou délier si chaîne vide) un justificatif à un frais existant.
+  async function lierJustificatif(fraisId: string, docId: string) {
+    const { error } = await supabase
+      .from("expenses")
+      .update({ document_id: docId || null })
+      .eq("id", fraisId);
+    if (error) setMessage("Erreur : " + error.message);
+    else chargerFrais();
+  }
+
+  // Ouvre le justificatif lié via un lien sécurisé valable 1 minute.
+  async function ouvrirJustificatif(docId: string) {
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc) return setMessage("Justificatif introuvable (peut-être supprimé).");
+    const { data, error } = await supabase.storage
+      .from("justificatifs")
+      .createSignedUrl(doc.chemin_fichier, 60);
+    if (error || !data) setMessage("Erreur : impossible d'ouvrir le justificatif.");
+    else window.open(data.signedUrl, "_blank");
   }
 
   async function basculerRembourse(f: Frais) {
@@ -121,7 +158,7 @@ export default function FraisPage() {
         title="Frais partagés"
         subtitle="Suivez moi par moi ce qui est dû et ce qui a été payé"
       />
-      
+
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
       <div className="mt-6">
           <RegleFrais/>
@@ -201,6 +238,24 @@ export default function FraisPage() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Justificatif (facultatif)</label>
+            <select
+              value={documentId} onChange={(e) => setDocumentId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
+              <option value="">— Aucun —</option>
+              {documents.map((d) => (
+                <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+              ))}
+            </select>
+            {documents.length === 0 && (
+              <p className="mt-1 text-xs text-slate-500">
+                Aucun justificatif disponible. Ajoutez vos pièces dans « Documents » pour pouvoir les lier ici.
+              </p>
+            )}
+          </div>
+
           <button
             onClick={ajouterFrais}
             className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
@@ -237,6 +292,37 @@ export default function FraisPage() {
                       ✓ Remboursé
                     </span>
                   )}
+
+                  {/* Justificatif lié ou non */}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {f.document_id ? (
+                      <>
+                        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                          ✓ Justificatif joint
+                        </span>
+                        <button
+                          onClick={() => ouvrirJustificatif(f.document_id!)}
+                          className="text-xs text-slate-700 hover:underline"
+                        >
+                          Ouvrir
+                        </button>
+                      </>
+                    ) : (
+                      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
+                        Sans justificatif
+                      </span>
+                    )}
+                    <select
+                      value={f.document_id ?? ""}
+                      onChange={(e) => lierJustificatif(f.id, e.target.value)}
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                    >
+                      <option value="">— Lier un justificatif —</option>
+                      {documents.map((d) => (
+                        <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <button

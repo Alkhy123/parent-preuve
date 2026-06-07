@@ -46,7 +46,7 @@ export default function ApercuExtraction({
   }
 
   return (
-    <details className="carte rounded-xl border border-[#C2A24C]/30 bg-white p-3 text-sm">
+    <details open={moyenne > 0} className="carte rounded-xl border border-[#C2A24C]/30 bg-white p-3 text-sm">
       <summary className="cursor-pointer text-[#15233F]">
         <span className="font-medium">Ce que l'assistant a lu</span>
         <span className="ml-2 rounded-full bg-[#0F6E56]/10 px-2 py-0.5 text-xs text-[#0F6E56]">

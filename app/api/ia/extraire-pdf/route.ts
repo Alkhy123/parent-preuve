@@ -1,6 +1,7 @@
 import { extractText, getDocumentProxy } from "unpdf";
 import { ciblerDispositif } from "@/lib/dispositif";
 import { analyserDispositif } from "@/lib/extractionRegles";
+import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
 
 // Cette route a besoin du moteur Node (pas "edge") pour lire un PDF.
 export const runtime = "nodejs";
@@ -9,6 +10,14 @@ const TAILLE_MAX_MO = 10;
 const SEUIL_TEXTE_MINI = 100;
 
 export async function POST(request: Request) {
+  // 0. Garde-fou de fréquence : 5 appels max par 2 minutes (l'OCR coûte cher).
+  const limite = verifierLimite(cleAppelant(request), 5, 120);
+  if (!limite.autorise) {
+    return Response.json(
+      { erreur: `Trop de demandes d'import. Réessayez dans ${limite.resteSecondes} secondes.` },
+      { status: 429 }
+    );
+  }
   // La clé Mistral est nécessaire pour l'analyse finale (et l'OCR éventuel).
   const cle = process.env.MISTRAL_API_KEY;
   if (!cle) {
