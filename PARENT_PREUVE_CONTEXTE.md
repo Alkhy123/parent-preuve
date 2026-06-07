@@ -1,11 +1,85 @@
 # Parent Preuve — Contexte du projet
 
-> Document à lire en début de conversation pour reprendre le développement avec tout le contexte.
->
-> **⚠️ Claude.ai (claude.ai/code) : exécutez aussi les skills attachés à ce compte, se connecter au github en utilisation la synchronisation dans claude ou en se rendant à l'adresse https://github.com/Alkhy123/parent-preuve ** Les skills activés
-> (ex. `/code-review`, `/run`, `/verify`, etc.) améliorent l'analyse et les tests. Voir paramètres du
-> compte ou workspace Parent Preuve.
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- MISE À JOUR 07/06/2026 — session « durcissement + contrôles + reste dû »   -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
 
+## 🆕 Session du 07/06/2026 — ce qui a été fait
+
+> ⚠️ **Écarts doc/code constatés (le code fait foi) :** il n'y a **pas de dossier `src/`** ;
+> tout est à la racine (`app/`, `components/`, `lib/`). L'**import PDF du jugement est déjà
+> construit** (`app/dossier/importer-pdf/page.tsx`, `app/api/ia/extraire-pdf/route.ts`,
+> `lib/dispositif.ts`, `lib/extractionRegles.ts`, `lib/regleConvertisseurs.ts`,
+> `components/ApercuExtraction.tsx`). L'affichage de la **confiance IA** existe déjà
+> (`ApercuExtraction` : compteurs haute/à-revérifier, pastilles vert/ambre par champ,
+> passages cités), rendu au-dessus des 4 `RegleX` dans `/dossier/extraire`.
+
+1. **Limiteur de fréquence IA** — `lib/limiteurAppels.ts` (en mémoire, par IP ;
+   `verifierLimite(cle, max, fenetreSecondes)` + `cleAppelant(request)`). Branché sur
+   `/api/ia/extraire` (10/60s), `/api/ia/reformuler` (15/60s), `/api/ia/extraire-pdf`
+   (5/120s). Renvoie **429** avec `resteSecondes`.
+   ⚠️ **Limites :** repart à zéro au redémarrage, **non partagé entre instances**
+   (problème connu pour un déploiement Vercel multi-lambda — voir chantier ci-dessous).
+   ⚠️ **Constat de sécurité :** les **routes IA ne sont PAS authentifiées côté serveur**
+   (`lib/supabase.ts` = client anon navigateur, pas de lecture de session). N'importe qui
+   sur Internet peut les appeler. Le limiteur est aujourd'hui le **seul** rempart.
+2. **Cycle de vie des événements** — colonne `statut` sur `events`
+   (`brouillon`|`valide`|`exporte`, défaut `brouillon`, contrainte `events_statut_check` ;
+   ancienne valeur `draft` convertie). `/journal` : badges + boutons valider / repasser
+   en brouillon. Comptage branché dans `ControleDossier.tsx`.
+3. **Lien frais ↔ justificatif** — colonne `document_id uuid` sur `expenses`
+   (FK `documents`, `on delete set null`). `/frais` : sélecteur à la création + liaison /
+   déliaison + « Ouvrir » (URL signée 60 s). Comptage `document_id is null` branché dans
+   `ControleDossier.tsx`.
+4. **Confiance IA** — déjà en place (`ApercuExtraction`). Seul ajout possible/retenu :
+   `<details open={moyenne > 0}>` pour ouvrir le récap quand il y a des champs à revérifier.
+5. **Menu hamburger** — `components/NavBar.tsx` : version bureau inchangée
+   (`hidden md:flex`), bouton ☰ `md:hidden` + panneau vertical des 5 familles `GROUPES`.
+6. **Reste dû global** — fonction pure `resteDuGlobal(pensionSolde, fraisResteDu)` dans
+   `lib/dossierCalculs.ts` (factuelle : pension impayée + frais non remboursés ; trop-perçu
+   exposé à part, jamais déduit). Bannière sur l'accueil (`TableauDeBord.tsx`) **et**
+   synthèse sur la page de garde du PDF (`app/export/page.tsx`) → cohérence brique D.
+7. **Bouton « Effacer toutes mes données »** — `components/EffacerDonnees.tsx`, placé en bas
+   de `/dossier` (« Zone sensible »). Double garde-fou : 1er clic ouvre la confirmation,
+   puis l'utilisateur doit taper **EFFACER** pour activer le bouton définitif. Supprime
+   les fichiers Storage (via `chemin_fichier` / `storage_path` récupérés avant) puis les
+   lignes de toutes les tables du dossier (filtre `eq('user_id', …)` + RLS), enfin recharge.
+   ⚠️ N'efface **pas** le compte Auth lui-même (remise à zéro du dossier, pas suppression
+   de compte — voir RGPD dans le chantier déploiement).
+
+## 🚀 PROCHAIN GRAND CHANTIER — MISE EN LIGNE (faire tester par d'autres utilisateurs)
+
+> À ouvrir dans une **nouvelle conversation** (prompt de démarrage dédié fourni en fin de session).
+
+Objectif : déployer l'app pour que des testeurs y accèdent via Internet, en sécurité.
+
+**À trancher / faire (ordre indicatif) :**
+- **Hébergement** : Vercel (naturel pour Next.js) + Supabase (déjà en ligne). Brancher le
+  dépôt GitHub `Alkhy123/parent-preuve`.
+- **Variables d'environnement sur l'hébergeur** : `MISTRAL_API_KEY`, `HORODATAGE_SECRET`,
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_*_KEY`. ⚠️ `NODE_OPTIONS=--use-system-ca`
+  était un correctif **Windows local** : à NE PAS reporter tel quel sur Vercel.
+- **⚠️ Bloquant sécurité avant ouverture publique** : les routes IA ne sont pas
+  authentifiées **et** le limiteur en mémoire ne tient pas sur Vercel multi-instance.
+  → Décider : (a) vraie auth serveur (lecture de session Supabase côté route, p. ex.
+  `@supabase/ssr`) + contrôle d'accès, et/ou (b) limiteur partagé via un magasin externe
+  (Upstash Redis…), et/ou (c) plafond de dépense Mistral. À cadrer en premier.
+- **Auth / inscription** : vérifier le parcours d'inscription des testeurs (page
+  `/connexion`), confirmations e-mail Supabase, URL de redirection (site URL de prod).
+- **RGPD** : le bouton « Effacer mes données » couvre la remise à zéro, mais PAS la
+  **suppression de compte** (droit à l'effacement art. 17). Prévoir aussi : mentions
+  légales à jour (Mistral sous-traitant), politique de confidentialité, base légale,
+  e-mail de contact. **Faire valider le positionnement par un professionnel du droit.**
+- **Storage / quotas** : vérifier les limites Supabase (plan gratuit) face à plusieurs
+  testeurs (taille des PDF/preuves).
+- **Garde-fous coûts IA** : Mistral en mode gratuit → surveiller le quota avec de vrais
+  testeurs (lié au point sécurité ci-dessus).
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- FIN DE LA MISE À JOUR 07/06/2026                                           -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+> Document à lire en début de conversation pour reprendre le développement avec tout le contexte.
 >
 > **Dernière mise à jour : passe de DESIGN / UI — TERMINÉE.** Accueil refondu (3 cartes indicateurs
 > dont « preuves scellées » + grille « Actions rapides »), **fond global assombri** (`#ECE7DC`),
@@ -67,59 +141,6 @@
 - ✅ **Fond de `ReglePension` harmonisé** : ses cartes (chargement, édition, « aucune règle »)
   passées de `bg-white` à **`bg-[#F8F6F1]`** (crème), pour s'aligner sur `RegleFrais` / `RegleDVH`
   / `RegleDecision` dans le hub. Les champs de saisie restent blancs (`bg-white`).
-  ## Étapes appliquées (07/06/2026)
-
-  ## Étapes appliquées (07/06/2026) — sessions limiteur IA + contrôles brique C
-
-- **Limiteur de fréquence IA** — `lib/limiteurAppels.ts` (en mémoire, par IP ;
-  fonctions `verifierLimite(cle, max, fenetreSecondes)` et `cleAppelant(request)`).
-  Branché sur les 3 routes : `/api/ia/extraire` (10/60s), `/api/ia/reformuler`
-  (15/60s), `/api/ia/extraire-pdf` (5/120s, plus strict car OCR). Renvoie **429**
-  avec `resteSecondes`. Limites assumées : repart à zéro au redémarrage, non partagé
-  entre instances (à renforcer si déploiement multi-instance : auth serveur + base,
-  ou magasin externe type Upstash).
-  ⚠️ **Constat important** : les routes IA **ne sont pas authentifiées côté serveur**
-  (`lib/supabase.ts` = client anon navigateur, pas de lecture de session). Le limiteur
-  est donc aujourd'hui le **seul rempart** contre le martèlement et l'appel anonyme.
-
-- **Cycle de vie des événements** — colonne `statut` sur `events`
-  (`brouillon` | `valide` | `exporte`, défaut `brouillon`, contrainte
-  `events_statut_check`). Valeur héritée `draft` convertie en `brouillon`.
-  `/journal` : badges colorés + boutons « Marquer comme validé » / « Repasser en
-  brouillon ». Comptage branché dans `ControleDossier.tsx` → avertissement `/export`.
-
-- **Lien frais ↔ justificatif** — colonne `document_id uuid` sur `expenses`
-  (FK `documents`, `on delete set null` → suppression d'un document délie le frais
-  sans erreur). `/frais` : sélecteur à la création, liaison/déliaison + « Ouvrir »
-  (URL signée 60 s) sur chaque frais existant. Comptage `document_id is null` branché
-  dans `ControleDossier.tsx` → avertissement `/export`.
-
-- **Brique C — état des contrôles** : 🔴 socle / 🔴 enfants / 🔴 période = actifs ;
-  🟠 frais sans justificatif + 🟠 événements en brouillon + 🟠 preuves à refaire =
-  **branchés** ; 🟠 pièces non rattachées = encore à 0 (attend que `documents` puisse
-  pointer vers un frais/événement).
-
-  ## Étapes appliquées (07/06/2026) — confiance IA, mobile, reste dû
-
-- **Confiance IA (étape 4)** : constat que l'affichage existait déjà via
-  `components/ApercuExtraction.tsx` (rendu au-dessus des 4 RegleX dans
-  `/dossier/extraire` : compteurs haute/à-revérifier, pastilles vert/ambre par champ,
-  passages cités). Seul ajout : `<details open={moyenne > 0}>` pour ouvrir le récap
-  automatiquement quand il y a des champs à revérifier.
-- **Menu hamburger (étape 5)** : `components/NavBar.tsx`. Version bureau inchangée
-  (`hidden md:flex`) ; bouton ☰ `md:hidden` ouvrant un panneau vertical listant les 5
-  familles `GROUPES` et leurs liens. Fermeture auto au clic sur un lien, au changement
-  de page, au clic extérieur et sur Échap.
-- **Reste dû global (étape 6)** : fonction pure `resteDuGlobal(pensionSolde, fraisResteDu)`
-  dans `lib/dossierCalculs.ts` (factuelle : pension impayée + frais non remboursés ;
-  trop-perçu de pension exposé à part, jamais déduit). Bannière navy en tête de
-  `components/TableauDeBord.tsx` (accueil). Aucune qualification juridique.
-
-- ⚠️ **Écarts doc/code constatés** (le code fait foi) : **pas de dossier `src/`**
-  (tout à la racine : `app/`, `components/`, `lib/`). L'**import PDF est déjà
-  construit** (`app/dossier/importer-pdf/page.tsx`, `app/api/ia/extraire-pdf/route.ts`,
-  `lib/dispositif.ts`, `lib/extractionRegles.ts`, `lib/regleConvertisseurs.ts`,
-  `components/ApercuExtraction.tsx`).
 
 > **Deux affirmations de l'ancien contexte étaient FAUSSES** (corrigées ici) : l'accueil
 > **délègue bien** à `TableauDeBord` (qui importe `dossierCalculs.ts`) — il ne recalcule pas à la

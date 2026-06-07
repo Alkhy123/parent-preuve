@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import StatutConsentementIA from "@/components/StatutConsentementIA";
 import RegleDecision from '@/components/RegleDecision';
+import EffacerDonnees from "@/components/EffacerDonnees";
 
 // La forme d'un dossier : toutes les colonnes du formulaire
 type Dossier = {
@@ -201,6 +202,9 @@ export default function DossierPage() {
                 </p>
               )}
             </div>
+
+            {/* Zone sensible : remise à zéro complète du dossier */}
+            <EffacerDonnees />
 
           </div>
         )}
