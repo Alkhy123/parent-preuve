@@ -112,7 +112,8 @@ export default function NavBar() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-6 py-3">
         <Link
           href="/"
-          className="font-display text-lg font-semibold tracking-wide text-[#C2A24C]"
+          className="font-display font-bold transition"
+          style={{ color: '#C2A24C' }}
           onClick={() => {
             setMenuOuvert(null);
             setMobileOuvert(false);

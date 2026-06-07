@@ -1,7 +1,7 @@
 import { extractText, getDocumentProxy } from "unpdf";
 import { ciblerDispositif } from "@/lib/dispositif";
 import { analyserDispositif } from "@/lib/extractionRegles";
-import { verifierLimite, cleAppelant } from "@/lib/limiteurAppel";
+import { verifierQuotaIa } from "@/lib/quotaIa";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
 import { enteteAuth } from "@/lib/enteteAuth";
 
@@ -10,23 +10,21 @@ export const runtime = "nodejs";
 
 const TAILLE_MAX_MO = 10;
 const SEUIL_TEXTE_MINI = 100;
-
 export async function POST(request: Request) {
-  // 0. Garde-fou de fréquence : 5 appels max par 2 minutes (l'OCR coûte cher).
-  const limite = verifierLimite(cleAppelant(request), 5, 120);
-  if (!limite.autorise) {
-    return Response.json(
-      { erreur: `Trop de demandes d'import. Réessayez dans ${limite.resteSecondes} secondes.` },
-      { status: 429 }
-    );
-  }
+// 1. Authentification : seul un utilisateur connecté peut appeler cette route.
+const utilisateur = await utilisateurDeLaRequete(request);
+if (!utilisateur) {
+  return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
+}
 
-  // Authentification : seul un utilisateur connecté peut appeler cette route.
-  const utilisateur = await utilisateurDeLaRequete(request);
-  if (!utilisateur) {
-    return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
-  }
-
+// 2. Quota anti-abus (compté en base, par utilisateur) : 15 appels / 60 s.
+const quota = await verifierQuotaIa(request, "extraction-pdf", 5, 120);
+if (!quota.autorise) {
+  return Response.json(
+    { erreur: `Trop de demandes. Réessayez dans ${quota.resteSecondes} secondes.` },
+    { status: 429 }
+  );
+}
   // La clé Mistral est nécessaire pour l'analyse finale (et l'OCR éventuel).
   const cle = process.env.MISTRAL_API_KEY;
   if (!cle) {

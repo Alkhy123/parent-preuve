@@ -5,12 +5,11 @@ import PageHeader from "@/components/PageHeader";
 
 export default function Home() {
   // Les 4 gestes du quotidien, toujours au même endroit.
-  // Le premier est l'action principale (navy plein), les autres en contour.
   const actions = [
-    { libelle: "Ajouter un fait", href: "/journal", principal: true },
-    { libelle: "Nouvelle preuve", href: "/preuves/nouvelle", principal: false },
-    { libelle: "Courrier", href: "/courriers", principal: false },
-    { libelle: "Export PDF", href: "/export", principal: false },
+    { libelle: "Ajouter un fait", href: "/journal" },
+    { libelle: "Nouvelle preuve", href: "/preuves/nouvelle" },
+    { libelle: "Courrier", href: "/courriers" },
+    { libelle: "Export PDF", href: "/export" },
   ];
 
   return (
@@ -33,12 +32,7 @@ export default function Home() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className={
-                    "rounded-xl px-4 py-4 text-center text-sm font-medium transition " +
-                    (action.principal
-                      ? "bg-[#15233F] text-[#F8F6F1] hover:bg-[#1d3057]"
-                      : "carte border border-[#15233F]/20 bg-white text-[#15233F] hover:border-[#15233F] hover:bg-[#15233F]/5")
-                  }
+                  className="carte rounded-xl border border-[#15233F]/20 bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:border-[#15233F] hover:bg-[#15233F]/5"
                 >
                   {action.libelle}
                 </Link>
