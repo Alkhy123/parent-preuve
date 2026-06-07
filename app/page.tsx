@@ -2,6 +2,7 @@ import Link from "next/link";
 import ProchainesEcheances from "@/components/ProchainesEcheances";
 import TableauDeBord from "@/components/TableauDeBord";
 import PageHeader from "@/components/PageHeader";
+import BoutonCaptureRapide from "@/components/BoutonCaptureRapide";
 
 export default function Home() {
   // Les 4 gestes du quotidien, toujours au même endroit.
@@ -28,11 +29,15 @@ export default function Home() {
           <div className="mt-10">
             <h2 className="font-display text-xl text-[#15233F]">Actions rapides</h2>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {actions.map((action) => (
+              {actions.map((action, index) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="carte rounded-xl border border-[#15233F]/20 bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:border-[#15233F] hover:bg-[#15233F]/5"
+                  className={
+                    index === 0
+                      ? "carte rounded-xl bg-[#15233F] px-4 py-4 text-center text-sm font-medium text-[#F8F6F1] transition hover:bg-[#1d2f52]"
+                      : "rounded-xl border border-[#15233F]/20 bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:border-[#15233F] hover:bg-[#15233F]/5"
+                  }
                 >
                   {action.libelle}
                 </Link>
@@ -44,6 +49,7 @@ export default function Home() {
             <ProchainesEcheances />
           </div>
         </div>
+        <BoutonCaptureRapide />
       </main>
     </>
   );
