@@ -7,15 +7,13 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 // Chaque entrée de la barre est une "famille" qui regroupe plusieurs liens.
-// Pour AJOUTER un lien plus tard : ajoute-le dans la bonne famille ci-dessous.
-// Pour CRÉER une nouvelle famille : ajoute un objet { label, liens: [...] }.
 const GROUPES = [
   {
     label: "Mon dossier",
     liens: [
       { href: "/dossier", label: "Socle (état civil)" },
-      { href : "/dossier/extraire", label: "Analyse du jugement"},
-      { href : "/dossier/importer-pdf", label : "Importer un jugement"},
+      { href: "/dossier/extraire", label: "Analyse du jugement" },
+      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
       { href: "/enfants", label: "Enfants" },
     ],
   },
@@ -45,16 +43,14 @@ const GROUPES = [
     liens: [
       { href: "/courriers", label: "Courriers" },
       { href: "/export", label: "Export PDF" },
-      { href: "/reformuler", label : "Reformulation" },
+      { href: "/reformuler", label: "Reformulation" },
     ],
   },
 ];
 
 export default function NavBar() {
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
-  // Quel menu déroulant (bureau) est ouvert ? (le label de la famille, ou null)
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null);
-  // Le panneau mobile (hamburger) est-il ouvert ?
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
@@ -67,7 +63,6 @@ export default function NavBar() {
     return () => ecouteur.subscription.unsubscribe();
   }, []);
 
-  // Fermer les menus si on clique en dehors de la barre, ou avec la touche Échap.
   useEffect(() => {
     function clicDehors(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -89,7 +84,6 @@ export default function NavBar() {
     };
   }, []);
 
-  // À chaque changement de page, on referme tout (utile après un clic sur un lien).
   useEffect(() => {
     setMenuOuvert(null);
     setMobileOuvert(false);
@@ -99,7 +93,6 @@ export default function NavBar() {
     await supabase.auth.signOut();
   }
 
-  // Une famille (ou un lien) est "active" si la page courante en fait partie.
   function estActif(href: string) {
     return pathname === href || pathname.startsWith(href + "/");
   }
@@ -113,7 +106,7 @@ export default function NavBar() {
         <Link
           href="/"
           className="font-display font-bold transition"
-          style={{ color: '#C2A24C' }}
+          style={{ color: "#C2A24C" }}
           onClick={() => {
             setMenuOuvert(null);
             setMobileOuvert(false);
@@ -122,50 +115,52 @@ export default function NavBar() {
           Parent Preuve
         </Link>
 
-        {/* ===== Version BUREAU (à partir de md) : menus déroulants ===== */}
+        {/* ===== Version BUREAU (à partir de md) ===== */}
         <div className="hidden flex-wrap items-center gap-2 md:flex">
-          {GROUPES.map((groupe) => {
-            const ouvert = menuOuvert === groupe.label;
-            const actif = familleActive(groupe.liens);
-            return (
-              <div key={groupe.label} className="relative">
-                <button
-                  onClick={() => setMenuOuvert(ouvert ? null : groupe.label)}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
-                    actif ? "text-[#C2A24C]" : "text-[#F8F6F1]/80"
-                  }`}
-                >
-                  {groupe.label}
-                  <span
-                    className={`text-[10px] transition-transform ${
-                      ouvert ? "rotate-180" : ""
+          {/* Les modules ne s'affichent que pour un utilisateur connecté. */}
+          {utilisateur &&
+            GROUPES.map((groupe) => {
+              const ouvert = menuOuvert === groupe.label;
+              const actif = familleActive(groupe.liens);
+              return (
+                <div key={groupe.label} className="relative">
+                  <button
+                    onClick={() => setMenuOuvert(ouvert ? null : groupe.label)}
+                    className={`flex items-center gap-1 rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
+                      actif ? "text-[#C2A24C]" : "text-[#F8F6F1]/80"
                     }`}
                   >
-                    ▾
-                  </span>
-                </button>
+                    {groupe.label}
+                    <span
+                      className={`text-[10px] transition-transform ${
+                        ouvert ? "rotate-180" : ""
+                      }`}
+                    >
+                      ▾
+                    </span>
+                  </button>
 
-                {ouvert && (
-                  <div className="absolute right-0 z-50 mt-2 min-w-[11rem] overflow-hidden rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] py-1 shadow-lg">
-                    {groupe.liens.map((l) => (
-                      <Link
-                        key={l.href}
-                        href={l.href}
-                        onClick={() => setMenuOuvert(null)}
-                        className={`block px-4 py-2 text-sm transition hover:bg-[#15233F]/5 hover:text-[#15233F] ${
-                          estActif(l.href)
-                            ? "font-semibold text-[#15233F]"
-                            : "text-[#1F2733]"
-                        }`}
-                      >
-                        {l.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  {ouvert && (
+                    <div className="absolute right-0 z-50 mt-2 min-w-[11rem] overflow-hidden rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] py-1 shadow-lg">
+                      {groupe.liens.map((l) => (
+                        <Link
+                          key={l.href}
+                          href={l.href}
+                          onClick={() => setMenuOuvert(null)}
+                          className={`block px-4 py-2 text-sm transition hover:bg-[#15233F]/5 hover:text-[#15233F] ${
+                            estActif(l.href)
+                              ? "font-semibold text-[#15233F]"
+                              : "text-[#1F2733]"
+                          }`}
+                        >
+                          {l.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
           {utilisateur ? (
             <>
@@ -194,27 +189,36 @@ export default function NavBar() {
           )}
         </div>
 
-        {/* ===== Bouton HAMBURGER (mobile uniquement, < md) ===== */}
-        <button
-          onClick={() => setMobileOuvert((o) => !o)}
-          aria-label="Ouvrir le menu"
-          aria-expanded={mobileOuvert}
-          className="rounded p-1 text-[#F8F6F1] transition hover:text-[#C2A24C] md:hidden"
-        >
-          {mobileOuvert ? (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          )}
-        </button>
+        {/* ===== Zone mobile (< md) : hamburger si connecté, sinon lien Connexion ===== */}
+        {utilisateur ? (
+          <button
+            onClick={() => setMobileOuvert((o) => !o)}
+            aria-label="Ouvrir le menu"
+            aria-expanded={mobileOuvert}
+            className="rounded p-1 text-[#F8F6F1] transition hover:text-[#C2A24C] md:hidden"
+          >
+            {mobileOuvert ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            )}
+          </button>
+        ) : (
+          <Link
+            href="/connexion"
+            className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C] md:hidden"
+          >
+            Connexion
+          </Link>
+        )}
       </div>
 
-      {/* ===== Panneau MOBILE déroulé (< md) ===== */}
-      {mobileOuvert && (
+      {/* ===== Panneau MOBILE déroulé (uniquement si connecté) ===== */}
+      {mobileOuvert && utilisateur && (
         <div className="border-t border-[#C2A24C]/30 px-6 pb-4 md:hidden">
           <div className="space-y-4 pt-3">
             {GROUPES.map((groupe) => (
@@ -242,35 +246,24 @@ export default function NavBar() {
             ))}
 
             <div className="border-t border-[#C2A24C]/20 pt-3">
-            {utilisateur ? (
-                <div className="flex flex-col gap-3">
-                  <Link
-                    href="/compte"
-                    onClick={() => setMobileOuvert(false)}
-                    className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-                  >
-                    Mon compte
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setMobileOuvert(false);
-                      seDeconnecter();
-                    }}
-                    className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-                  >
-                    Se déconnecter
-                  </button>
-                </div>
-              ) : (
+              <div className="flex flex-col gap-3">
                 <Link
-                  href="/connexion"
+                  href="/compte"
                   onClick={() => setMobileOuvert(false)}
                   className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
                 >
-                  Connexion
+                  Mon compte
                 </Link>
-              )}
-              
+                <button
+                  onClick={() => {
+                    setMobileOuvert(false);
+                    seDeconnecter();
+                  }}
+                  className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+                >
+                  Se déconnecter
+                </button>
+              </div>
             </div>
           </div>
         </div>
