@@ -2,7 +2,137 @@
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 <!-- MISE À JOUR 07/06/2026 — session « durcissement + contrôles + reste dû »   -->
+
 <!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- NOTE DE VISION PRODUIT — 07/06/2026 — session « positionnement & UX »      -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+## 🎯 Vision produit — la boussole
+
+> **Phrase de mission (boussole de décision, PAS un texte d'interface) :**
+> *« Quand tout est confus, Parent Preuve remet de l'ordre dans les faits pour que le
+> parent reprenne pied. »*
+>
+> À chaque arbitrage (fonctionnalité, mot, écran), se demander : **est-ce que ça aide le
+> parent à remettre de l'ordre et à reprendre pied ?** Si oui → dans la trajectoire. Si ça
+> ajoute de la confusion ou franchit la ligne du conseil juridique → dehors.
+
+**Le vrai problème résolu.** Le parent séparé en conflit (après JAF) est submergé sur
+**trois fronts à la fois** : le juridique qu'il ne maîtrise pas, les éléments concrets à
+produire qu'il ne sait pas identifier, et l'émotion qui brouille son jugement au pire
+moment. Personne ne l'aide à démêler les trois. La fonction première de l'app n'est donc
+ni « capturer vite » ni « gérer un dossier » : c'est **réduire la charge mentale** et
+**montrer le chemin** (« voilà où tu en es, voilà ce qui manque, voilà l'étape suivante »).
+
+**Différence de fond avec les apps de coparentalité type 2houses.** Elles supposent deux
+parents qui **coopèrent** (calendrier partagé, dépenses communes, messagerie commune).
+Parent Preuve s'adresse à **un seul parent**, souvent **seul face au conflit**, qui
+constitue un dossier factuel. On **n'invite pas** l'autre parent. Inspiration possible de
+ces apps : leur **clarté et leur lisibilité** (accueil en cartes, navigation par grandes
+familles, simplicité mobile). À NE PAS reprendre : leur **ton léger** et leur **vocabulaire
+collaboratif** — notre identité navy/or sérieuse est un **atout** (un dossier qui peut finir
+chez un avocat ou un juge inspire confiance par sa sobriété).
+
+**⚠️ Garde-fou de vocabulaire.** Ne JAMAIS écrire « assistant juridique » dans l'interface
+ou la communication : cela laisse entendre un conseil sur le droit (= ligne rouge). Décrire
+la **fonction** (mettre de l'ordre), jamais la **promesse** (dire quoi faire en droit).
+Formulation type retenue : **« votre aide pour organiser un dossier clair et factuel »**.
+
+## 🧭 Deux modes d'usage (à garder en tête pour tout futur travail UI)
+
+L'usage réel est **situationnel**, avec deux modes en tension :
+
+1. **Capture rapide** — un événement survient (retard, non-représentation, dépense, photo) ;
+   le parent est sur le moment, souvent stressé, souvent sur mobile. La **vitesse prime**.
+2. **Gestion de dossier** — plus tard, au calme : consulter les soldes, vérifier l'état,
+   préparer un courrier. La **vue d'ensemble et le contrôle priment**.
+
+**Direction retenue (à confirmer avant toute implémentation) :**
+- **L'accueil sert le mode « gestion de dossier »** : tableau de bord / état du dossier
+  (s'appuie sur `dossierCalculs.ts`, `controleDossier.ts` déjà existants).
+- **La capture rapide vit par-dessus**, accessible de partout : bouton d'action permanent
+  (type « + » flottant), pattern universel qui se **transpose directement au mobile**
+  (PWA ou React Native) → réflexe d'usage construit maintenant, réutilisable plus tard.
+- **Invariant non négociable même en mode rapide :** « l'IA propose, l'utilisateur valide ».
+  Le « rapide » porte sur le **geste de saisie**, jamais sur un enregistrement automatique
+  sans contrôle humain.
+
+> Aucune décision de design n'a encore été codée dans cette session — discussion de cadrage
+> uniquement. Prochaine étape possible (au choix) : maquette de l'accueil-tableau de bord,
+> formulation des noms de modules pour un non-juriste, ou bouton de capture rapide.
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- FIN DE LA NOTE DE VISION 07/06/2026                                        -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- MISE À JOUR 07/06/2026 — session « polish UI de l'accueil »                -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+## 🆕 Session du 07/06/2026 — passe de design accueil (faite étape par étape)
+
+> Contexte : l'accueil paraissait « débutant / brouillon ». Diagnostic : ce n'était PAS
+> l'architecture (déjà bonne) ni la palette (navy/or/crème = atout), mais des défauts
+> d'exécution (gris froids hors palette, double séparation bordure+ombre, espacement serré,
+> aucune hiérarchie d'action). Corrigé par petites étapes ciblées, sans refonte.
+
+**1. Titre d'onglet — `app/layout.tsx`.** Le défaut `create-next-app` (« Create Next App » /
+« Generated by create next app ») était resté. Remplacé l'objet `metadata` par :
+`title: "Parent Preuve — organiser un dossier clair et factuel"` + description factuelle
+(« dossier daté et factuel », sans promesse de résultat — aligné positionnement juridique).
+⚠️ Polices Playfair et `<html>`/`<body>` laissés intacts. (Restes optionnels non faits :
+`app/favicon.ico` par défaut Next, README générique.)
+
+**2. Cartes du tableau de bord — `components/TableauDeBord.tsx`.** Les 3 cartes (Frais,
+Pension, Preuves) avaient `carte rounded-xl border border-slate-200 bg-white` → **double
+séparation** (ombre `.carte` + bordure) et **gris froid hors palette**. Corrigé :
+- retiré `border border-slate-200` sur les 3 cartes → elles flottent sur le crème par la seule
+  ombre `.carte`.
+- `text-slate-400` et `text-slate-500` → **`text-[#5A6473]`** (gris légèrement bleuté, accordé navy).
+- couleurs de statut approfondies (sens conservé) : `text-emerald-700`→**`#2E6A4D`**,
+  `text-red-700`→**`#9B2C2C`**, `text-amber-700`→**`#8A5A12`** (l'ambre d'alerte tenu distinct
+  de l'or de marque `#C2A24C`).
+- rythme aéré : bannière `mb-4`→**`mb-6`** ; grille des cartes `gap-4`→**`gap-5`**.
+
+**3. Hiérarchie des Actions rapides — `app/page.tsx`.** Les 4 liens étaient identiques
+(rien ne ressortait). Ajout d'`index` dans le `.map` : le **1ᵉʳ** (« Ajouter un fait ») devient
+**bouton principal** (fond navy `#15233F`, texte crème `#F8F6F1`, ombre `.carte`, hover
+`#1d2f52`) ; les 3 autres restent **secondaires** (contour clair, **sans** `.carte`).
+Principe retenu : **une seule action principale par page**.
+
+**4. Nouveau composant — `components/BoutonCaptureRapide.tsx`.** Bouton d'action flottant
+(« + »), `fixed bottom-6 right-6 z-50`, rond or `#C2A24C`, mène à `/journal`, `aria-label`
+explicite. Importé et posé dans `app/page.tsx` juste avant `</main>`. Testé OK desktop **et**
+largeur mobile. Usage de l'or justifié (geste signature, un seul endroit fort). Isolé dans son
+propre fichier exprès → réutilisable.
+
+## 🎨 Apprentissages design (à réappliquer aux autres pages)
+
+- **Pas de double séparation** : soit ombre `.carte`, soit bordure — jamais les deux.
+- **Bannir les gris Tailwind par défaut** (`slate-400/500`, `slate-200`) : utiliser des gris
+  accordés à la palette (ex. `#5A6473`).
+- **L'or `#C2A24C` reste rare** : accents seulement (fil de nav, bouton de capture). Une couleur
+  d'accent partout perd sa force.
+- **Couleurs de statut ≠ couleur de marque** : une alerte ambre ne doit pas ressembler à l'or déco.
+- **Une seule action principale par écran** (bouton plein navy) ; le reste en secondaire (contour).
+- **Rester sur l'échelle d'espacement Tailwind** (4 → 6, 16 → 24px…), ne jamais espacer « au jugé ».
+
+## 🔭 Pistes notées (PAS faites — pour plus tard)
+
+- **Bouton flottant global** : le monter dans le layout pour l'afficher sur **toutes** les pages
+  (et pas seulement l'accueil), là où il n'y a pas de bouton d'action sous la main.
+- **Version mobile** : repurposer le bouton flottant pour **déclencher la capture photo native**
+  (au lieu de pointer vers `/journal`). Le composant est conçu pour : changer seulement sa
+  destination/action. Possibilité de le rendre **contextuel** (« + » = fait ailleurs, = preuve
+  dans l'espace preuves). Le vrai chantier mobile restera la **brique de capture native** (accès
+  caméra + SHA-256 + GPS + horodatage), la logique web existant déjà.
+- Reste optionnel : favicon + README à dégénériciser.
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- FIN DE LA MISE À JOUR 07/06/2026 (polish UI accueil)                       -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
 
 ## 🆕 Session du 07/06/2026 — ce qui a été fait
 
