@@ -28,6 +28,7 @@ const TABLES_UTILISATEUR = [
   "garde_regles",
   "consentements_ia",
   "ia_appels",
+  "acceptation_politique",
   "dossier",
   "children",
 ] as const;
