@@ -168,12 +168,21 @@ export default function NavBar() {
           })}
 
           {utilisateur ? (
-            <button
-              onClick={seDeconnecter}
-              className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-            >
-              Se déconnecter
-            </button>
+            <>
+              <Link
+                href="/compte"
+                onClick={() => setMenuOuvert(null)}
+                className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+              >
+                Mon compte
+              </Link>
+              <button
+                onClick={seDeconnecter}
+                className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+              >
+                Se déconnecter
+              </button>
+            </>
           ) : (
             <Link
               href="/connexion"
@@ -233,16 +242,25 @@ export default function NavBar() {
             ))}
 
             <div className="border-t border-[#C2A24C]/20 pt-3">
-              {utilisateur ? (
-                <button
-                  onClick={() => {
-                    setMobileOuvert(false);
-                    seDeconnecter();
-                  }}
-                  className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-                >
-                  Se déconnecter
-                </button>
+            {utilisateur ? (
+                <div className="flex flex-col gap-3">
+                  <Link
+                    href="/compte"
+                    onClick={() => setMobileOuvert(false)}
+                    className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+                  >
+                    Mon compte
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileOuvert(false);
+                      seDeconnecter();
+                    }}
+                    className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+                  >
+                    Se déconnecter
+                  </button>
+                </div>
               ) : (
                 <Link
                   href="/connexion"
@@ -252,6 +270,7 @@ export default function NavBar() {
                   Connexion
                 </Link>
               )}
+              
             </div>
           </div>
         </div>
