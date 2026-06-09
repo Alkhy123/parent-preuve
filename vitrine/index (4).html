@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parent Preuve — Réunissez les faits, organisez votre dossier après le JAF</title>
+<meta name="description" content="Parent Preuve vous aide à réunir, dater et organiser les éléments factuels de votre coparentalité — journal, frais, pension, pièces — et à les exporter en un dossier clair, prêt à présenter.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Spectral:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --navy:#15233F;
+    --navy-2:#1c2e52;
+    --or:#C2A24C;
+    --or-soft:#e4d39a;
+    --creme:#ECE6D8;
+    --creme-2:#E4DCC9;
+    --carte:#F7F2E8;
+    --texte:#1F2733;
+    --gris:#5a6172;
+    --gris-clair:#8a90a0;
+    --vert:#2E6A4D;
+    --rouge:#9B2C2C;
+    --ambre:#8A5A12;
+    --bordure:#e7e2d7;
+    --bordure-fine:#eef0f4;
+    --max:1140px;
+    --ombre-douce:0 1px 1px rgba(21,35,63,.04),0 3px 8px rgba(21,35,63,.05),0 10px 24px rgba(21,35,63,.07);
+    --ombre-forte:0 1px 1px rgba(21,35,63,.05),0 4px 8px rgba(21,35,63,.06),0 12px 24px rgba(21,35,63,.08),0 30px 60px rgba(21,35,63,.13);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Spectral",Georgia,serif;
+    color:var(--texte);
+    background:var(--creme);
+    line-height:1.65;font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .font-display{font-family:"Playfair Display",serif}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+  a{color:inherit}
+
+  /* ---------- Boutons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"Spectral",serif;font-weight:500;font-size:16px;
+    padding:14px 26px;border-radius:11px;text-decoration:none;cursor:pointer;border:none;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+  }
+  .btn .fl{transition:transform .2s ease}
+  .btn:hover .fl{transform:translateX(3px)}
+  .btn-or{background:var(--or);color:var(--navy);box-shadow:0 4px 14px rgba(194,162,76,.20)}
+  .btn-or:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(194,162,76,.28)}
+  .btn-ghost{background:transparent;color:var(--navy);border:1px solid #c9cdd6}
+  .btn-ghost:hover{border-color:var(--navy);background:var(--carte)}
+
+  /* ---------- En-tête ---------- */
+  header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(236,230,216,.85);
+    backdrop-filter:saturate(150%) blur(12px);
+    border-bottom:1px solid var(--bordure);
+  }
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;max-width:var(--max);margin:0 auto}
+  .logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+  .logo .nom{font-family:"Playfair Display",serif;font-weight:600;font-size:20px;color:var(--navy)}
+  .header-nav{display:flex;align-items:center;gap:30px}
+  .header-nav a.lien{font-size:15px;color:var(--gris);text-decoration:none;transition:color .15s}
+  .header-nav a.lien:hover{color:var(--navy)}
+
+  /* ---------- Atmosphère / texture ---------- */
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.025;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;overflow:hidden;padding:92px 0 56px;
+    background:
+      radial-gradient(820px 460px at 88% -8%, rgba(194,162,76,.07), transparent 64%),
+      radial-gradient(700px 500px at -5% 20%, rgba(21,35,63,.04), transparent 60%),
+      linear-gradient(180deg, var(--creme) 0%, var(--creme-2) 100%);
+  }
+  .hero-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:60px;align-items:center;position:relative;z-index:2}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ambre);font-weight:600;margin-bottom:20px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--or)}
+  .hero h1{font-family:"Playfair Display",serif;font-weight:600;font-size:clamp(36px,5.4vw,58px);line-height:1.07;color:var(--navy);letter-spacing:-.012em}
+  .hero h1 .or{color:var(--or);font-style:italic}
+  .hero .sub{margin-top:24px;font-size:19px;color:var(--gris);max-width:540px}
+  .hero-cta{margin-top:34px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .badges{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
+
+  /* badge store factice */
+  .store{display:inline-flex;align-items:center;gap:11px;border:1px solid var(--bordure);background:var(--carte);border-radius:12px;padding:9px 16px;color:var(--navy);opacity:.85;cursor:default}
+  .store small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris-clair)}
+  .store .magasin{font-family:"Playfair Display",serif;font-size:16px;line-height:1.1}
+
+  /* ---------- Maquette d'app (réutilisable) ---------- */
+  .appwin{background:var(--carte);border:1px solid var(--bordure);border-radius:18px;box-shadow:var(--ombre-forte),inset 0 1px 0 rgba(255,255,255,.6);overflow:hidden}
+  .appwin .topbar{display:flex;align-items:center;gap:8px;padding:13px 16px;background:linear-gradient(180deg,#22345c,#15233F);color:#fff}
+  .appwin .topbar .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.28)}
+  .appwin .topbar .t{margin-left:8px;font-family:"Playfair Display",serif;font-size:14px;letter-spacing:.02em;color:#eef}
+  .appwin .body{padding:18px}
+  .stat{display:flex;justify-content:space-between;align-items:flex-end;padding:14px 16px;border-radius:12px;background:var(--creme);border:1px solid var(--bordure)}
+  .stat .lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris-clair)}
+  .stat .val{font-family:"Playfair Display",serif;font-size:26px;color:var(--navy)}
+  .stat .val.rouge{color:var(--rouge)}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--bordure-fine)}
+  .row:last-child{border-bottom:none}
+  .chip-date{flex:none;font-size:11px;font-weight:600;color:var(--navy);background:#ece6da;border-radius:6px;padding:4px 8px;letter-spacing:.02em}
+  .row .txt{flex:1;min-width:0}
+  .row .l1{height:9px;border-radius:5px;background:#e7e0d3;width:85%}
+  .row .l2{height:8px;border-radius:5px;background:#efe9dd;width:55%;margin-top:7px}
+  .tag{flex:none;font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px}
+  .tag.valide{color:var(--vert);background:rgba(46,106,77,.12)}
+  .tag.attente{color:var(--ambre);background:rgba(138,90,18,.12)}
+  .tag.du{color:var(--rouge);background:rgba(155,44,44,.10)}
+  .tag.paye{color:var(--vert);background:rgba(46,106,77,.12)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--gris);letter-spacing:-.02em;word-break:break-all}
+  .seal{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ambre);background:rgba(194,162,76,.14);border:1px solid rgba(194,162,76,.4);border-radius:8px;padding:6px 11px}
+  .photo-fake{height:130px;border-radius:12px;background:linear-gradient(135deg,#e6e0d3,#f1ece1);position:relative;display:flex;align-items:center;justify-content:center;color:#b3a892}
+  .ia-banner{display:flex;align-items:center;gap:10px;background:rgba(194,162,76,.12);border:1px solid rgba(194,162,76,.45);border-radius:10px;padding:11px 13px;margin-top:12px}
+  .ia-banner .pt{flex:1;font-size:13px;color:var(--ambre);font-weight:600}
+  .mini-btn{font-size:12px;font-weight:600;color:var(--navy);background:var(--or);border-radius:7px;padding:6px 11px}
+  .conf{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:.03em}
+  .conf.haute{color:var(--vert);background:rgba(46,106,77,.12)}
+  .conf.moy{color:var(--ambre);background:rgba(138,90,18,.12)}
+  .courrier .ent{font-family:"Playfair Display",serif;font-size:14px;color:var(--navy);margin-bottom:10px}
+  .courrier .lc{height:8px;border-radius:5px;background:#e7e0d3;margin:8px 0}
+  .courrier .lc.s{width:60%}
+  .courrier .article{font-size:12px;color:var(--navy);background:#ece6da;border-left:3px solid var(--or);border-radius:0 7px 7px 0;padding:8px 11px;margin-top:12px}
+  .courrier .article b{color:var(--ambre)}
+
+  /* floats décoratifs autour de la maquette hero */
+  .hero-visual{position:relative}
+  .float{position:absolute;background:var(--carte);border:1px solid var(--bordure);border-radius:12px;box-shadow:var(--ombre-douce);padding:12px 14px;display:flex;align-items:center;gap:10px;z-index:3}
+  .float .ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
+  .float .ft{font-size:12.5px;line-height:1.3}
+  .float .ft b{display:block;font-family:"Playfair Display",serif;font-size:14px;color:var(--navy)}
+  .float .ft span{color:var(--gris-clair)}
+  .float.f1{top:-18px;left:-26px}
+  .float.f2{bottom:-20px;right:-22px}
+
+  /* ---------- Bandeau réassurance ---------- */
+  .trust{position:relative;z-index:2;border-top:1px solid var(--bordure);border-bottom:1px solid var(--bordure);background:var(--creme-2)}
+  .trust-inner{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 40px;padding:20px 24px;max-width:var(--max);margin:0 auto}
+  .trust span{display:inline-flex;align-items:center;gap:9px;font-size:14.5px;color:var(--navy)}
+  .trust span svg{color:var(--or)}
+
+  /* ---------- Sections ---------- */
+  section{padding:92px 0;position:relative;z-index:2}
+  .filet{width:54px;height:3px;background:var(--or);border-radius:3px;margin-bottom:22px}
+  .eyebrow-2{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ambre);font-weight:600;display:block;margin-bottom:14px}
+  .section-titre{font-family:"Playfair Display",serif;font-weight:600;color:var(--navy);font-size:clamp(28px,3.8vw,40px);line-height:1.16;max-width:780px}
+  .section-intro{margin-top:18px;color:var(--gris);font-size:18px;max-width:680px}
+
+  /* Quotidien (citation éditoriale) */
+  .quotidien{background:var(--navy);color:var(--creme);text-align:center}
+  .quotidien .mark{font-family:"Playfair Display",serif;font-size:64px;color:var(--or);line-height:.4;display:block;margin-bottom:14px}
+  .quotidien blockquote{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(24px,3.4vw,34px);line-height:1.3;max-width:880px;margin:0 auto;color:#fff}
+  .quotidien blockquote .or{color:var(--or-soft);font-style:italic}
+  .quotidien p{margin:26px auto 0;max-width:640px;color:#c5cbd8;font-size:17px}
+
+  /* Étapes */
+  .etapes{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:50px;counter-reset:step}
+  .etape{position:relative;padding:32px 28px;background:var(--creme-2);border:1px solid var(--bordure);border-radius:16px;transition:transform .2s ease,box-shadow .2s ease}
+  .etape:hover{transform:translateY(-4px);box-shadow:var(--ombre-douce)}
+  .etape .n{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:11px;background:var(--navy);color:var(--or);font-family:"Playfair Display",serif;font-size:18px;font-weight:700;margin-bottom:16px}
+  .etape h3{font-family:"Playfair Display",serif;color:var(--navy);font-size:22px;margin-bottom:9px}
+  .etape p{color:var(--gris);font-size:16px}
+
+  /* Fonctionnalités — blocs en alternance */
+  .features{background:linear-gradient(180deg,var(--creme) 0%, var(--creme-2) 100%)}
+  .feat-head{text-align:center;max-width:720px;margin:0 auto 30px}
+  .feat-head .filet{margin:0 auto 20px}
+  .feat-head .section-titre,.feat-head .section-intro{margin-left:auto;margin-right:auto}
+  .feat-row{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;padding:56px 0;border-bottom:1px solid var(--bordure)}
+  .feat-row:last-child{border-bottom:none}
+  .feat-row.reverse .feat-text{order:2}
+  .feat-row.reverse .feat-visual{order:1}
+  .feat-cat{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ambre);font-weight:600}
+  .feat-text h3{font-family:"Playfair Display",serif;font-weight:600;color:var(--navy);font-size:clamp(24px,3vw,32px);line-height:1.2;margin:12px 0 14px}
+  .feat-text p.lead{color:var(--gris);font-size:17.5px;margin-bottom:18px}
+  .feat-points{list-style:none}
+  .feat-points li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;font-size:16px;color:var(--texte)}
+  .feat-points li svg{flex:none;margin-top:4px;color:var(--vert)}
+  .feat-limite{display:inline-block;margin-top:16px;font-size:13.5px;color:var(--gris);font-style:italic;border-left:2px solid var(--or);padding-left:12px}
+  .feat-visual{position:relative}
+
+  /* Données / confiance */
+  .donnees{background:var(--navy);color:var(--creme)}
+  .donnees .section-titre{color:#fff}
+  .donnees-grid{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+  .liste-confiance{list-style:none;margin-top:8px}
+  .liste-confiance li{display:flex;gap:15px;align-items:flex-start;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.10);font-size:16.5px;color:#dde1e9}
+  .liste-confiance li:last-child{border-bottom:none}
+  .liste-confiance li strong{color:#fff}
+  .check{flex:none;width:28px;height:28px;border-radius:50%;background:rgba(194,162,76,.18);display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .bandeau{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-left:4px solid var(--or);border-radius:14px;padding:28px 30px;font-size:16.5px;color:#dde1e9}
+  .bandeau strong{color:#fff}
+
+  /* Accès */
+  .acces{text-align:center;background:linear-gradient(180deg,var(--creme-2),var(--creme))}
+  .acces .filet{margin:0 auto 22px}
+  .acces .section-titre{margin:0 auto}
+  .acces .section-intro{margin:18px auto 0}
+  .acces-cta{margin-top:36px;display:flex;flex-direction:column;align-items:center;gap:24px}
+  .acces .badges{justify-content:center;margin-top:0}
+
+  /* Pied de page */
+  footer{background:#101a30;color:#aeb4c0;padding:54px 0 42px;position:relative;z-index:2}
+  .footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px}
+  .footer-haut{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .footer-haut .nom{font-family:"Playfair Display",serif;color:var(--creme);font-size:19px}
+  .footer-mention{font-size:13px;color:#7d8497;max-width:540px}
+  .footer-liens{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start}
+  .footer-liens a{color:#cdd2dc;text-decoration:none;font-size:15px}
+  .footer-liens a:hover{color:var(--or)}
+
+  /* Reveal au chargement */
+  .reveal{opacity:0;transform:translateY(16px);animation:rise .75s cubic-bezier(.2,.7,.3,1) forwards}
+  .d1{animation-delay:.05s}.d2{animation-delay:.16s}.d3{animation-delay:.27s}.d4{animation-delay:.38s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}}
+
+  /* ---------- Relief / 3D ---------- */
+  .hero-visual{perspective:1600px}
+  .hero-visual .appwin{transform:rotateY(-7deg) rotateX(3deg);transition:transform .6s cubic-bezier(.2,.7,.3,1),box-shadow .6s}
+  .hero-visual:hover .appwin{transform:rotateY(0) rotateX(0)}
+  .feat-visual{perspective:1600px}
+  .feat-visual .appwin{transform:rotateY(6deg) rotateX(2deg);transition:transform .6s cubic-bezier(.2,.7,.3,1)}
+  .feat-row.reverse .feat-visual .appwin{transform:rotateY(-6deg) rotateX(2deg)}
+  .feat-visual:hover .appwin{transform:rotateY(0) rotateX(0)}
+  .float{animation:floaty 6s ease-in-out infinite}
+  .float.f2{animation-delay:-3s}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .btn-or{
+    background:linear-gradient(180deg,#d2b461,#C2A24C);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 16px rgba(194,162,76,.26),0 2px 4px rgba(21,35,63,.10);
+  }
+  .btn-or:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 12px 24px rgba(194,162,76,.32),0 3px 6px rgba(21,35,63,.12)}
+  .etape{background:linear-gradient(180deg,#f7f2e8,var(--creme-2));box-shadow:inset 0 1px 0 rgba(255,255,255,.6),var(--ombre-douce)}
+  .stat{box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+  .seal{box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+  @media (prefers-reduced-motion:reduce){.float{animation:none}}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .hero{padding:62px 0 44px}
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-visual{order:2}
+    .etapes{grid-template-columns:1fr;gap:16px}
+    .feat-row{grid-template-columns:1fr;gap:34px;padding:48px 0}
+    .feat-row.reverse .feat-text,.feat-row.reverse .feat-visual{order:initial}
+    .feat-visual{order:2}
+    .donnees-grid{grid-template-columns:1fr;gap:34px}
+    section{padding:70px 0}
+    .header-nav .lien{display:none}
+    .hero-visual .appwin,.feat-visual .appwin,.feat-row.reverse .feat-visual .appwin{transform:none}
+  }
+  @media (max-width:560px){
+    .header-inner{padding:11px 18px}
+    .hero-cta{flex-direction:column;align-items:stretch}
+    .hero-cta .btn{justify-content:center}
+    .float{display:none}
+    .trust-inner{gap:12px 24px}
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ============ EN-TÊTE ============ -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#top" aria-label="Parent Preuve, accueil">
+      <svg width="38" height="38" viewBox="0 0 80 80" aria-hidden="true">
+        <circle cx="40" cy="40" r="33" fill="none" stroke="#C2A24C" stroke-width="2.5"/>
+        <text x="40" y="51" text-anchor="middle" font-family="Playfair Display, serif" font-weight="700" font-size="30" fill="#15233F">PP</text>
+      </svg>
+      <span class="nom">Parent&nbsp;Preuve</span>
+    </a>
+    <nav class="header-nav" aria-label="Navigation principale">
+      <a class="lien" href="#fonctionnalites">Fonctionnalités</a>
+      <a class="lien" href="#donnees">Vos données</a>
+      <a class="btn btn-or" href="https://parent-preuve.vercel.app" target="_blank" rel="noopener">Accéder à l'application <span class="fl" aria-hidden="true">→</span></a>
+    </nav>
+  </div>
+</header>
+<a id="top"></a>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow reveal d1">Après la décision du juge aux affaires familiales</span>
+        <h1 class="reveal d1">Gardez le fil.<br><span class="or">Réunissez les faits.</span><br>Avancez sereinement.</h1>
+        <p class="sub reveal d2">
+          Parent Preuve vous aide à réunir, dater et organiser les éléments factuels de votre
+          coparentalité — journal, frais, pension, pièces — et à les exporter en un dossier clair,
+          prêt à présenter.
+        </p>
+        <div class="hero-cta reveal d3">
+          <a class="btn btn-or" href="https://parent-preuve.vercel.app" target="_blank" rel="noopener">Accéder à l'application <span class="fl" aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#fonctionnalites">Voir les fonctionnalités</a>
+        </div>
+        <div class="badges reveal d4">
+          <span class="store" title="Version mobile à venir">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#15233F" aria-hidden="true"><path d="M16.5 3c.1 1-.3 2-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1 .4-2 1-2.7.7-.8 1.9-1.4 2.8-1.4zM19 17.4c-.5 1.1-.7 1.6-1.4 2.6-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.4.9-3.7.9c-1.6 0-2.8-1.5-3.7-2.9C-.2 16.6-.5 11.3 1.7 8.5 2.9 7 4.6 6.1 6.2 6.1c1.6 0 2.6 1 3.9 1 1.3 0 2-1 3.9-1 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9 1 8.2z"/></svg>
+            <span><small>Bientôt sur</small><span class="magasin">App Store</span></span>
+          </span>
+          <span class="store" title="Version mobile à venir">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#15233F" aria-hidden="true"><path d="M3.6 2.3 13 11.7l-2.4 2.4L3 6.4a2 2 0 0 1 .6-4.1zM14.8 13.5l2.5 2.5-3.4 1.9-2.6-2.6zM18.6 11.4l2.1 1.2c1 .6 1 2 0 2.6l-2 1.2-2.7-2.6zM3 21.7 10.6 14l2.4 2.4-9.4 5.3a2 2 0 0 1-.6-.1z"/></svg>
+            <span><small>Bientôt sur</small><span class="magasin">Google Play</span></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Maquette tableau de bord -->
+      <div class="hero-visual reveal d3">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Parent Preuve · Tableau de bord</span></div>
+          <div class="body">
+            <div class="stat" style="margin-bottom:16px">
+              <div><div class="lbl">Reste dû — pension</div><div class="val rouge">420 €</div></div>
+              <span class="tag du">2 échéances</span>
+            </div>
+            <div class="row"><span class="chip-date">14 mai</span><div class="txt"><div class="l1"></div><div class="l2"></div></div><span class="tag valide">Validé</span></div>
+            <div class="row"><span class="chip-date">09 mai</span><div class="txt"><div class="l1" style="width:72%"></div><div class="l2"></div></div><span class="tag attente">À valider</span></div>
+            <div class="row"><span class="chip-date">02 mai</span><div class="txt"><div class="l1" style="width:90%"></div><div class="l2" style="width:40%"></div></div><span class="tag valide">Validé</span></div>
+          </div>
+        </div>
+        <div class="float f1">
+          <span class="ic" style="background:rgba(194,162,76,.16)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C2A24C" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <span class="ft"><b>Preuve scellée</b><span>horodatée · empreinte</span></span>
+        </div>
+        <div class="float f2">
+          <span class="ic" style="background:rgba(46,106,77,.13)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E6A4D" stroke-width="2" stroke-linecap="round"><path d="M7 3h10l4 4v14H3V3z"/><path d="M8 13h8M8 17h5"/></svg></span>
+          <span class="ft"><b>Dossier PDF</b><span>prêt à présenter</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BANDEAU RÉASSURANCE ============ -->
+<div class="trust">
+  <div class="trust-inner">
+    <span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg> Données hébergées en Europe</span>
+    <span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg> Conforme à une logique RGPD</span>
+    <span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6"/></svg> L'IA propose, vous validez</span>
+  </div>
+</div>
+
+<!-- ============ QUOTIDIEN (citation) ============ -->
+<section class="quotidien">
+  <div class="wrap">
+    <span class="mark">“</span>
+    <blockquote>Quand tout devient confus, Parent Preuve <span class="or">remet de l'ordre dans les faits</span> — pour que vous repreniez pied.</blockquote>
+    <p>Après une décision du juge, suivre les paiements, garder une trace des événements au bon moment et retrouver chaque pièce devient vite épuisant. Tout est désormais réuni au même endroit, à votre rythme.</p>
+  </div>
+</section>
+
+<!-- ============ COMMENT ÇA MARCHE ============ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow-2">Le principe</span>
+    <h2 class="section-titre">Trois étapes, et le dossier se construit tout seul.</h2>
+    <div class="etapes">
+      <div class="etape reveal d1"><span class="n">1</span><h3>Organiser</h3><p>Réunissez enfants, journal, frais, pension et documents au même endroit, clairement classés.</p></div>
+      <div class="etape reveal d2"><span class="n">2</span><h3>Documenter</h3><p>Ajoutez des preuves photo horodatées et scellées, et rattachez vos pièces à chaque élément.</p></div>
+      <div class="etape reveal d3"><span class="n">3</span><h3>Exporter</h3><p>Générez un dossier PDF factuel, clair et ordonné, daté, prêt à transmettre à qui de droit.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FONCTIONNALITÉS (blocs en alternance) ============ -->
+<section class="features" id="fonctionnalites">
+  <div class="wrap">
+    <div class="feat-head">
+      <div class="filet"></div>
+      <h2 class="section-titre">Tout ce qu'il faut pour documenter, rien de superflu.</h2>
+      <p class="section-intro">Des outils factuels, sans promesse de résultat. Vous gardez la main à chaque étape.</p>
+    </div>
+
+    <!-- Journal -->
+    <div class="feat-row">
+      <div class="feat-text">
+        <span class="feat-cat">Suivre</span>
+        <h3>Journal d'événements</h3>
+        <p class="lead">Notez les faits datés au fil de l'eau. Chaque entrée peut être relue, validée, puis intégrée à votre dossier.</p>
+        <ul class="feat-points">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Entrées horodatées, classées par enfant et par date.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Formulation factuelle, sans qualification d'intention.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Statut « validé » ou « à valider » sur chaque fait.</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Journal · Léa</span></div>
+          <div class="body">
+            <div class="row"><span class="chip-date">14 mai</span><div class="txt"><div class="l1"></div><div class="l2"></div></div><span class="tag valide">Validé</span></div>
+            <div class="row"><span class="chip-date">11 mai</span><div class="txt"><div class="l1" style="width:78%"></div><div class="l2" style="width:48%"></div></div><span class="tag attente">À valider</span></div>
+            <div class="row"><span class="chip-date">07 mai</span><div class="txt"><div class="l1" style="width:88%"></div><div class="l2"></div></div><span class="tag valide">Validé</span></div>
+            <div class="row"><span class="chip-date">03 mai</span><div class="txt"><div class="l1" style="width:65%"></div><div class="l2" style="width:38%"></div></div><span class="tag valide">Validé</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frais & pension -->
+    <div class="feat-row reverse">
+      <div class="feat-text">
+        <span class="feat-cat">Comptabiliser</span>
+        <h3>Frais &amp; pension</h3>
+        <p class="lead">Suivez les montants dus et payés, visualisez le reste dû d'un coup d'œil, et rattachez chaque justificatif.</p>
+        <ul class="feat-points">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Échéances de pension et frais partagés au même endroit.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Solde « reste dû » tenu à jour automatiquement.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Justificatifs rattachés à chaque ligne.</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Frais &amp; pension</span></div>
+          <div class="body">
+            <div class="stat" style="margin-bottom:14px"><div><div class="lbl">Reste dû</div><div class="val rouge">420 €</div></div><span class="tag du">à percevoir</span></div>
+            <div class="row"><span class="chip-date">Avr.</span><div class="txt"><div class="l1" style="width:60%"></div></div><span class="tag paye">Payé · 350 €</span></div>
+            <div class="row"><span class="chip-date">Mai</span><div class="txt"><div class="l1" style="width:60%"></div></div><span class="tag du">Dû · 350 €</span></div>
+            <div class="row"><span class="chip-date">Cantine</span><div class="txt"><div class="l1" style="width:50%"></div></div><span class="tag du">Dû · 70 €</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preuve photo -->
+    <div class="feat-row">
+      <div class="feat-text">
+        <span class="feat-cat">Sceller</span>
+        <h3>Preuves photo renforcées</h3>
+        <p class="lead">Une photo horodatée et scellée : l'original est conservé, accompagné de son empreinte numérique et de ses métadonnées.</p>
+        <ul class="feat-points">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Empreinte numérique (SHA-256) et horodatage.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Métadonnées disponibles, original préservé.</li>
+        </ul>
+        <span class="feat-limite">Ne remplace pas un constat de commissaire de justice. Soumis à l'appréciation du juge.</span>
+      </div>
+      <div class="feat-visual">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Preuve photo · scellée</span></div>
+          <div class="body">
+            <div class="photo-fake"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#aab0bd" stroke-width="1.6"><path d="M23 19V8a2 2 0 0 0-2-2h-3l-2-2H8L6 6H3a2 2 0 0 0-2 2v11"/><circle cx="12" cy="13" r="4"/></svg></div>
+            <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px"><span class="seal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg> Scellée le 14/05 · 18:42</span></div>
+            <div style="margin-top:12px"><div class="lbl" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris-clair);margin-bottom:5px">Empreinte</div><div class="mono">a3f1c9e7b2…d840 · GPS 48.85, 2.35</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assistant courriers -->
+    <div class="feat-row reverse">
+      <div class="feat-text">
+        <span class="feat-cat">Rédiger</span>
+        <h3>Assistant courriers</h3>
+        <p class="lead">Des modèles de courriers factuels, prêts à compléter. Les références d'articles de loi sont saisies et vérifiées par vous, jamais générées automatiquement.</p>
+        <ul class="feat-points">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Modèles : relance de pension, remboursement de frais, etc.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Ton factuel et mesuré, non accusatoire.</li>
+        </ul>
+        <span class="feat-limite">Ne remplace pas un conseil juridique. À faire relire par un professionnel si nécessaire.</span>
+      </div>
+      <div class="feat-visual">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Courrier · relance pension</span></div>
+          <div class="body courrier">
+            <div class="ent">Objet : rappel d'échéance de pension</div>
+            <div class="lc"></div><div class="lc"></div><div class="lc s"></div>
+            <div class="lc" style="margin-top:14px"></div><div class="lc s"></div>
+            <div class="article">Référence saisie : <b>article … du Code civil</b> — vérifiée par vous</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyse IA -->
+    <div class="feat-row">
+      <div class="feat-text">
+        <span class="feat-cat">Comprendre</span>
+        <h3>Analyse assistée du jugement</h3>
+        <p class="lead">À partir du texte que vous fournissez, l'IA propose une lecture des règles du jugement. Vous vérifiez et validez chaque élément avant tout enregistrement.</p>
+        <ul class="feat-points">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Lecture du dispositif : pension, frais, droit de visite.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Chaque proposition affiche son niveau de confiance.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg> Rien n'est enregistré tant que vous n'avez pas validé.</li>
+        </ul>
+        <span class="feat-limite">Traitement par un prestataire IA hébergé en Europe. Ne remplace pas un conseil juridique.</span>
+      </div>
+      <div class="feat-visual">
+        <div class="appwin">
+          <div class="topbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Analyse du jugement</span></div>
+          <div class="body">
+            <div class="row"><div class="txt"><div class="lbl" style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gris-clair)">Pension mensuelle</div><div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-top:3px">350 € / enfant</div></div><span class="conf haute">confiance haute</span></div>
+            <div class="row"><div class="txt"><div class="lbl" style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gris-clair)">Frais partagés</div><div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-top:3px">50 % / 50 %</div></div><span class="conf moy">à vérifier</span></div>
+            <div class="ia-banner"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A5A12" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span class="pt">Proposé par l'IA — à valider</span><span class="mini-btn">Valider</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ VOS DONNÉES ============ -->
+<section class="donnees" id="donnees">
+  <div class="wrap">
+    <div class="donnees-grid">
+      <div>
+        <div class="filet"></div>
+        <span class="eyebrow-2" style="color:var(--or-soft)">Confiance &amp; maîtrise</span>
+        <h2 class="section-titre">Vos données, sous votre contrôle.</h2>
+        <ul class="liste-confiance">
+          <li><span class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C2A24C" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg></span><span>Vos données sont hébergées en <strong>Europe</strong>.</span></li>
+          <li><span class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C2A24C" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg></span><span>Conforme à une logique <strong>RGPD</strong> : l'effacement de vos données est possible.</span></li>
+          <li><span class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C2A24C" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg></span><span><strong>« L'IA propose, vous validez »</strong> : aucun enregistrement sans votre validation.</span></li>
+          <li><span class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C2A24C" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5L20 6"/></svg></span><span>Limites assumées : ne remplace ni un <strong>conseil juridique</strong> ni un <strong>constat</strong>.</span></li>
+        </ul>
+      </div>
+      <div class="bandeau reveal d2">
+        Vos données sont hébergées en Europe. L'IA vous propose des analyses à partir des documents que
+        <strong>vous</strong> fournissez ; vous vérifiez et validez chaque information. L'application
+        ne remplace pas un conseil juridique ni un constat de commissaire de justice. Les textes produits
+        peuvent être relus par un professionnel du droit si nécessaire.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACCÈS ============ -->
+<section class="acces">
+  <div class="wrap">
+    <div class="filet"></div>
+    <h2 class="section-titre">Commencez dès maintenant.</h2>
+    <p class="section-intro">L'application web est déjà disponible. Les versions mobiles arrivent prochainement.</p>
+    <div class="acces-cta">
+      <a class="btn btn-or" href="https://parent-preuve.vercel.app" target="_blank" rel="noopener">Accéder à l'application <span class="fl" aria-hidden="true">→</span></a>
+      <div class="badges">
+        <span class="store" title="Version mobile à venir">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#15233F" aria-hidden="true"><path d="M16.5 3c.1 1-.3 2-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1 .4-2 1-2.7.7-.8 1.9-1.4 2.8-1.4zM19 17.4c-.5 1.1-.7 1.6-1.4 2.6-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.4.9-3.7.9c-1.6 0-2.8-1.5-3.7-2.9C-.2 16.6-.5 11.3 1.7 8.5 2.9 7 4.6 6.1 6.2 6.1c1.6 0 2.6 1 3.9 1 1.3 0 2-1 3.9-1 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9 1 8.2z"/></svg>
+          <span><small>Bientôt sur</small><span class="magasin">App Store</span></span>
+        </span>
+        <span class="store" title="Version mobile à venir">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#15233F" aria-hidden="true"><path d="M3.6 2.3 13 11.7l-2.4 2.4L3 6.4a2 2 0 0 1 .6-4.1zM14.8 13.5l2.5 2.5-3.4 1.9-2.6-2.6zM18.6 11.4l2.1 1.2c1 .6 1 2 0 2.6l-2 1.2-2.7-2.6zM3 21.7 10.6 14l2.4 2.4-9.4 5.3a2 2 0 0 1-.6-.1z"/></svg>
+          <span><small>Bientôt sur</small><span class="magasin">Google Play</span></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIED DE PAGE ============ -->
+<footer>
+  <div class="wrap footer-inner">
+    <div>
+      <div class="footer-haut">
+        <svg width="28" height="28" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="33" fill="none" stroke="#C2A24C" stroke-width="3"/><text x="40" y="51" text-anchor="middle" font-family="Playfair Display, serif" font-weight="700" font-size="30" fill="#F8F6F1">PP</text></svg>
+        <span class="nom">Parent Preuve</span>
+      </div>
+      <p class="footer-mention">Édité par [nom à compléter] — hébergé en Europe. Parent Preuve aide à organiser un dossier factuel ; il ne remplace pas un conseil juridique ni un constat de commissaire de justice.</p>
+    </div>
+    <nav class="footer-liens" aria-label="Liens légaux">
+      <a href="https://parent-preuve.vercel.app/mentions-legales" target="_blank" rel="noopener">Mentions légales</a>
+      <a href="https://parent-preuve.vercel.app/confidentialite" target="_blank" rel="noopener">Politique de confidentialité</a>
+      <a href="mailto:contact@exemple.fr">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
