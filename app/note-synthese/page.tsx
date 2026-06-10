@@ -6,26 +6,35 @@ import QuestionnaireAiguillage from '@/components/QuestionnaireAiguillage'
 import FormulaireNote from '@/components/FormulaireNote'
 import SelecteurPieces from '@/components/SelecteurPieces'
 import BrouillonNote from '@/components/BrouillonNote'
-import { voletsParDefaut } from '@/lib/structureNote'
+import { voletsParDefaut, Volets } from '@/lib/structureNote'
 import { prechargerNote, PrechargeNote, prechargeVide } from '@/lib/prechargerNote'
 import { chargerPiecesDisponibles, PieceDisponible } from '@/lib/piecesnote'
+import { chargerBrouillon, sauvegarderBrouillon } from '@/lib/brouillonStockage'
 
 export default function PageNoteSynthese() {
-  const [volets, setVolets] = useState(voletsParDefaut())
+  const [volets, setVolets] = useState<Volets>(voletsParDefaut())
   const [precharge, setPrecharge] = useState<PrechargeNote | null>(null)
   const [erreur, setErreur] = useState(false)
   const [valeurs, setValeurs] = useState<Record<string, string>>({})
+  const [contenuInitial, setContenuInitial] = useState<string | null>(null)
 
   const [piecesDispo, setPiecesDispo] = useState<PieceDisponible[]>([])
   const [piecesIds, setPiecesIds] = useState<string[]>([])
 
   useEffect(() => {
     let actif = true
-    prechargerNote()
-      .then((p) => {
+    Promise.all([prechargerNote(), chargerBrouillon()])
+      .then(([p, b]) => {
         if (!actif) return
         setPrecharge(p)
-        setValeurs((prev) => ({ ...p.valeurs, ...prev }))
+        if (b) {
+          if (b.volets) setVolets(b.volets)
+          setValeurs({ ...p.valeurs, ...(b.valeurs ?? {}) })
+          if (b.pieces_ids) setPiecesIds(b.pieces_ids)
+          setContenuInitial(b.contenu || null)
+        } else {
+          setValeurs((prev) => ({ ...p.valeurs, ...prev }))
+        }
       })
       .catch(() => {
         if (!actif) return
@@ -42,6 +51,10 @@ export default function PageNoteSynthese() {
     setValeurs((v) => ({ ...v, [id]: val }))
   }
 
+  async function sauvegarder(contenu: string) {
+    return sauvegarderBrouillon({ contenu, volets, valeurs, piecesIds })
+  }
+
   const piecesBordereau = piecesIds
     .map((id) => piecesDispo.find((p) => p.id === id))
     .filter((p): p is PieceDisponible => Boolean(p))
@@ -51,7 +64,7 @@ export default function PageNoteSynthese() {
       <PageHeader
         eyebrow="Production"
         title="Note de synthèse pour l'avocat"
-        subtitle="Remplissez les sections, choisissez les pièces, générez un brouillon, puis exportez en PDF."
+        subtitle="Remplissez les sections, choisissez les pièces, générez un brouillon, sauvegardez-le, puis exportez en PDF."
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
@@ -76,7 +89,14 @@ export default function PageNoteSynthese() {
 
             <div className="rounded-xl bg-[#F8F6F1] p-5 carte space-y-3">
               <h2 className="font-display text-lg text-[#15233F]">Brouillon et export</h2>
-              <BrouillonNote volets={volets} valeurs={valeurs} resumes={precharge.resumes} pieces={piecesBordereau} />
+              <BrouillonNote
+                volets={volets}
+                valeurs={valeurs}
+                resumes={precharge.resumes}
+                pieces={piecesBordereau}
+                contenuInitial={contenuInitial}
+                onSauvegarder={sauvegarder}
+              />
             </div>
           </>
         )}

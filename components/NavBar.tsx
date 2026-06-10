@@ -44,6 +44,7 @@ const GROUPES = [
       { href: "/courriers", label: "Courriers" },
       { href: "/export", label: "Export PDF" },
       { href: "/reformuler", label: "Reformulation" },
+      { href: "/note-synthese", label: "Note pour l'avocat" },
     ],
   },
 ];

@@ -11,14 +11,20 @@ export default function BrouillonNote({
   valeurs,
   resumes,
   pieces,
+  contenuInitial,
+  onSauvegarder,
 }: {
   volets: Volets
   valeurs: Record<string, string>
   resumes: Record<string, string>
   pieces: PieceDisponible[]
+  contenuInitial: string | null
+  onSauvegarder: (contenu: string) => Promise<boolean>
 }) {
-  const [brouillon, setBrouillon] = useState<string | null>(null)
+  const [brouillon, setBrouillon] = useState<string | null>(contenuInitial)
   const [enExport, setEnExport] = useState(false)
+  const [enSauvegarde, setEnSauvegarde] = useState(false)
+  const [sauvegarde, setSauvegarde] = useState(false)
   const [erreur, setErreur] = useState('')
 
   function genererOuRegenerer() {
@@ -29,6 +35,7 @@ export default function BrouillonNote({
       return
     }
     setBrouillon(assemblerNote(volets, valeurs, resumes, pieces))
+    setSauvegarde(false)
   }
 
   async function telechargerPdf() {
@@ -52,9 +59,23 @@ export default function BrouillonNote({
     }
   }
 
+  async function sauvegarder() {
+    if (brouillon === null) return
+    setEnSauvegarde(true)
+    setErreur('')
+    const ok = await onSauvegarder(brouillon)
+    setEnSauvegarde(false)
+    if (ok) {
+      setSauvegarde(true)
+      setTimeout(() => setSauvegarde(false), 2500)
+    } else {
+      setErreur("La sauvegarde a échoué. Vérifiez votre connexion et réessayez.")
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={genererOuRegenerer}
@@ -63,24 +84,39 @@ export default function BrouillonNote({
           {brouillon === null ? 'Générer le brouillon éditable' : 'Régénérer depuis les champs'}
         </button>
         {brouillon !== null && (
-          <button
-            type="button"
-            onClick={telechargerPdf}
-            disabled={enExport}
-            className="rounded-md border border-[#15233F] px-4 py-2 text-sm font-medium text-[#15233F] hover:bg-[#F8F6F1] disabled:opacity-50"
-          >
-            {enExport ? 'Génération du PDF…' : 'Télécharger en PDF (avec pièces)'}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={sauvegarder}
+              disabled={enSauvegarde}
+              className="rounded-md bg-[#2E6A4D] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {enSauvegarde ? 'Sauvegarde…' : 'Sauvegarder le brouillon'}
+            </button>
+            <button
+              type="button"
+              onClick={telechargerPdf}
+              disabled={enExport}
+              className="rounded-md border border-[#15233F] px-4 py-2 text-sm font-medium text-[#15233F] hover:bg-[#F8F6F1] disabled:opacity-50"
+            >
+              {enExport ? 'Génération du PDF…' : 'Télécharger en PDF (avec pièces)'}
+            </button>
+            {sauvegarde && <span className="text-sm text-[#2E6A4D]">Enregistré ✓</span>}
+          </>
         )}
       </div>
 
       {erreur && <p className="text-sm text-[#9B2C2C]">{erreur}</p>}
 
+      {contenuInitial !== null && brouillon === contenuInitial && (
+        <p className="text-xs text-[#1F2733]/55">Brouillon restauré depuis votre dernière session.</p>
+      )}
+
       {brouillon !== null && (
         <>
           <p className="text-xs text-[#1F2733]/60">
-            Modifiez librement ce brouillon avant de l'exporter. Le PDF reprend le texte ci-dessous,
-            suivi des pièces du bordereau dans l'ordre choisi.
+            Modifiez librement ce brouillon, puis sauvegardez-le pour le retrouver plus tard. Le PDF
+            reprend le texte ci-dessous, suivi des pièces du bordereau dans l'ordre choisi.
           </p>
           <textarea
             value={brouillon}

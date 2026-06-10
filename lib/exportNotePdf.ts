@@ -6,28 +6,52 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { supabase } from '@/lib/supabase'
 import { PieceDisponible } from '@/lib/piecesnote'
 
-// pdf-lib (polices standard) n'accepte que le Latin-1 → on retire le reste pour éviter un crash.
-function nettoyerWinAnsi(t: string): string {
-  return (t || '').replace(/[^\x00-\xFF]/g, '')
+// Convertit la ponctuation « intelligente » (guillemets courbes, tirets longs, …, œ, €)
+// en équivalents sûrs et conserve les accents (Latin-1). Sécurise jsPDF ET pdf-lib.
+function versWinAnsi(t: string): string {
+  return (t || '')
+    .replace(/[\u2018\u2019\u201A\u2039\u203A]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u20AC/g, 'EUR')
+    .replace(/\u0153/g, 'oe')
+    .replace(/\u0152/g, 'OE')
+    .replace(/[^\x00-\xFF]/g, '')
 }
 
-// La note (texte) rendue par jsPDF, renvoyée en octets.
+// La note (texte) rendue par jsPDF en Times, avec numéros de page. Renvoyée en octets.
 function pdfNoteTexte(brouillon: string): ArrayBuffer {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
-  const margeX = 56, margeHaut = 56, margeBas = 56, interligne = 16
+  const margeX = 56, margeHaut = 64, margeBas = 56, interligne = 15
   const largeur = doc.internal.pageSize.getWidth() - margeX * 2
   const hauteur = doc.internal.pageSize.getHeight()
-  doc.setFont('helvetica', 'normal')
+
+  doc.setFont('times', 'normal')
   doc.setFontSize(11)
+  doc.setTextColor(20)
+
   let y = margeHaut
   for (const ligne of brouillon.split('\n')) {
-    const morceaux = doc.splitTextToSize(ligne === '' ? ' ' : ligne, largeur)
+    const propre = versWinAnsi(ligne)
+    const morceaux = doc.splitTextToSize(propre === '' ? ' ' : propre, largeur)
     for (const m of morceaux) {
       if (y + interligne > hauteur - margeBas) { doc.addPage(); y = margeHaut }
       doc.text(m, margeX, y)
       y += interligne
     }
   }
+
+  // Numéros de page sur les pages de la note
+  const n = doc.getNumberOfPages()
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i)
+    doc.setFont('times', 'italic')
+    doc.setFontSize(8)
+    doc.setTextColor(120)
+    doc.text(`Page ${i} / ${n}`, doc.internal.pageSize.getWidth() - margeX, hauteur - 28, { align: 'right' })
+  }
+
   return doc.output('arraybuffer')
 }
 
@@ -57,18 +81,19 @@ async function octetsPiece(p: PieceDisponible): Promise<Fichier | null> {
 
 export async function genererPdfNote(brouillon: string, pieces: PieceDisponible[]): Promise<Blob> {
   const merged = await PDFDocument.load(pdfNoteTexte(brouillon))
-  const police = await merged.embedFont(StandardFonts.Helvetica)
+  const police = await merged.embedFont(StandardFonts.TimesRoman)
+  const policeGras = await merged.embedFont(StandardFonts.TimesRomanBold)
 
   for (let i = 0; i < pieces.length; i++) {
     const p = pieces[i]
     const inter = merged.addPage()
     const { height } = inter.getSize()
-    inter.drawText(`Piece n°${i + 1}`, { x: 56, y: height - 90, size: 18, font: police, color: rgb(0.08, 0.14, 0.25) })
-    inter.drawText(nettoyerWinAnsi(p.libelle), { x: 56, y: height - 120, size: 12, font: police, color: rgb(0.12, 0.15, 0.2) })
+    inter.drawText(`Pièce n°${i + 1}`, { x: 56, y: height - 90, size: 18, font: policeGras, color: rgb(0.08, 0.14, 0.25) })
+    inter.drawText(versWinAnsi(p.libelle), { x: 56, y: height - 116, size: 12, font: police, color: rgb(0.12, 0.15, 0.2) })
 
     const f = await octetsPiece(p)
     if (!f) {
-      inter.drawText('(fichier indisponible)', { x: 56, y: height - 150, size: 11, font: police, color: rgb(0.6, 0.17, 0.17) })
+      inter.drawText('(fichier indisponible)', { x: 56, y: height - 146, size: 11, font: police, color: rgb(0.6, 0.17, 0.17) })
       continue
     }
 
@@ -85,10 +110,10 @@ export async function genererPdfNote(brouillon: string, pieces: PieceDisponible[
         const w = img.width * ratio, h = img.height * ratio
         page.drawImage(img, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h })
       } else {
-        inter.drawText('(apercu non pris en charge pour ce type de fichier)', { x: 56, y: height - 150, size: 11, font: police, color: rgb(0.54, 0.35, 0.07) })
+        inter.drawText('(aperçu non pris en charge pour ce type de fichier)', { x: 56, y: height - 146, size: 11, font: police, color: rgb(0.54, 0.35, 0.07) })
       }
     } catch {
-      inter.drawText('(fichier illisible ou protege)', { x: 56, y: height - 150, size: 11, font: police, color: rgb(0.6, 0.17, 0.17) })
+      inter.drawText('(fichier illisible ou protégé)', { x: 56, y: height - 146, size: 11, font: police, color: rgb(0.6, 0.17, 0.17) })
     }
   }
 
