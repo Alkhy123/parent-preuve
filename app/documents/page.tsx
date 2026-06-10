@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 
@@ -29,6 +30,7 @@ export default function DocumentsPage() {
 
   const [enCours, setEnCours] = useState(false);
   const [message, setMessage] = useState("");
+  const [choixId, setChoixId] = useState<string | null>(null);
 
   async function chargerEnfants() {
     const { data } = await supabase
@@ -42,6 +44,7 @@ export default function DocumentsPage() {
     const { data, error } = await supabase
       .from("documents")
       .select("id, libelle, categorie, chemin_fichier, date_document, child_id")
+      .eq("etat", "actif")
       .order("created_at", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setDocuments(data ?? []);
@@ -52,6 +55,39 @@ export default function DocumentsPage() {
     chargerDocuments();
   }, []);
 
+  // Classement : on regroupe par enfant, puis par type, et on trie chaque type
+  // par date décroissante (du plus récent au plus ancien).
+  const groupes = useMemo(() => {
+    const parEnfant = new Map<string | null, Document[]>();
+    for (const d of documents) {
+      const cle = d.child_id ?? null;
+      if (!parEnfant.has(cle)) parEnfant.set(cle, []);
+      parEnfant.get(cle)!.push(d);
+    }
+    // Ordre des groupes : les enfants dans leur ordre, puis "sans enfant" à la fin.
+    const ordre: (string | null)[] = [];
+    for (const e of enfants) if (parEnfant.has(e.id)) ordre.push(e.id);
+    if (parEnfant.has(null)) ordre.push(null);
+
+    return ordre.map((cle) => {
+      const items = parEnfant.get(cle)!;
+      const parType = new Map<string, Document[]>();
+      for (const it of items) {
+        if (!parType.has(it.categorie)) parType.set(it.categorie, []);
+        parType.get(it.categorie)!.push(it);
+      }
+      const types = Array.from(parType.entries())
+        .map(([type, docs]) => ({
+          type,
+          docs: docs.sort((a, b) =>
+            (b.date_document ?? "").localeCompare(a.date_document ?? "")
+          ),
+        }))
+        .sort((a, b) => a.type.localeCompare(b.type, "fr"));
+      return { enfantId: cle, types };
+    });
+  }, [documents, enfants]);
+
   async function envoyerDocument() {
     setMessage("");
     if (!libelle.trim()) return setMessage("Le libellé est obligatoire.");
@@ -59,7 +95,6 @@ export default function DocumentsPage() {
 
     setEnCours(true);
     try {
-      // 1) Qui est connecté ? (pour ranger le fichier dans SON dossier)
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) {
@@ -67,11 +102,9 @@ export default function DocumentsPage() {
         return;
       }
 
-      // 2) On fabrique un chemin unique : monId/horodatage-nomdufichier
       const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
       const chemin = `${userId}/${Date.now()}-${nomNettoye}`;
 
-      // 3) Envoi du fichier dans le bucket privé "justificatifs"
       const { error: uploadError } = await supabase.storage
         .from("justificatifs")
         .upload(chemin, fichier);
@@ -80,7 +113,6 @@ export default function DocumentsPage() {
         return;
       }
 
-      // 4) On enregistre la fiche du document dans la table
       const { error: insertError } = await supabase.from("documents").insert({
         libelle: libelle.trim(),
         categorie,
@@ -93,7 +125,6 @@ export default function DocumentsPage() {
         return;
       }
 
-      // 5) On remet le formulaire à zéro et on rafraîchit
       setLibelle(""); setCategorie("Autre"); setDateDocument("");
       setChildId(""); setFichier(null);
       (document.getElementById("champ-fichier") as HTMLInputElement).value = "";
@@ -103,7 +134,6 @@ export default function DocumentsPage() {
     }
   }
 
-  // Ouvre un fichier via un lien sécurisé valable 1 minute
   async function ouvrirDocument(chemin: string) {
     const { data, error } = await supabase.storage
       .from("justificatifs")
@@ -112,12 +142,24 @@ export default function DocumentsPage() {
     else window.open(data.signedUrl, "_blank");
   }
 
+  async function archiverDocument(doc: Document) {
+    setMessage("");
+    const { error } = await supabase
+      .from("documents")
+      .update({ etat: "archive" })
+      .eq("id", doc.id);
+    if (error) { setMessage("Erreur : " + error.message); return; }
+    setChoixId(null);
+    chargerDocuments();
+  }
+
   async function supprimerDocument(doc: Document) {
-    // On supprime le fichier dans Storage, puis la fiche en base
+    setMessage("");
     await supabase.storage.from("justificatifs").remove([doc.chemin_fichier]);
     const { error } = await supabase.from("documents").delete().eq("id", doc.id);
-    if (error) setMessage("Erreur : " + error.message);
-    else chargerDocuments();
+    if (error) { setMessage("Erreur : " + error.message); return; }
+    setChoixId(null);
+    chargerDocuments();
   }
 
   function nomEnfant(id: string | null) {
@@ -134,8 +176,16 @@ export default function DocumentsPage() {
       />
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
 
+        <p className="text-sm text-slate-600">
+          Cette page affiche vos pièces actives.{" "}
+          <Link href="/documents/coffre-fort" className="text-[#15233F] underline">
+            Voir toutes les pièces au coffre-fort
+          </Link>
+          .
+        </p>
+
         {/* Formulaire d'envoi */}
-        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Libellé</label>
             <input
@@ -197,42 +247,86 @@ export default function DocumentsPage() {
           >
             {enCours ? "Envoi en cours…" : "Envoyer le document"}
           </button>
-          {message && <p className="text-sm text-slate-600">{message}</p>}
+          {message && <p className="text-sm text-[#9B2C2C]">{message}</p>}
         </div>
 
-        {/* Liste */}
-        <div className="mt-8 space-y-3">
+        {/* Liste classée par enfant, puis par type, puis par date décroissante */}
+        <div className="mt-8 space-y-8">
           {documents.length === 0 && (
-            <p className="text-slate-500">Aucun document enregistré.</p>
+            <p className="text-slate-500">Aucune pièce active.</p>
           )}
-          {documents.map((doc) => (
-            <div key={doc.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                    {doc.categorie}
-                  </span>
-                  <p className="mt-1.5 font-semibold text-[#15233F]">{doc.libelle}</p>
-                  <p className="text-sm text-slate-500">
-                    {doc.date_document ?? "Sans date"}
-                    {nomEnfant(doc.child_id) ? ` · ${nomEnfant(doc.child_id)}` : ""}
+
+          {groupes.map((groupe) => (
+            <div key={groupe.enfantId ?? "sans-enfant"} className="space-y-4">
+              <h2 className="border-b border-slate-300 pb-1 text-base font-semibold text-[#15233F]">
+                {nomEnfant(groupe.enfantId) ?? "Pièces sans enfant rattaché"}
+              </h2>
+
+              {groupe.types.map((t) => (
+                <div key={t.type} className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    {t.type}
                   </p>
+
+                  {t.docs.map((doc) => (
+                    <div key={doc.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-semibold text-[#15233F]">{doc.libelle}</p>
+                          <p className="text-sm text-slate-500">
+                            {doc.date_document ?? "Sans date"}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <button
+                            onClick={() => ouvrirDocument(doc.chemin_fichier)}
+                            className="text-sm text-slate-700 hover:underline"
+                          >
+                            Ouvrir
+                          </button>
+                          {choixId !== doc.id && (
+                            <button
+                              onClick={() => setChoixId(doc.id)}
+                              className="text-sm text-slate-700 hover:underline"
+                            >
+                              Retirer
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {choixId === doc.id && (
+                        <div className="mt-4 rounded-lg bg-slate-50 p-3">
+                          <p className="text-sm text-slate-700">
+                            Voulez-vous conserver cette pièce au coffre-fort, ou la supprimer
+                            définitivement&nbsp;?
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <button
+                              onClick={() => archiverDocument(doc)}
+                              className="rounded-lg bg-[#2E6A4D] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
+                            >
+                              Conserver au coffre-fort
+                            </button>
+                            <button
+                              onClick={() => supprimerDocument(doc)}
+                              className="rounded-lg bg-[#9B2C2C] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
+                            >
+                              Supprimer définitivement
+                            </button>
+                            <button
+                              onClick={() => setChoixId(null)}
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <button
-                    onClick={() => ouvrirDocument(doc.chemin_fichier)}
-                    className="text-sm text-slate-700 hover:underline"
-                  >
-                    Ouvrir
-                  </button>
-                  <button
-                    onClick={() => supprimerDocument(doc)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           ))}
         </div>
