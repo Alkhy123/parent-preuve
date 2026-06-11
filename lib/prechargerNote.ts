@@ -1,7 +1,8 @@
 // lib/prechargerNote.ts
-// Lit les données déjà présentes dans le dossier pour pré-remplir la note.
+// Lit les données du dossier pour pré-remplir la note, CLOISONNÉ sur la procédure active.
 // Lecture seule, scoping RLS automatique (auth.uid() = user_id). Aucun log.
 import { supabase } from '@/lib/supabase'
+import { getProcedureActiveId, getEnfantsDeProcedureActive } from '@/lib/procedureActive'
 
 export type PrechargeNote = {
   valeurs: Record<string, string>  // champs éditables (en-tête, parties, dates)
@@ -75,35 +76,52 @@ export async function prechargerNote(): Promise<PrechargeNote> {
   const valeurs: Record<string, string> = {}
   const resumes: Record<string, string> = {}
 
-  // Socle dossier (1 ligne / utilisateur)
+  const procId = await getProcedureActiveId()
+
+  // Socle : le DÉCLARANT reste global.
   const { data: dossier } = await supabase.from('dossier').select('*').maybeSingle()
   if (dossier) {
-    valeurs['juridiction'] = dossier.jugement_juridiction ?? ''
-    valeurs['numero_rg'] = dossier.jugement_numero_rg ?? ''
-    valeurs['intitule'] = dossier.jugement_intitule ?? ''
     valeurs['declarant'] = concatPrefixe(dossier, 'declarant_')
-    valeurs['autre_parent'] = concatPrefixe(dossier, 'autre_parent_')
   }
 
-  // Enfants
-  const { data: enfants } = await supabase.from('children').select('prenom_ou_alias')
-  if (enfants && enfants.length > 0) {
-    resumes['enfants'] = enfants.map((e: any) => e.prenom_ou_alias).filter(Boolean).join(', ')
+  // Autre parent + jugement : depuis la PROCÉDURE active.
+  let procRow: any = null
+  if (procId) {
+    const r = await supabase.from('procedures').select('*').eq('id', procId).maybeSingle()
+    procRow = r.data
+  }
+  if (procRow) {
+    valeurs['juridiction'] = procRow.jugement_juridiction ?? ''
+    valeurs['numero_rg'] = procRow.jugement_numero_rg ?? ''
+    valeurs['intitule'] = procRow.jugement_intitule ?? ''
+    valeurs['autre_parent'] = concatPrefixe(procRow, 'autre_parent_')
   }
 
-  // Règles actives
+  // Enfants de la procédure active
+  const enfants = await getEnfantsDeProcedureActive()
+  if (enfants.length > 0) {
+    resumes['enfants'] = enfants.map((e) => e.prenom_ou_alias).filter(Boolean).join(', ')
+  }
+  const idsProc = new Set(enfants.map((e) => e.id))
+
+  // Sans procédure active, on s'arrête proprement (rien d'autre à pré-remplir).
+  if (!procId) return { valeurs, resumes }
+
+  // Règles actives DE LA PROCÉDURE ACTIVE
   const [decisionRes, pensionRes, fraisRes, dvhRes, gardeRes] = await Promise.all([
-    supabase.from('decision_regle').select('*').eq('actif', true).maybeSingle(),
-    supabase.from('pension_regle').select('*').eq('actif', true).maybeSingle(),
-    supabase.from('frais_regle').select('*').eq('actif', true).maybeSingle(),
-    supabase.from('dvh_regle').select('*').eq('actif', true).maybeSingle(),
-    supabase.from('garde_regles').select('*').eq('actif', true).limit(1),
+    supabase.from('decision_regle').select('*').eq('procedure_id', procId).eq('actif', true).maybeSingle(),
+    supabase.from('pension_regle').select('*').eq('procedure_id', procId).eq('actif', true).maybeSingle(),
+    supabase.from('frais_regle').select('*').eq('procedure_id', procId).eq('actif', true).maybeSingle(),
+    supabase.from('dvh_regle').select('*').eq('procedure_id', procId).eq('actif', true).maybeSingle(),
+    supabase.from('garde_regles').select('*').eq('actif', true),
   ])
   const decision = decisionRes.data
   const pension = pensionRes.data
   const frais = fraisRes.data
   const dvh = dvhRes.data
-  const garde = Array.isArray(gardeRes.data) ? gardeRes.data[0] ?? null : null
+  // Garde : la table est par enfant ; on ne garde qu'une règle d'un enfant de la procédure active.
+  const gardeListe = Array.isArray(gardeRes.data) ? gardeRes.data : []
+  const garde = gardeListe.find((g: any) => g.enfant_id && idsProc.has(g.enfant_id)) ?? null
 
   if (decision) {
     valeurs['type_decision'] = decision.type_decision ?? ''
