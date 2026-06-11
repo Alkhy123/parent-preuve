@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getProcedureActiveId } from '@/lib/procedureActive';
 import EncartPliable from '@/components/EncartPliable';
 
 type ValeursInitialesDecision = {
@@ -69,6 +70,7 @@ export default function RegleDecision({
 } = {}) {
   const [chargement, setChargement] = useState(true);
   const [regleId, setRegleId] = useState<string | null>(null);
+  const [procedureId, setProcedureId] = useState<string | null>(null);
   const [valide, setValide] = useState<boolean | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState('');
@@ -81,9 +83,18 @@ export default function RegleDecision({
 
   useEffect(() => {
     (async () => {
+      const procId = await getProcedureActiveId();
+      setProcedureId(procId);
+
+      if (!procId) {
+        setChargement(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('decision_regle')
         .select('*')
+        .eq('procedure_id', procId)
         .eq('actif', true)
         .maybeSingle();
 
@@ -146,9 +157,14 @@ export default function RegleDecision({
         setMessage('Règle mise à jour.');
       }
     } else {
+      if (!procedureId) {
+        setMessage("Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants ».");
+        setEnregistrement(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('decision_regle')
-        .insert(payload)
+        .insert({ ...payload, procedure_id: procedureId })
         .select('id')
         .single();
       if (error) setMessage('Erreur : ' + error.message);
