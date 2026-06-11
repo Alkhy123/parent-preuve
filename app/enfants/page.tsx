@@ -117,10 +117,43 @@ export default function EnfantsPage() {
     chargerTout();
   }
 
-  async function supprimerEnfant(id: string) {
-    const { error } = await supabase.from("children").delete().eq("id", id);
-    if (error) setMessage("Erreur : " + error.message);
-    else chargerTout();
+  // Supprime la procédure UNIQUEMENT si plus rien ne lui est rattaché
+  // (aucun enfant et aucune des 4 règles). Sinon on n'y touche pas.
+  async function supprimerProcedureSiVide(procId: string) {
+    const tables = [
+      "children",
+      "pension_regle",
+      "frais_regle",
+      "dvh_regle",
+      "decision_regle",
+    ] as const;
+
+    for (const table of tables) {
+      const { count, error } = await supabase
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("procedure_id", procId);
+      if (error) return; // en cas de doute, on ne supprime rien
+      if ((count ?? 0) > 0) return; // encore utilisée → on garde
+    }
+
+    // Tout est à zéro → on supprime la procédure devenue vide.
+    await supabase.from("procedures").delete().eq("id", procId);
+  }
+
+  async function supprimerEnfant(enfant: Enfant) {
+    const { error } = await supabase.from("children").delete().eq("id", enfant.id);
+    if (error) {
+      setMessage("Erreur : " + error.message);
+      return;
+    }
+
+    // Nettoyage : si la procédure de cet enfant est désormais vide, on l'efface aussi.
+    if (enfant.procedure_id) {
+      await supprimerProcedureSiVide(enfant.procedure_id);
+    }
+
+    chargerTout();
   }
 
   return (
@@ -225,7 +258,7 @@ export default function EnfantsPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => supprimerEnfant(enfant.id)}
+                  onClick={() => supprimerEnfant(enfant)}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Supprimer
