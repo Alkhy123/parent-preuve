@@ -1,22 +1,44 @@
 import { supabase } from "@/lib/supabase";
 
+// Clé de mémorisation locale (navigateur) de la procédure choisie.
+const CLE = "procedure_active_id";
+
+/** Lit la procédure mémorisée localement (ou null). Sans effet côté serveur. */
+export function getProcedureActiveIdLocal(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(CLE);
+}
+
+/** Mémorise (ou efface) localement la procédure choisie. */
+export function setProcedureActiveIdLocal(id: string | null) {
+  if (typeof window === "undefined") return;
+  if (id) window.localStorage.setItem(CLE, id);
+  else window.localStorage.removeItem(CLE);
+}
+
 /**
- * Identifiant de la procédure "active" de l'utilisateur.
+ * Identifiant de la procédure active de l'utilisateur.
  *
- * Phase 3 : on retient la première procédure (la plus ancienne). La plupart des
- * utilisateurs n'en ont qu'une. Renvoie null si l'utilisateur n'a aucune procédure.
+ *  1) si une procédure est mémorisée localement ET qu'elle existe encore → on la prend ;
+ *  2) sinon → la première procédure (la plus ancienne), qu'on mémorise au passage.
  *
- * Phase 4 : ce point centralisera le sélecteur de contexte (procédure choisie +
- * persistée entre les pages). Seul ce fichier sera à faire évoluer.
+ * Renvoie null si l'utilisateur n'a aucune procédure.
+ * En Phase 4-B, le sélecteur écrira le choix via setProcedureActiveIdLocal().
  */
 export async function getProcedureActiveId(): Promise<string | null> {
   const { data, error } = await supabase
     .from("procedures")
     .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: true });
 
-  if (error || !data) return null;
-  return data.id;
+  if (error || !data || data.length === 0) return null;
+
+  const memorisee = getProcedureActiveIdLocal();
+  const existeEncore = memorisee !== null && data.some((p) => p.id === memorisee);
+  const choisie = existeEncore ? (memorisee as string) : data[0].id;
+
+  // Si rien n'était mémorisé (ou pointait sur une procédure supprimée), on fixe le défaut.
+  if (choisie !== memorisee) setProcedureActiveIdLocal(choisie);
+
+  return choisie;
 }
