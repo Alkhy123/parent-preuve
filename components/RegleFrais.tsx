@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { euros } from '@/lib/dossierCalculs';
+import { getProcedureActiveId } from '@/lib/procedureActive';
 import EncartPliable from '@/components/EncartPliable';
 
 // Valeurs proposées par l'IA, au format "règle" (nombres / booléens / null) —
@@ -61,6 +62,7 @@ export default function RegleFrais({
 } = {}) {
   const [chargement, setChargement] = useState(true);
   const [regleId, setRegleId] = useState<string | null>(null);
+  const [procedureId, setProcedureId] = useState<string | null>(null);
   const [valide, setValide] = useState<boolean | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState('');
@@ -85,12 +87,21 @@ export default function RegleFrais({
     return n === null ? null : Math.round(n);
   }
 
-  // Au chargement : on va chercher la règle active (s'il y en a une)
+  // Au chargement : on résout la procédure active, puis sa règle de frais.
   useEffect(() => {
     (async () => {
+      const procId = await getProcedureActiveId();
+      setProcedureId(procId);
+
+      if (!procId) {
+        setChargement(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('frais_regle')
         .select('*')
+        .eq('procedure_id', procId)
         .eq('actif', true)
         .maybeSingle();
 
@@ -147,9 +158,14 @@ export default function RegleFrais({
         setMessage('Règle mise à jour.');
       }
     } else {
+      if (!procedureId) {
+        setMessage("Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants ».");
+        setEnregistrement(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('frais_regle')
-        .insert(payload)
+        .insert({ ...payload, procedure_id: procedureId })
         .select('id')
         .single();
       if (error) setMessage('Erreur : ' + error.message);
@@ -346,4 +362,4 @@ export default function RegleFrais({
       </div>
     </EncartPliable>
   );
-}
+          }
