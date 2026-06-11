@@ -2,18 +2,12 @@
 
 // components/TableauDeBord.tsx
 //
-// Petit tableau de bord chiffré pour l'accueil.
-// Il lit les MÊMES fonctions de calcul que l'export (dossierCalculs.ts),
-// donc les chiffres ne peuvent pas diverger entre les écrans.
-//
-// En tête : une bannière « Reste dû global » (pension impayée + frais non remboursés).
-// Puis trois cartes "vue d'ensemble" (toutes les données, sans filtre de période) :
-//   - Frais   : ce qui reste dû par l'autre parent
-//   - Pension : le solde (dû − payé)
-//   - Preuves : nombre de preuves scellées + état de l'horodatage
+// Tableau de bord chiffré de l'accueil, CLOISONNÉ sur la procédure active.
+// Utilise les mêmes fonctions de calcul que l'export (dossierCalculs.ts).
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 import {
   totauxFrais,
   totauxPension,
@@ -38,21 +32,38 @@ export default function TableauDeBord() {
     let annule = false;
 
     async function charger() {
-      // RLS limite déjà aux données de l'utilisateur connecté.
+      const procId = await getProcedureActiveId();
+
+      // Enfants de la procédure active (pour filtrer frais & preuves).
+      let idsProc = new Set<string>();
+      if (procId) {
+        const { data: enfantsRows } = await supabase
+          .from("children")
+          .select("id")
+          .eq("procedure_id", procId);
+        idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+      }
+      const garde = (cid: string | null) => cid === null || idsProc.has(cid);
+
       const [frRes, peRes, prRes] = await Promise.all([
-        supabase.from("expenses").select("part_autre, rembourse"),
-        supabase.from("pension_payments").select("montant_du, montant_paye"),
-        supabase.from("preuves_photo").select("horodatage_statut"),
+        supabase.from("expenses").select("part_autre, rembourse, child_id"),
+        supabase.from("pension_payments").select("montant_du, montant_paye, procedure_id"),
+        supabase.from("preuves_photo").select("horodatage_statut, enfant_id"),
       ]);
 
       if (annule) return;
-      setFrais(totauxFrais(frRes.data ?? []));
-      setPension(totauxPension(peRes.data ?? []));
 
-      const lignes = prRes.data ?? [];
+      // Filtrage par procédure active (frais/preuves par enfant ou sans enfant ;
+      // pension par procedure_id).
+      const fraisRows = (frRes.data ?? []).filter((f: any) => garde(f.child_id ?? null));
+      const pensionRows = (peRes.data ?? []).filter((p: any) => p.procedure_id === procId);
+      const preuvesRows = (prRes.data ?? []).filter((p: any) => garde(p.enfant_id ?? null));
+
+      setFrais(totauxFrais(fraisRows));
+      setPension(totauxPension(pensionRows));
       setPreuves({
-        total: lignes.length,
-        aRefaire: lignes.filter((l) => l.horodatage_statut === "a_refaire").length,
+        total: preuvesRows.length,
+        aRefaire: preuvesRows.filter((l: any) => l.horodatage_statut === "a_refaire").length,
       });
     }
 
