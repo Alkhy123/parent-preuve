@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { euros } from "@/lib/dossierCalculs";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 import EncartPliable from "@/components/EncartPliable";
 
 // La RÈGLE de pension posée par le jugement (≠ les paiements réels de pension_payments).
@@ -48,6 +49,7 @@ export default function ReglePension({
   origineIA?: boolean;
 } = {}) {
   const [regle, setRegle] = useState<Regle | null>(null);
+  const [procedureId, setProcedureId] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
   const [edition, setEdition] = useState(!!valeursInitiales);
   const [form, setForm] = useState<Regle>(
@@ -58,9 +60,19 @@ export default function ReglePension({
 
   useEffect(() => {
     async function charger() {
+      const procId = await getProcedureActiveId();
+      setProcedureId(procId);
+
+      if (!procId) {
+        setRegle(null);
+        setChargement(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("pension_regle")
         .select("*")
+        .eq("procedure_id", procId)
         .eq("actif", true)
         .limit(1)
         .maybeSingle();
@@ -100,9 +112,28 @@ export default function ReglePension({
       ...(origineIA ? { source: "ia", valide: false } : {}),
     };
 
-    const resultat = regle?.id
-      ? await supabase.from("pension_regle").update(aEnregistrer).eq("id", regle.id).select().single()
-      : await supabase.from("pension_regle").insert(aEnregistrer).select().single();
+    let resultat;
+    if (regle?.id) {
+      resultat = await supabase
+        .from("pension_regle")
+        .update(aEnregistrer)
+        .eq("id", regle.id)
+        .select()
+        .single();
+    } else {
+      if (!procedureId) {
+        setEnregistrement(false);
+        setErreur(
+          "Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants » pour créer une procédure."
+        );
+        return;
+      }
+      resultat = await supabase
+        .from("pension_regle")
+        .insert({ ...aEnregistrer, procedure_id: procedureId })
+        .select()
+        .single();
+    }
 
     setEnregistrement(false);
     if (resultat.error) {
