@@ -23,7 +23,6 @@ export function setProcedureActiveIdLocal(id: string | null) {
  *  2) sinon → la première procédure (la plus ancienne), qu'on mémorise au passage.
  *
  * Renvoie null si l'utilisateur n'a aucune procédure.
- * En Phase 4-B, le sélecteur écrira le choix via setProcedureActiveIdLocal().
  */
 export async function getProcedureActiveId(): Promise<string | null> {
   const { data, error } = await supabase
@@ -41,4 +40,27 @@ export async function getProcedureActiveId(): Promise<string | null> {
   if (choisie !== memorisee) setProcedureActiveIdLocal(choisie);
 
   return choisie;
+}
+
+// ---------------------------------------------------------------------------
+
+export type EnfantProcedure = { id: string; prenom_ou_alias: string };
+
+/**
+ * Renvoie les enfants rattachés à la procédure active (triés par prénom).
+ * Tableau vide si aucune procédure active ou aucun enfant.
+ * C'est le point unique que chaque écran "par enfant" utilise pour se filtrer.
+ */
+export async function getEnfantsDeProcedureActive(): Promise<EnfantProcedure[]> {
+  const procId = await getProcedureActiveId();
+  if (!procId) return [];
+
+  const { data, error } = await supabase
+    .from("children")
+    .select("id, prenom_ou_alias")
+    .eq("procedure_id", procId)
+    .order("prenom_ou_alias", { ascending: true });
+
+  if (error || !data) return [];
+  return data;
 }
