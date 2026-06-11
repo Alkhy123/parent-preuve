@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 import { echeancesAVenir, type Echeance } from "@/lib/gardeNotifications";
 import type { RegleGarde } from "@/lib/gardeCalendrier";
-
-
-
 
 const SEUIL_NOTIF_JOURS = 2; // on prévient quand la garde est dans 2 jours ou moins
 
@@ -19,25 +17,40 @@ export default function ProchainesEcheances() {
     if ("Notification" in window) setPermission(Notification.permission);
 
     (async () => {
+      const procId = await getProcedureActiveId();
+
+      // Enfants de la procédure active.
+      let idsProc = new Set<string>();
+      if (procId) {
+        const { data: enfantsRows } = await supabase
+          .from("children")
+          .select("id")
+          .eq("procedure_id", procId);
+        idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+      }
+
       const { data } = await supabase
         .from("garde_regles")
         .select("*, children(prenom_ou_alias)")
         .eq("actif", true);
 
       if (data) {
-        const regles = data.map((r: any) => ({
-          regle: {
-            type_garde: r.type_garde,
-            parent_principal: r.parent_principal,
-            date_reference: r.date_reference,
-            jour_debut: r.jour_debut,
-            heure_debut: (r.heure_debut || "18:00").slice(0, 5),
-            jour_fin: r.jour_fin,
-            heure_fin: (r.heure_fin || "18:00").slice(0, 5),
-          } as RegleGarde,
-          enfantId: r.enfant_id,
-          enfantNom: r.children?.prenom_ou_alias ?? "Enfant",
-        }));
+        const regles = data
+          // Ne garder que les règles d'un enfant de la procédure active.
+          .filter((r: any) => r.enfant_id && idsProc.has(r.enfant_id))
+          .map((r: any) => ({
+            regle: {
+              type_garde: r.type_garde,
+              parent_principal: r.parent_principal,
+              date_reference: r.date_reference,
+              jour_debut: r.jour_debut,
+              heure_debut: (r.heure_debut || "18:00").slice(0, 5),
+              jour_fin: r.jour_fin,
+              heure_fin: (r.heure_fin || "18:00").slice(0, 5),
+            } as RegleGarde,
+            enfantId: r.enfant_id,
+            enfantNom: r.children?.prenom_ou_alias ?? "Enfant",
+          }));
         setEcheances(echeancesAVenir(regles, 30));
       }
       setChargement(false);
@@ -140,6 +153,5 @@ export default function ProchainesEcheances() {
         </ul>
       )}
     </section>
-    
   );
 }
