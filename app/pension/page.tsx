@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import ReglePension from "@/components/ReglePension";
 import { euros } from "@/lib/dossierCalculs";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 
 type Paiement = {
   id: string;
@@ -40,6 +41,7 @@ function statut(p: Paiement): { texte: string; classe: string } {
 
 export default function PensionPage() {
   const [paiements, setPaiements] = useState<Paiement[]>([]);
+  const [procedureId, setProcedureId] = useState<string | null>(null);
 
   const [mois, setMois] = useState("");        // format "2026-06" (champ month)
   const [montantDu, setMontantDu] = useState("");
@@ -48,9 +50,18 @@ export default function PensionPage() {
   const [message, setMessage] = useState("");
 
   async function chargerPaiements() {
+    const procId = await getProcedureActiveId();
+    setProcedureId(procId);
+
+    if (!procId) {
+      setPaiements([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("pension_payments")
       .select("id, mois_du, montant_du, montant_paye, date_paiement, notes")
+      .eq("procedure_id", procId)
       .order("mois_du", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setPaiements(data ?? []);
@@ -67,11 +78,16 @@ export default function PensionPage() {
     if (isNaN(duNum)) return setMessage("Le montant dû doit être un nombre.");
     const payeNum = montantPaye.trim() ? parseFloat(montantPaye.replace(",", ".")) : 0;
 
+    if (!procedureId) {
+      return setMessage("Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants ».");
+    }
+
     const { error } = await supabase.from("pension_payments").insert({
       mois_du: mois + "-01", // on ajoute le 1er du mois
       montant_du: duNum,
       montant_paye: isNaN(payeNum) ? 0 : payeNum,
       date_paiement: datePaiement || null,
+      procedure_id: procedureId,
     });
 
     if (error) {
@@ -165,7 +181,7 @@ export default function PensionPage() {
           {/* Liste */}
           <div className="mt-8 space-y-3">
             {paiements.length === 0 && (
-              <p className="text-[#1F2733]/60">Aucun mois enregistré.</p>
+              <p className="text-[#1F2733]/60">Aucun mois enregistré pour cette procédure.</p>
             )}
             {paiements.map((p) => {
               const s = statut(p);
