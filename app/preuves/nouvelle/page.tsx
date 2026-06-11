@@ -56,12 +56,7 @@ export default function NouvellePreuvePage() {
 
   // Charger la liste des enfants pour le menu déroulant
   useEffect(() => {
-    supabase
-      .from("children")
-      .select("*")
-      .then(({ data }) => {
-        if (data) setEnfants(data as Enfant[]);
-      });
+    getEnfantsDeProcedureActive().then((data) => setEnfants(data));
   }, []);
 
   async function onFichierChoisi(e: React.ChangeEvent<HTMLInputElement>) {
