@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import SelecteurProcedure from "@/components/SelecteurProcedure";
 
 // Chaque entrée de la barre est une "famille" qui regroupe plusieurs liens.
 const GROUPES = [
@@ -163,6 +164,9 @@ export default function NavBar() {
               );
             })}
 
+          {/* Sélecteur de procédure active (visible si >= 2 procédures). */}
+          {utilisateur && <SelecteurProcedure />}
+
           {utilisateur ? (
             <>
               <Link
@@ -222,6 +226,9 @@ export default function NavBar() {
       {mobileOuvert && utilisateur && (
         <div className="border-t border-[#C2A24C]/30 px-6 pb-4 md:hidden">
           <div className="space-y-4 pt-3">
+            {/* Sélecteur de procédure active (visible si >= 2 procédures). */}
+            <SelecteurProcedure />
+
             {GROUPES.map((groupe) => (
               <div key={groupe.label}>
                 <p className="text-xs uppercase tracking-wide text-[#C2A24C]/80">
@@ -271,4 +278,4 @@ export default function NavBar() {
       )}
     </nav>
   );
-}
+                            }
