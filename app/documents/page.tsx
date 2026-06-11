@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -33,11 +34,9 @@ export default function DocumentsPage() {
   const [choixId, setChoixId] = useState<string | null>(null);
 
   async function chargerEnfants() {
-    const { data } = await supabase
-      .from("children")
-      .select("id, prenom_ou_alias")
-      .order("created_at", { ascending: true });
-    setEnfants(data ?? []);
+    // Enfants de la procédure active uniquement.
+    const data = await getEnfantsDeProcedureActive();
+    setEnfants(data);
   }
 
   async function chargerDocuments() {
@@ -55,11 +54,17 @@ export default function DocumentsPage() {
     chargerDocuments();
   }, []);
 
-  // Classement : on regroupe par enfant, puis par type, et on trie chaque type
-  // par date décroissante (du plus récent au plus ancien).
+  // Classement : on filtre d'abord sur la procédure active (enfant de la procédure
+  // OU pièce sans enfant), puis on regroupe par enfant, par type, et on trie chaque
+  // type par date décroissante.
   const groupes = useMemo(() => {
+    const idsProc = new Set(enfants.map((e) => e.id));
+    const docsProc = documents.filter(
+      (d) => d.child_id === null || idsProc.has(d.child_id)
+    );
+
     const parEnfant = new Map<string | null, Document[]>();
-    for (const d of documents) {
+    for (const d of docsProc) {
       const cle = d.child_id ?? null;
       if (!parEnfant.has(cle)) parEnfant.set(cle, []);
       parEnfant.get(cle)!.push(d);
@@ -252,8 +257,8 @@ export default function DocumentsPage() {
 
         {/* Liste classée par enfant, puis par type, puis par date décroissante */}
         <div className="mt-8 space-y-8">
-          {documents.length === 0 && (
-            <p className="text-slate-500">Aucune pièce active.</p>
+          {groupes.length === 0 && (
+            <p className="text-slate-500">Aucune pièce active pour cette procédure.</p>
           )}
 
           {groupes.map((groupe) => (
@@ -333,4 +338,4 @@ export default function DocumentsPage() {
       </div>
     </main>
   );
-}
+                          }
