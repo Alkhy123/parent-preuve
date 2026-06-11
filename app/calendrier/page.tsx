@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -25,17 +26,12 @@ export default function CalendrierPage() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
 
-  // 1) charger les enfants
+  // 1) charger les enfants DE LA PROCÉDURE ACTIVE
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("children")
-        .select("id, prenom_ou_alias")
-        .order("prenom_ou_alias");
-      if (data) {
-        setEnfants(data);
-        if (data.length > 0) setEnfantId(data[0].id);
-      }
+      const data = await getEnfantsDeProcedureActive();
+      setEnfants(data);
+      if (data.length > 0) setEnfantId(data[0].id);
     })();
   }, []);
 
