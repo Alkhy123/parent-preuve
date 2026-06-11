@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { exporterCourrierPdf } from "@/lib/courrierPdf";
 import { v, dateFr, type Dossier } from "@/lib/courrierHelpers";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 
 export type Champ = {
   nom: string;               // clé utilisée dans "vals"
@@ -48,9 +49,46 @@ export default function CourrierModele({ eyebrow = "Courrier", titre, sousTitre,
 
   useEffect(() => {
     async function charger() {
-      const { data } = await supabase.from("dossier").select("*").maybeSingle();
-      setDossier(data);
-      if (data?.declarant_ville) setLieu(data.declarant_ville);
+      // Déclarant : depuis le socle global. Autre parent + jugement : depuis la procédure active.
+      const [resDossier, procId] = await Promise.all([
+        supabase.from("dossier").select("*").maybeSingle(),
+        getProcedureActiveId(),
+      ]);
+      const socle = resDossier.data;
+
+      let proc:
+        | {
+            autre_parent_civilite: string | null;
+            autre_parent_nom: string | null;
+            autre_parent_prenom: string | null;
+            autre_parent_adresse: string | null;
+            autre_parent_code_postal: string | null;
+            autre_parent_ville: string | null;
+            jugement_juridiction: string | null;
+            jugement_date: string | null;
+            jugement_numero_rg: string | null;
+            jugement_intitule: string | null;
+          }
+        | null = null;
+
+      if (procId) {
+        const r = await supabase
+          .from("procedures")
+          .select(
+            "autre_parent_civilite, autre_parent_nom, autre_parent_prenom, autre_parent_adresse, autre_parent_code_postal, autre_parent_ville, jugement_juridiction, jugement_date, jugement_numero_rg, jugement_intitule"
+          )
+          .eq("id", procId)
+          .maybeSingle();
+        proc = r.data;
+      }
+
+      // Fusion : le socle fournit le déclarant ; la procédure écrase l'autre parent
+      // et le jugement (les valeurs de la procédure active priment).
+      const fusion: Dossier | null =
+        socle || proc ? ({ ...(socle ?? {}), ...(proc ?? {}) } as Dossier) : null;
+
+      setDossier(fusion);
+      if (socle?.declarant_ville) setLieu(socle.declarant_ville);
       const init: Record<string, string> = { reference: "", precisions: "" };
       champs.forEach((c) => (init[c.nom] = ""));
       setVals(init);
