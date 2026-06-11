@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Preuve = {
   id: string;
@@ -151,15 +152,15 @@ export default function PreuvesPage() {
 
   useEffect(() => {
     async function charger() {
-      const [resPreuves, resEnfants] = await Promise.all([
+      const [resPreuves, dataEnfants] = await Promise.all([
         supabase
           .from("preuves_photo")
           .select("*")
           .order("created_at", { ascending: false }),
-        supabase.from("children").select("id, prenom_ou_alias"),
+        getEnfantsDeProcedureActive(),
       ]);
       if (resPreuves.data) setPreuves(resPreuves.data as Preuve[]);
-      if (resEnfants.data) setEnfants(resEnfants.data as Enfant[]);
+      setEnfants(dataEnfants);
       setChargement(false);
     }
     charger();
@@ -191,9 +192,16 @@ export default function PreuvesPage() {
     return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
   }
 
-  // Regrouper les preuves par enfant
+  // Filtrage par procédure active : preuves d'un enfant de la procédure active,
+  // plus celles sans enfant rattaché (générales).
+  const idsProc = new Set(enfants.map((e) => e.id));
+  const preuvesProcedure = preuves.filter(
+    (p) => p.enfant_id === null || idsProc.has(p.enfant_id)
+  );
+
+  // Regrouper les preuves (filtrées) par enfant
   const groupes = new Map<string, Preuve[]>();
-  for (const p of preuves) {
+  for (const p of preuvesProcedure) {
     const cle = p.enfant_id ?? "aucun";
     if (!groupes.has(cle)) groupes.set(cle, []);
     groupes.get(cle)!.push(p);
@@ -221,10 +229,10 @@ export default function PreuvesPage() {
           <p className="text-sm text-[#1F2733]/70">Chargement…</p>
         )}
 
-        {!chargement && preuves.length === 0 && (
+        {!chargement && preuvesProcedure.length === 0 && (
           <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-8 text-center">
             <p className="text-[#1F2733]/70">
-              Aucune preuve pour le moment.
+              Aucune preuve pour cette procédure.
             </p>
             <Link
               href="/preuves/nouvelle"
