@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Piece = {
   id: string;
@@ -42,8 +43,8 @@ export default function CoffreFortPage() {
     setChargement(true);
     setMessage("");
 
-    const [resEnfants, resDocs, resPreuves] = await Promise.all([
-      supabase.from("children").select("id, prenom_ou_alias").order("created_at", { ascending: true }),
+    const [dataEnfants, resDocs, resPreuves] = await Promise.all([
+      getEnfantsDeProcedureActive(),
       supabase
         .from("documents")
         .select("id, libelle, categorie, chemin_fichier, date_document, child_id")
@@ -54,12 +55,16 @@ export default function CoffreFortPage() {
         .order("created_at", { ascending: false }),
     ]);
 
-    if (resEnfants.data) setEnfants(resEnfants.data as Enfant[]);
+    setEnfants(dataEnfants);
+
+    // Pièces de la procédure active : enfant de la procédure OU sans enfant (générales).
+    const idsProc = new Set(dataEnfants.map((e) => e.id));
 
     const liste: Piece[] = [];
 
     if (resDocs.error) setMessage("Erreur de chargement des documents : " + resDocs.error.message);
     for (const d of resDocs.data ?? []) {
+      if (d.child_id !== null && !idsProc.has(d.child_id)) continue;
       liste.push({
         id: d.id,
         nature: "document",
@@ -74,6 +79,7 @@ export default function CoffreFortPage() {
 
     if (resPreuves.error) setMessage("Erreur de chargement des preuves : " + resPreuves.error.message);
     for (const p of resPreuves.data ?? []) {
+      if (p.enfant_id !== null && !idsProc.has(p.enfant_id)) continue;
       liste.push({
         id: p.id,
         nature: "preuve",
