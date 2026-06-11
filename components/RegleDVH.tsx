@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getProcedureActiveId } from '@/lib/procedureActive';
 import EncartPliable from '@/components/EncartPliable';
 
 // Valeurs proposées par l'IA, au format "règle" — MÊME convention que RegleFrais.
@@ -77,6 +78,7 @@ export default function RegleDVH({
 } = {}) {
   const [chargement, setChargement] = useState(true);
   const [regleId, setRegleId] = useState<string | null>(null);
+  const [procedureId, setProcedureId] = useState<string | null>(null);
   const [valide, setValide] = useState<boolean | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState('');
@@ -88,12 +90,21 @@ export default function RegleDVH({
     setForm((f) => ({ ...f, [champ]: valeur }));
   }
 
-  // Au chargement : on va chercher la règle active (s'il y en a une)
+  // Au chargement : on résout la procédure active, puis sa règle de DVH.
   useEffect(() => {
     (async () => {
+      const procId = await getProcedureActiveId();
+      setProcedureId(procId);
+
+      if (!procId) {
+        setChargement(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('dvh_regle')
         .select('*')
+        .eq('procedure_id', procId)
         .eq('actif', true)
         .maybeSingle();
 
@@ -160,9 +171,14 @@ export default function RegleDVH({
         setMessage('Règle mise à jour.');
       }
     } else {
+      if (!procedureId) {
+        setMessage("Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants ».");
+        setEnregistrement(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('dvh_regle')
-        .insert(payload)
+        .insert({ ...payload, procedure_id: procedureId })
         .select('id')
         .single();
       if (error) setMessage('Erreur : ' + error.message);
