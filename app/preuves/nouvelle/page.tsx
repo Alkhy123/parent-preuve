@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 // Type souple pour la liste des enfants (voir note en bas sur le nom de colonne).
 type Enfant = {
