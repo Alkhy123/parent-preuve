@@ -1,7 +1,9 @@
 // lib/piecesNote.ts
-// Charge les pièces (documents + preuves photo) pour le bordereau, avec ce qu'il
-// faut pour récupérer le fichier réel (bucket + chemin + type). Lecture seule, RLS auto.
+// Charge les pièces (documents + preuves photo) pour le bordereau, CLOISONNÉ sur la
+// procédure active (enfant de la procédure, ou pièce sans enfant = générale).
+// Lecture seule, RLS auto.
 import { supabase } from '@/lib/supabase'
+import { getEnfantsDeProcedureActive } from '@/lib/procedureActive'
 
 export type PieceDisponible = {
   id: string
@@ -20,11 +22,16 @@ export type PieceBordereau = { libelle: string; date: string; categorie: string 
 export async function chargerPiecesDisponibles(): Promise<PieceDisponible[]> {
   const liste: PieceDisponible[] = []
 
+  const enfants = await getEnfantsDeProcedureActive()
+  const idsProc = new Set(enfants.map((e) => e.id))
+  const garde = (cid: string | null) => cid === null || idsProc.has(cid)
+
   const { data: docs } = await supabase
     .from('documents')
-    .select('id, libelle, categorie, date_document, chemin_fichier')
+    .select('id, libelle, categorie, date_document, chemin_fichier, child_id')
   if (docs) {
     for (const d of docs as any[]) {
+      if (!garde(d.child_id ?? null)) continue
       liste.push({
         id: d.id,
         origine: 'document',
@@ -40,9 +47,10 @@ export async function chargerPiecesDisponibles(): Promise<PieceDisponible[]> {
 
   const { data: preuves } = await supabase
     .from('preuves_photo')
-    .select('id, titre, created_at, storage_path, type_fichier')
+    .select('id, titre, created_at, storage_path, type_fichier, enfant_id')
   if (preuves) {
     for (const p of preuves as any[]) {
+      if (!garde(p.enfant_id ?? null)) continue
       liste.push({
         id: p.id,
         origine: 'preuve',
