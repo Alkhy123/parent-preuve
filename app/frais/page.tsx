@@ -5,11 +5,18 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { euros } from "@/lib/dossierCalculs";
 import RegleFrais from '@/components/RegleFrais';
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
 // Vue allégée d'un document, pour le proposer comme justificatif.
-type DocLite = { id: string; libelle: string; categorie: string; chemin_fichier: string };
+type DocLite = {
+  id: string;
+  libelle: string;
+  categorie: string;
+  chemin_fichier: string;
+  childId: string | null;
+};
 
 type Frais = {
   id: string;
@@ -40,19 +47,25 @@ export default function FraisPage() {
   const [message, setMessage] = useState("");
 
   async function chargerEnfants() {
-    const { data } = await supabase
-      .from("children")
-      .select("id, prenom_ou_alias")
-      .order("created_at", { ascending: true });
-    setEnfants(data ?? []);
+    // Enfants de la procédure active uniquement.
+    const data = await getEnfantsDeProcedureActive();
+    setEnfants(data);
   }
 
   async function chargerDocuments() {
     const { data } = await supabase
       .from("documents")
-      .select("id, libelle, categorie, chemin_fichier")
+      .select("id, libelle, categorie, chemin_fichier, child_id")
       .order("created_at", { ascending: false });
-    setDocuments(data ?? []);
+    setDocuments(
+      (data ?? []).map((d) => ({
+        id: d.id,
+        libelle: d.libelle,
+        categorie: d.categorie,
+        chemin_fichier: d.chemin_fichier,
+        childId: d.child_id,
+      }))
+    );
   }
 
   async function chargerFrais() {
@@ -142,12 +155,22 @@ export default function FraisPage() {
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
   }
 
-  // Les totaux, recalculés à chaque affichage
-  const resteAPercevoir = frais
+  // Filtrage par procédure active (frais/justificatifs d'un enfant de la procédure,
+  // ou sans enfant rattaché). Les totaux sont calculés sur ce périmètre.
+  const idsProc = new Set(enfants.map((e) => e.id));
+  const fraisProcedure = frais.filter(
+    (f) => f.child_id === null || idsProc.has(f.child_id)
+  );
+  const documentsProcedure = documents.filter(
+    (d) => d.childId === null || idsProc.has(d.childId)
+  );
+
+  // Les totaux, recalculés à chaque affichage (sur la procédure active)
+  const resteAPercevoir = fraisProcedure
     .filter((f) => !f.rembourse)
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
 
-  const dejaRembourse = frais
+  const dejaRembourse = fraisProcedure
     .filter((f) => f.rembourse)
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
 
@@ -245,11 +268,11 @@ export default function FraisPage() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="">— Aucun —</option>
-              {documents.map((d) => (
+              {documentsProcedure.map((d) => (
                 <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
               ))}
             </select>
-            {documents.length === 0 && (
+            {documentsProcedure.length === 0 && (
               <p className="mt-1 text-xs text-slate-500">
                 Aucun justificatif disponible. Ajoutez vos pièces dans « Documents » pour pouvoir les lier ici.
               </p>
@@ -267,10 +290,10 @@ export default function FraisPage() {
 
         {/* Liste */}
         <div className="mt-8 space-y-3">
-          {frais.length === 0 && (
-            <p className="text-slate-500">Aucun frais enregistré.</p>
+          {fraisProcedure.length === 0 && (
+            <p className="text-slate-500">Aucun frais enregistré pour cette procédure.</p>
           )}
-          {frais.map((f) => (
+          {fraisProcedure.map((f) => (
             <div
               key={f.id}
               className={`carte rounded-xl border p-4 ${
@@ -318,7 +341,7 @@ export default function FraisPage() {
                       className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
                     >
                       <option value="">— Lier un justificatif —</option>
-                      {documents.map((d) => (
+                      {documentsProcedure.map((d) => (
                         <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
                       ))}
                     </select>
