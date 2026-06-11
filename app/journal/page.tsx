@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -49,11 +50,9 @@ export default function JournalPage() {
   const [message, setMessage] = useState("");
 
   async function chargerEnfants() {
-    const { data } = await supabase
-      .from("children")
-      .select("id, prenom_ou_alias")
-      .order("created_at", { ascending: true });
-    setEnfants(data ?? []);
+    // Enfants de la procédure active uniquement.
+    const data = await getEnfantsDeProcedureActive();
+    setEnfants(data);
   }
 
   async function chargerEvenements() {
@@ -117,10 +116,17 @@ export default function JournalPage() {
   const texte = (titre + " " + description).toLowerCase();
   const motsDetectes = MOTS_SENSIBLES.filter((mot) => texte.includes(mot));
 
+  // Filtrage par procédure active : on garde les événements d'un enfant de la
+  // procédure active, plus ceux sans enfant rattaché (généraux).
+  const idsEnfantsProc = new Set(enfants.map((e) => e.id));
+  const evenementsProcedure = evenements.filter(
+    (e) => e.child_id === null || idsEnfantsProc.has(e.child_id)
+  );
+
   const evenementsFiltres =
     filtreCategorie === "Toutes"
-      ? evenements
-      : evenements.filter((e) => e.categorie === filtreCategorie);
+      ? evenementsProcedure
+      : evenementsProcedure.filter((e) => e.categorie === filtreCategorie);
 
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
