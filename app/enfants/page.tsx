@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import { setProcedureActiveIdLocal } from "@/lib/procedureActive";
 
 type Enfant = {
   id: string;
@@ -27,12 +28,10 @@ export default function EnfantsPage() {
   const [etiquetteNouvelle, setEtiquetteNouvelle] = useState("");
   const [message, setMessage] = useState("");
 
-  // Étiquette lisible d'une procédure (repli si vide)
   function libelleProcedure(p: Procedure) {
     return p.etiquette?.trim() ? p.etiquette : "Procédure sans nom";
   }
 
-  // Charge enfants + procédures
   async function chargerTout() {
     const [resEnfants, resProcedures] = await Promise.all([
       supabase
@@ -58,8 +57,6 @@ export default function EnfantsPage() {
     setEnfants(resEnfants.data ?? []);
     setProcedures(procs);
 
-    // Par défaut : rattacher à la première procédure existante ;
-    // s'il n'y en a aucune, basculer sur "nouvelle procédure".
     setProcedureChoisie((actuel) => {
       if (actuel !== NOUVELLE && procs.some((p) => p.id === actuel)) return actuel;
       return procs.length > 0 ? procs[0].id : NOUVELLE;
@@ -80,7 +77,6 @@ export default function EnfantsPage() {
 
     let procedureId = procedureChoisie;
 
-    // Cas "autre parent différent" : on crée d'abord la procédure
     if (procedureChoisie === NOUVELLE) {
       if (!etiquetteNouvelle.trim()) {
         setMessage("Indiquez un nom pour la nouvelle procédure (l'autre parent).");
@@ -110,35 +106,34 @@ export default function EnfantsPage() {
       return;
     }
 
-    // Réinitialise le formulaire et rafraîchit
     setPrenom("");
     setDateNaissance("");
     setEtiquetteNouvelle("");
     chargerTout();
   }
 
-  // Supprime la procédure UNIQUEMENT si plus rien ne lui est rattaché
-  // (aucun enfant et aucune des 4 règles). Sinon on n'y touche pas.
-  async function supprimerProcedureSiVide(procId: string) {
-    const tables = [
-      "children",
-      "pension_regle",
-      "frais_regle",
-      "dvh_regle",
-      "decision_regle",
-    ] as const;
+  // Supprime une procédure devenue orpheline (plus d'enfant).
+  // Efface d'abord ses règles et paiements rattachés pour éviter tout fantôme.
+  async function supprimerProcedureSiSansEnfant(procId: string) {
+    // Vérifie qu'il ne reste vraiment aucun enfant
+    const { count, error } = await supabase
+      .from("children")
+      .select("id", { count: "exact", head: true })
+      .eq("procedure_id", procId);
+    if (error) return; // en cas de doute, on ne supprime rien
+    if ((count ?? 0) > 0) return; // encore des enfants → on garde
 
-    for (const table of tables) {
-      const { count, error } = await supabase
-        .from(table)
-        .select("id", { count: "exact", head: true })
-        .eq("procedure_id", procId);
-      if (error) return; // en cas de doute, on ne supprime rien
-      if ((count ?? 0) > 0) return; // encore utilisée → on garde
-    }
-
-    // Tout est à zéro → on supprime la procédure devenue vide.
+    // Plus d'enfant → on nettoie tout ce qui est rattaché, puis la procédure elle-même
+    await supabase.from("pension_regle").delete().eq("procedure_id", procId);
+    await supabase.from("frais_regle").delete().eq("procedure_id", procId);
+    await supabase.from("dvh_regle").delete().eq("procedure_id", procId);
+    await supabase.from("decision_regle").delete().eq("procedure_id", procId);
+    await supabase.from("pension_payments").delete().eq("procedure_id", procId);
     await supabase.from("procedures").delete().eq("id", procId);
+
+    // Si la procédure supprimée était la procédure active mémorisée, on remet à zéro :
+    // getProcedureActiveId retombera sur la première procédure restante au prochain chargement.
+    setProcedureActiveIdLocal(null);
   }
 
   async function supprimerEnfant(enfant: Enfant) {
@@ -148,9 +143,8 @@ export default function EnfantsPage() {
       return;
     }
 
-    // Nettoyage : si la procédure de cet enfant est désormais vide, on l'efface aussi.
     if (enfant.procedure_id) {
-      await supprimerProcedureSiVide(enfant.procedure_id);
+      await supprimerProcedureSiSansEnfant(enfant.procedure_id);
     }
 
     chargerTout();
@@ -193,7 +187,6 @@ export default function EnfantsPage() {
               />
             </div>
 
-            {/* Procédure : même autre parent qu'un enfant déjà enregistré ? */}
             <div>
               <label className="block text-sm font-medium text-slate-700">
                 Procédure concernée (l'autre parent)

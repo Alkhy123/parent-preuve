@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
-import { getProcedureActiveId } from "@/lib/procedureActive";
+import { getProcedureActiveId, setProcedureActiveIdLocal } from "@/lib/procedureActive";
 import RegleDecision from "@/components/RegleDecision";
 
-// Champs éditables d'une procédure (hors enfants/règles, gérés ailleurs).
 type FormeProcedure = {
   etiquette: string;
   autre_parent_civilite: string;
@@ -28,7 +28,6 @@ const VIDE: FormeProcedure = {
   jugement_juridiction: "", jugement_date: "", jugement_numero_rg: "", jugement_intitule: "",
 };
 
-// Champ réutilisable (même style que la page Dossier).
 function Champ({ label, value, onChange, type = "text", placeholder }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
 }) {
@@ -45,11 +44,15 @@ function Champ({ label, value, onChange, type = "text", placeholder }: {
 }
 
 export default function ProcedurePage() {
+  const router = useRouter();
   const [procId, setProcId] = useState<string | null>(null);
   const [form, setForm] = useState<FormeProcedure>(VIDE);
+  const [nbEnfants, setNbEnfants] = useState(0);
   const [chargement, setChargement] = useState(true);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState("");
+  const [confirmationSuppression, setConfirmationSuppression] = useState(false);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
 
   useEffect(() => {
     async function charger() {
@@ -57,23 +60,30 @@ export default function ProcedurePage() {
       setProcId(id);
       if (!id) { setChargement(false); return; }
 
-      const { data, error } = await supabase
-        .from("procedures")
-        .select(
-          "etiquette, autre_parent_civilite, autre_parent_nom, autre_parent_prenom, autre_parent_adresse, autre_parent_code_postal, autre_parent_ville, jugement_juridiction, jugement_date, jugement_numero_rg, jugement_intitule"
-        )
-        .eq("id", id)
-        .maybeSingle();
+      const [procRes, enfantsRes] = await Promise.all([
+        supabase
+          .from("procedures")
+          .select(
+            "etiquette, autre_parent_civilite, autre_parent_nom, autre_parent_prenom, autre_parent_adresse, autre_parent_code_postal, autre_parent_ville, jugement_juridiction, jugement_date, jugement_numero_rg, jugement_intitule"
+          )
+          .eq("id", id)
+          .maybeSingle(),
+        supabase
+          .from("children")
+          .select("id", { count: "exact", head: true })
+          .eq("procedure_id", id),
+      ]);
 
-      if (error) {
-        setMessage("Erreur de chargement : " + error.message);
-      } else if (data) {
+      if (procRes.error) {
+        setMessage("Erreur de chargement : " + procRes.error.message);
+      } else if (procRes.data) {
         const rempli = { ...VIDE };
         (Object.keys(VIDE) as (keyof FormeProcedure)[]).forEach((c) => {
-          rempli[c] = (data as Record<string, string | null>)[c] ?? "";
+          rempli[c] = (procRes.data as Record<string, string | null>)[c] ?? "";
         });
         setForm(rempli);
       }
+      setNbEnfants(enfantsRes.count ?? 0);
       setChargement(false);
     }
     charger();
@@ -91,7 +101,6 @@ export default function ProcedurePage() {
     setEnregistrement(true);
     setMessage("");
 
-    // Champs vides → null (et date vide acceptée).
     const payload: Record<string, string | null> = {};
     (Object.keys(form) as (keyof FormeProcedure)[]).forEach((c) => {
       payload[c] = form[c].trim() === "" ? null : form[c];
@@ -101,6 +110,42 @@ export default function ProcedurePage() {
     if (error) setMessage("Erreur d'enregistrement : " + error.message);
     else setMessage("Procédure enregistrée ✔");
     setEnregistrement(false);
+  }
+
+  async function supprimerProcedure() {
+    if (!procId) return;
+    setSuppressionEnCours(true);
+    setMessage("");
+
+    // Double vérification côté client (le count au chargement peut être périmé)
+    const { count } = await supabase
+      .from("children")
+      .select("id", { count: "exact", head: true })
+      .eq("procedure_id", procId);
+    if ((count ?? 0) > 0) {
+      setMessage("Impossible : cette procédure a encore des enfants. Supprimez-les d'abord dans « Mes enfants ».");
+      setSuppressionEnCours(false);
+      setConfirmationSuppression(false);
+      return;
+    }
+
+    // Nettoyer les règles et paiements rattachés, puis la procédure
+    await supabase.from("pension_regle").delete().eq("procedure_id", procId);
+    await supabase.from("frais_regle").delete().eq("procedure_id", procId);
+    await supabase.from("dvh_regle").delete().eq("procedure_id", procId);
+    await supabase.from("decision_regle").delete().eq("procedure_id", procId);
+    await supabase.from("pension_payments").delete().eq("procedure_id", procId);
+
+    const { error } = await supabase.from("procedures").delete().eq("id", procId);
+    if (error) {
+      setMessage("Erreur de suppression : " + error.message);
+      setSuppressionEnCours(false);
+      return;
+    }
+
+    // Remet à zéro la sélection ; getProcedureActiveId retombera sur une procédure restante.
+    setProcedureActiveIdLocal(null);
+    router.push("/");
   }
 
   return (
@@ -172,6 +217,7 @@ export default function ProcedurePage() {
                 />
               </label>
             </section>
+
             <RegleDecision />
 
             <div className="flex items-center gap-4">
@@ -183,11 +229,61 @@ export default function ProcedurePage() {
                 {enregistrement ? "Enregistrement…" : "Enregistrer la procédure"}
               </button>
               {message && (
-                <p className={message.startsWith("Erreur") ? "text-red-600 text-sm" : "text-emerald-700 text-sm"}>
+                <p className={message.startsWith("Erreur") || message.startsWith("Impossible")
+                  ? "text-red-600 text-sm" : "text-emerald-700 text-sm"}>
                   {message}
                 </p>
               )}
             </div>
+
+            {/* Zone de suppression */}
+            <section className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6">
+              <h2 className="font-display text-lg text-[#9B2C2C]">Supprimer cette procédure</h2>
+
+              {nbEnfants > 0 ? (
+                <p className="mt-2 text-sm text-[#1F2733]/80">
+                  Cette procédure a encore <strong>{nbEnfants} enfant(s)</strong> rattaché(s).
+                  Supprimez-les d'abord dans{" "}
+                  <a href="/enfants" className="font-semibold text-[#15233F] underline">Mes enfants</a>,
+                  puis revenez ici.
+                </p>
+              ) : !confirmationSuppression ? (
+                <>
+                  <p className="mt-2 text-sm text-[#1F2733]/80">
+                    Cette procédure n'a aucun enfant rattaché. La supprimer effacera aussi ses règles
+                    (pension, frais, DVH, décision) et ses paiements de pension. Cette action est irréversible.
+                  </p>
+                  <button
+                    onClick={() => setConfirmationSuppression(true)}
+                    className="mt-4 rounded-md border border-[#9B2C2C] px-4 py-2 text-sm text-[#9B2C2C] hover:bg-[#9B2C2C] hover:text-white"
+                  >
+                    Supprimer cette procédure…
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm font-medium text-[#9B2C2C]">
+                    Êtes-vous certain(e) ? Cette action est irréversible.
+                  </p>
+                  <div className="mt-3 flex gap-3">
+                    <button
+                      onClick={supprimerProcedure}
+                      disabled={suppressionEnCours}
+                      className="rounded-md bg-[#9B2C2C] px-4 py-2 text-sm text-white hover:bg-[#822525] disabled:opacity-60"
+                    >
+                      {suppressionEnCours ? "Suppression…" : "Confirmer la suppression"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmationSuppression(false)}
+                      className="rounded-md border border-slate-300 px-4 py-2 text-sm text-[#1F2733] hover:bg-slate-100"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </>
+              )}
+            </section>
+
           </div>
         )}
       </div>
