@@ -74,6 +74,7 @@ export default function RegleDecision({
   const [valide, setValide] = useState<boolean | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState('');
+  const [signalFermeture, setSignalFermeture] = useState(0);
 
   const [form, setForm] = useState(() => formDepuis(valeursInitiales));
 
@@ -155,6 +156,7 @@ export default function RegleDecision({
       else {
         setValide(origineIA ? false : true);
         setMessage('Règle mise à jour.');
+        if (!origineIA) setSignalFermeture((n) => n + 1);
       }
     } else {
       if (!procedureId) {
@@ -172,6 +174,7 @@ export default function RegleDecision({
         setRegleId(data.id);
         setValide(origineIA ? false : true);
         setMessage('Règle enregistrée.');
+        if (!origineIA) setSignalFermeture((n) => n + 1);
       }
     }
     setEnregistrement(false);
@@ -187,6 +190,7 @@ export default function RegleDecision({
     else {
       setValide(true);
       setMessage('Règle validée.');
+      setSignalFermeture((n) => n + 1);
     }
   }
 
@@ -376,6 +380,8 @@ export default function RegleDecision({
       pliable={regleId !== null}
       replieParDefaut={regleId !== null && valide !== false && !valeursInitiales}
       resume={resumeDecision}
+      signalFermeture={signalFermeture}
+      idPersistance={procedureId ? `regle-decision:${procedureId}` : undefined}
     >
       {valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">

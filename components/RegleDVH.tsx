@@ -82,6 +82,7 @@ export default function RegleDVH({
   const [valide, setValide] = useState<boolean | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState('');
+  const [signalFermeture, setSignalFermeture] = useState(0);
 
   // Si l'IA a pré-rempli des valeurs, le formulaire part directement pré-rempli.
   const [form, setForm] = useState(() => formDepuis(valeursInitiales));
@@ -169,6 +170,7 @@ export default function RegleDVH({
       else {
         setValide(origineIA ? false : true);
         setMessage('Règle mise à jour.');
+        if (!origineIA) setSignalFermeture((n) => n + 1);
       }
     } else {
       if (!procedureId) {
@@ -186,6 +188,7 @@ export default function RegleDVH({
         setRegleId(data.id);
         setValide(origineIA ? false : true);
         setMessage('Règle enregistrée.');
+        if (!origineIA) setSignalFermeture((n) => n + 1);
       }
     }
     setEnregistrement(false);
@@ -202,6 +205,7 @@ export default function RegleDVH({
     else {
       setValide(true);
       setMessage('Règle validée.');
+      setSignalFermeture((n) => n + 1);
     }
   }
 
@@ -238,6 +242,8 @@ export default function RegleDVH({
       pliable={regleId !== null}
       replieParDefaut={regleId !== null && valide !== false && !valeursInitiales}
       resume={resumeDVH}
+      signalFermeture={signalFermeture}
+      idPersistance={procedureId ? `regle-dvh:${procedureId}` : undefined}
     >
       {valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import EncartPliable from "@/components/EncartPliable";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
@@ -48,6 +49,7 @@ export default function JournalPage() {
 
   const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
   const [message, setMessage] = useState("");
+  const [signalAjout, setSignalAjout] = useState(0);
 
   async function chargerEnfants() {
     // Enfants de la procédure active uniquement.
@@ -90,6 +92,7 @@ export default function JournalPage() {
     } else {
       setTitre(""); setCategorie("Autre"); setDateEvenement("");
       setHeureEvenement(""); setDescription(""); setChildId("");
+      setSignalAjout((n) => n + 1);
       chargerEvenements();
     }
   }
@@ -138,7 +141,13 @@ export default function JournalPage() {
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
 
         {/* Formulaire */}
-        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="mt-8">
+          <EncartPliable
+            titre="Ajouter un fait"
+            replieParDefaut
+            signalFermeture={signalAjout}
+          >
+            <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Titre</label>
             <input
@@ -216,6 +225,8 @@ export default function JournalPage() {
           </button>
 
           {message && <p className="text-sm text-slate-600">{message}</p>}
+            </div>
+          </EncartPliable>
         </div>
 
         {/* Filtre */}

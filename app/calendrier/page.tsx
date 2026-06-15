@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
+import EncartPliable from "@/components/EncartPliable";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 type Enfant = { id: string; prenom_ou_alias: string };
@@ -24,6 +25,7 @@ export default function CalendrierPage() {
   const [notes, setNotes] = useState("");
 
   const [message, setMessage] = useState("");
+  const [signalFermeture, setSignalFermeture] = useState(0);
   const [chargement, setChargement] = useState(false);
 
   // 1) charger les enfants DE LA PROCÉDURE ACTIVE
@@ -105,6 +107,7 @@ export default function CalendrierPage() {
 
     setChargement(false);
     setMessage(erreur ? "Erreur : " + erreur.message : "Règle enregistrée ✓");
+    if (!erreur) setSignalFermeture((n) => n + 1);
   }
 
   // aperçu calculé en direct depuis le formulaire
@@ -155,8 +158,14 @@ export default function CalendrierPage() {
               </select>
             </div>
 
-            <section className="carte rounded-lg border border-gray-200 bg-white p-5 space-y-4">
-              <h2 className="font-display text-xl text-[#15233F]">Règle de garde</h2>
+            <EncartPliable
+              titre="Règle de garde"
+              pliable={regleId !== null}
+              replieParDefaut={regleId !== null}
+              signalFermeture={signalFermeture}
+              idPersistance="garde-calendrier"
+            >
+              <div className="space-y-4">
 
               <div>
                 <label className={labelCss}>Chez qui l'enfant vit-il principalement ?</label>
@@ -216,7 +225,8 @@ export default function CalendrierPage() {
               </button>
 
               {message && <p className="text-sm text-[#1F2733]">{message}</p>}
-            </section>
+              </div>
+            </EncartPliable>
 
             <section className="carte rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import EncartPliable from "@/components/EncartPliable";
 import { euros } from "@/lib/dossierCalculs";
 import RegleFrais from '@/components/RegleFrais';
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
@@ -45,6 +46,7 @@ export default function FraisPage() {
   const [childId, setChildId] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [message, setMessage] = useState("");
+  const [signalAjout, setSignalAjout] = useState(0);
 
   async function chargerEnfants() {
     // Enfants de la procédure active uniquement.
@@ -110,6 +112,7 @@ export default function FraisPage() {
     } else {
       setLibelle(""); setCategorie("Autre"); setMontant("");
       setPartAutre(""); setDateFrais(""); setChildId(""); setDocumentId("");
+      setSignalAjout((n) => n + 1);
       chargerFrais();
     }
   }
@@ -200,7 +203,13 @@ export default function FraisPage() {
         </div>
 
         {/* Formulaire */}
-        <div className="mt-8 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="mt-8">
+          <EncartPliable
+            titre="Ajouter un frais"
+            replieParDefaut
+            signalFermeture={signalAjout}
+          >
+            <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Libellé</label>
             <input
@@ -286,6 +295,8 @@ export default function FraisPage() {
             Ajouter le frais
           </button>
           {message && <p className="text-sm text-slate-600">{message}</p>}
+            </div>
+          </EncartPliable>
         </div>
 
         {/* Liste */}

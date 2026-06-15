@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import EncartPliable from "@/components/EncartPliable";
 import ReglePension from "@/components/ReglePension";
 import { euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
@@ -48,6 +49,7 @@ export default function PensionPage() {
   const [montantPaye, setMontantPaye] = useState("");
   const [datePaiement, setDatePaiement] = useState("");
   const [message, setMessage] = useState("");
+  const [signalAjout, setSignalAjout] = useState(0);
 
   async function chargerPaiements() {
     const procId = await getProcedureActiveId();
@@ -94,6 +96,7 @@ export default function PensionPage() {
       setMessage("Erreur : " + error.message);
     } else {
       setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement("");
+      setSignalAjout((n) => n + 1);
       chargerPaiements();
     }
   }
@@ -130,7 +133,13 @@ export default function PensionPage() {
           </div>
 
           {/* Formulaire */}
-          <div className="mt-8 carte rounded-xl border border-[#C2A24C]/20 bg-white p-5 space-y-4">
+          <div className="mt-8">
+            <EncartPliable
+              titre="Ajouter un paiement"
+              replieParDefaut
+              signalFermeture={signalAjout}
+            >
+              <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">Mois concerné</label>
@@ -176,6 +185,8 @@ export default function PensionPage() {
               Enregistrer le mois
             </button>
             {message && <p className="text-sm text-[#1F2733]/70">{message}</p>}
+              </div>
+            </EncartPliable>
           </div>
 
           {/* Liste */}

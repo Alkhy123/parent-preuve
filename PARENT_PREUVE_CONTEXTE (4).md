@@ -32,6 +32,34 @@
 - **Note de synthèse factuelle pour avocat** (`/note-synthese`) : **construite** (cloisonnée par procédure).
 - Routes IA authentifiées côté serveur (token Bearer Supabase) + quota durable en base (`ia_appels`).
 - Suppression de compte RGPD implémentée. Pages légales centralisées mais champs `[À COMPLÉTER]` restants.
+**Version mobile web (PWA) & ergonomie — session de juin :**
+- PWA installable : `app/manifest.ts` (nom, couleurs marque, icônes), icônes dans
+  `public/icons/` (192, 512, maskable-512, apple-touch-icon), `viewport` + `theme-color`
+  + `appleWebApp` dans `app/layout.tsx`. ⚠️ Pas encore de service worker → mode hors-ligne
+  à faire (ne JAMAIS mettre en cache preuves/jugements ; URLs signées 60 s).
+- Tokens de design centralisés dans `app/globals.css` : palette en variables CSS + tokens
+  Tailwind (`bg-navy`, `text-or`, `bg-surface`, `text-texte-doux`, `text-vert/rouge/amber`).
+  Bugs corrigés : `--background` blanc → crème `#ECE7DC`, `font-family: Arial` → Geist.
+  Deux crèmes assumés : `#ECE7DC` = fond de page, `#F8F6F1` (`--surface`) = cartes.
+  Migration des hex en dur vers les tokens = progressive, à faire page par page.
+- Responsive mobile : grilles `grid-cols-2/3` → `grid-cols-1 sm:grid-cols-2/3` sur
+  journal, frais, pension, documents, export, calendrier et les composants RegleX.
+  `grid-cols-7` du calendrier (jours) laissé intact.
+- `EncartPliable.tsx` étendu : props `idPersistance` (mémorise plié/déplié via localStorage,
+  préfixe `encart-replie:`, lecture en useEffect pour éviter les écarts d'hydratation) et
+  `signalFermeture` (incrément → referme l'encart).
+- Formulaires d'ajout repliés par défaut + se referment après enregistrement : journal,
+  frais, pension (état `signalAjout`).
+- Règles du jugement : se referment après enregistrement MANUEL ou validation, restent
+  OUVERTES pour une proposition IA non validée (`valide=false`), état fermé persistant
+  par dossier. Concernés : RegleDVH, RegleFrais, RegleDecision, ReglePension
+  (clés `regle-xxx:{procedureId}`) et la règle de garde, désormais dans un `EncartPliable`
+  inline dans `app/calendrier/page.tsx` (clé constante `garde-calendrier`).
+
+**Dette / à faire identifiés cette session :**
+- Sécuriser `/api/horodatage` (ni auth ni quota) — PROCHAINE TÂCHE prioritaire.
+- Service worker PWA (offline) non fait.
+- Migration progressive des couleurs en dur vers les tokens.
 
 ### ⚠️ Écarts doc/code et dettes techniques (vérifiés le 11/06/2026, **toujours ouverts**)
 - **`components/BoutonCaptureRapide.tsx` existe mais n'est monté nulle part** (ni `app/page.tsx` ni
@@ -521,3 +549,4 @@ présence App Store / Google Play.
 - Validation humaine prévue pour toute sortie IA (`source='ia'`, `valide=false`) ?
 - Un test concret donné, expliqué simplement, étape par étape ?
 - Compatibilité future mobile (PWA/RN) prise en compte si pertinent ?
+- Optimiser la réponse pour réduire le coût des tokens par réponse

@@ -57,6 +57,7 @@ export default function ReglePension({
   );
   const [enregistrement, setEnregistrement] = useState(false);
   const [erreur, setErreur] = useState("");
+  const [signalFermeture, setSignalFermeture] = useState(0);
 
   useEffect(() => {
     async function charger() {
@@ -142,6 +143,7 @@ export default function ReglePension({
     }
     setRegle(resultat.data);
     setEdition(false);
+    if (!origineIA) setSignalFermeture((n) => n + 1);
   }
 
   async function valider() {
@@ -157,6 +159,7 @@ export default function ReglePension({
       return;
     }
     setRegle(data);
+    setSignalFermeture((n) => n + 1);
   }
 
   // --- Affichage ---
@@ -325,6 +328,8 @@ export default function ReglePension({
       pliable
       replieParDefaut={regle.valide !== false}
       resume={resumePension}
+      signalFermeture={signalFermeture}
+      idPersistance={procedureId ? `regle-pension:${procedureId}` : undefined}
     >
       {regle.valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
