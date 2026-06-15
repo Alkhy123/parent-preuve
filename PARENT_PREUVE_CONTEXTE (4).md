@@ -57,7 +57,9 @@
   inline dans `app/calendrier/page.tsx` (clé constante `garde-calendrier`).
 
 **Dette / à faire identifiés cette session :**
-- Sécuriser `/api/horodatage` (ni auth ni quota) — PROCHAINE TÂCHE prioritaire.
+-- ✅ `/api/horodatage` sécurisée le 15/06/2026 : auth Bearer (401) + quota anti-abus
+  30/60 s (429), même ordre que les routes IA. Quota compté en base dans `ia_appels`
+  avec `fonctionnalite = "horodatage"` (réutilisation directe de `verifierQuotaIa`, zéro SQL).
 - Service worker PWA (offline) non fait.
 - Migration progressive des couleurs en dur vers les tokens.
 
@@ -396,8 +398,11 @@ export PDF (`lib/exportNotePdf.ts`), UI `components/FormulaireNote.tsx` + `Broui
 D — calculs `lib/dossierCalculs.ts` (`totauxFrais`, `totauxPension`, `euros`, `resteDuGlobal`) utilisés
 par `TableauDeBord` **et** `/export` (tous deux cloisonnés).
 
-**Horodatage** : HMAC-SHA256 non qualifié (`/api/horodatage` ; échec → `statut='a_refaire'`). eIDAS
-qualifié (QTSP, RFC 3161) **différé** ; plomberie prête (swap ≈ `app/api/horodatage/route.ts`).
+**Horodatage** : HMAC-SHA256 non qualifié (`/api/horodatage` ; échec → `statut='a_refaire'`).
+**Route protégée** : auth Bearer (`utilisateurDeLaRequete`) → quota (`verifierQuotaIa`,
+`fonctionnalite="horodatage"`, 30/60 s) → signature. Le client `app/preuves/nouvelle/page.tsx`
+joint le jeton via `enteteAuth()`. eIDAS qualifié (QTSP, RFC 3161) **différé** ; plomberie prête
+(swap ≈ `app/api/horodatage/route.ts`).
 
 **Mise en ligne & RGPD** : routes IA authentifiées + quota ; suppression de compte
 (`/api/compte/supprimer`, client `service_role`, efface Storage → tables → Auth) ; « Effacer toutes mes
@@ -412,6 +417,8 @@ champs `[À COMPLÉTER]`) ; `Footer.tsx` ; `AccueilPublic.tsx` + `GardeAcces.tsx
 - Auth **entièrement côté navigateur**. Routes serveur via **token Bearer** (`lib/authServeur.ts`).
 - Routes IA : **auth (401) → quota (429) → Mistral**. Secrets serveur uniquement, jamais
   `NEXT_PUBLIC_`. `SUPABASE_SERVICE_ROLE_KEY` réservée à `lib/supabaseAdmin.ts`.
+- `/api/horodatage` : **auth (401) → quota (429) → signature HMAC**. Le secret `HORODATAGE_SECRET`
+  reste strictement côté serveur.
 - RLS sur 100 % des tables ; buckets privés cloisonnés. Le cloisonnement par procédure repose **en plus**
   sur des filtres applicatifs (RLS protège déjà par utilisateur).
 - `ia_appels` sans DELETE → suppression de compte via client admin.
