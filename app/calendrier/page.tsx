@@ -179,7 +179,7 @@ export default function CalendrierPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelCss}>Début — jour</label>
                   <select value={jourDebut} onChange={(e) => setJourDebut(Number(e.target.value))} className={champ}>
