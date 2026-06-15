@@ -265,7 +265,7 @@ export default function RegleFrais({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Ma part (%)</label>
             <input
@@ -297,7 +297,7 @@ export default function RegleFrais({
           Accord préalable des deux parents requis
         </label>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Seuil d'accord préalable (€)</label>
             <input
