@@ -1,42 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --background: #ECE7DC;   /* fond de page (crème chaud) */
+  --foreground: #15233F;   /* texte principal (navy) */
+  --surface: #F8F6F1;      /* crème clair des cartes / encarts */
+
+  /* Palette de marque */
+  --navy: #15233F;
+  --or: #C2A24C;
+  --creme: #ECE7DC;
+
+  /* Texte */
+  --texte: #15233F;
+  --texte-doux: #5A6473;
+
+  /* Couleurs sémantiques */
+  --vert: #2E6A4D;
+  --rouge: #9B2C2C;
+  --amber: #8A5A12;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-navy: var(--navy);
+  --color-or: var(--or);
+  --color-creme: var(--creme);
+  --color-texte: var(--texte);
+  --color-texte-doux: var(--texte-doux);
+  --color-vert: var(--vert);
+  --color-rouge: var(--rouge);
+  --color-amber: var(--amber);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, Helvetica, Arial, sans-serif;
 }
+
 .font-display {
   font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
 h1, h2 {
   font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
+
 .carte {
   box-shadow: 0 3px 10px rgba(21, 35, 63, 0.24),
               0 10px 40px -2px rgba(21, 35, 63, 0.48);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+
 .lien-pied {
-  color: #F8F6F1;
+  color: var(--surface);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
   transition: color 0.2s ease;
 }
 .lien-pied:hover {
-  color: #C2A24C;
+  color: var(--or);
 }
