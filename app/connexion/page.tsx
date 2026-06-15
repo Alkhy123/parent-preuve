@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -92,6 +93,12 @@ export default function ConnexionPage() {
               S&apos;inscrire
             </button>
           </div>
+
+          <p className="text-sm">
+            <Link href="/mot-de-passe-oublie" className="text-[#15233F] underline">
+              Mot de passe oublié ?
+            </Link>
+          </p>
 
           {message && <p className="text-sm text-slate-600">{message}</p>}
         </div>

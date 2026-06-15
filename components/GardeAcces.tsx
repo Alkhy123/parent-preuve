@@ -6,7 +6,14 @@ import { supabase } from "@/lib/supabase";
 
 // Pages accessibles SANS connexion. Tout le reste exige d'être connecté.
 // (Ajoute ici une page si tu en crées une nouvelle qui doit rester publique.)
-const CHEMINS_PUBLICS = ["/", "/connexion", "/confidentialite", "/mentions-legales"];
+const CHEMINS_PUBLICS = [
+  "/",
+  "/connexion",
+  "/confidentialite",
+  "/mentions-legales",
+  "/mot-de-passe-oublie",
+  "/reinitialiser-mot-de-passe",
+];
 
 function estPublic(chemin: string) {
   return CHEMINS_PUBLICS.includes(chemin);
