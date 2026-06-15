@@ -262,7 +262,7 @@ export default function RegleDVH({
       </p>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Nature du DVH</label>
             <select
@@ -294,7 +294,7 @@ export default function RegleDVH({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Lieu des visites</label>
             <select
@@ -341,7 +341,7 @@ export default function RegleDVH({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Fréquence</label>
             <input
