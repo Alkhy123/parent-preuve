@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
+import { enteteAuth } from "@/lib/enteteAuth";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 
 // Type souple pour la liste des enfants (voir note en bas sur le nom de colonne).
@@ -180,7 +181,7 @@ export default function NouvellePreuvePage() {
       try {
         const reponse = await fetch("/api/horodatage", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
           body: JSON.stringify({ empreinte }),
         });
         if (!reponse.ok) throw new Error("réponse non OK");
