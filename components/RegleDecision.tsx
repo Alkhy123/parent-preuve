@@ -271,7 +271,7 @@ export default function RegleDecision({
       </label>
 
       {form.frappee_appel && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Date de la déclaration d’appel</label>
             <input
@@ -293,7 +293,7 @@ export default function RegleDecision({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={label}>Date du prononcé</label>
           <input
