@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
@@ -27,6 +27,20 @@ export const metadata: Metadata = {
   title: "Parent Preuve",
   description:
     "Centralisez frais, pension, justificatifs et événements pour préparer un dossier clair, daté et factuel.",
+  appleWebApp: {
+    capable: true,
+    title: "Parent Preuve",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#15233F",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
