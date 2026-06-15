@@ -188,7 +188,7 @@ export default function FraisPage() {
         </div>
 
         {/* Bandeau de totaux */}
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="carte rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Reste à percevoir</p>
             <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(resteAPercevoir)}</p>
