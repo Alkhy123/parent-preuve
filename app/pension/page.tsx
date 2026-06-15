@@ -131,7 +131,7 @@ export default function PensionPage() {
 
           {/* Formulaire */}
           <div className="mt-8 carte rounded-xl border border-[#C2A24C]/20 bg-white p-5 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">Mois concerné</label>
                 <input
