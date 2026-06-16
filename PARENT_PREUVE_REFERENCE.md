@@ -226,12 +226,12 @@ components/
   EncartPliable · PageHeader · CourrierModele
   ReglePension · RegleFrais · RegleDVH · RegleDecision
   SelecteurPieces · FormulaireNote · BrouillonNote · QuestionnaireAiguillage · EffacerDonnees
-  BoutonCaptureRapide  (⚠️ existe mais N'EST MONTÉ NULLE PART)
+  BoutonCaptureRapide  (conservé volontairement, pas encore monté — réservé capture mobile, voir §4)
 
 lib/
   supabase · supabaseAdmin (service_role)
   procedureActive (⭐ getProcedureActiveId / getEnfantsDeProcedureActive / get|setProcedureActiveIdLocal)
-  authServeur · enteteAuth · quotaIa · limiteurAppel (⚠️ CODE MORT)
+  authServeur · enteteAuth · quotaIa
   dossierCalculs · controleDossier · gardeCalendrier · gardeNotifications
   courrierHelpers · courrierPdf · preuvePdf
   dispositif · extractionRegles · regleConvertisseurs · libellesRegles
@@ -251,11 +251,10 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 ## 4. Dette technique (vérifiée 15/06/2026)
 
 **Encore ouvertes :**
-- `components/BoutonCaptureRapide.tsx` **n'est monté nulle part** → bouton flottant invisible.
-  À remonter (idéalement dans `layout.tsx`).
-- **`cross-env` utilisé dans le script `dev` mais absent de `package.json`** → `npm ci` sur
-  machine propre échoue (`npm install` passe). À ajouter : `npm i -D cross-env`.
-- `lib/limiteurAppel.ts` = **code mort** (plus importé) → supprimable.
+- `components/BoutonCaptureRapide.tsx` : **conservé volontairement**, pas encore monté.
+  Ce N'EST PAS du code mort — futur bouton de capture photo native mobile (décision 07/06/2026).
+  En-tête du fichier documenté pour éviter toute suppression par erreur. Reste à faire (non urgent) :
+  le monter dans `layout.tsx` pour l'afficher sur toutes les pages.
 - **README et `app/favicon.ico` par défaut** (create-next-app) → à dégénériciser.
 - **Pages légales** : champs `[À COMPLÉTER]` à remplir + **relecture par un professionnel du
   droit** avant ouverture large.
@@ -271,6 +270,10 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 - `pdf-lib` installé et branché (`lib/exportNotePdf.ts`) — d'anciennes notes le disaient « non
   installé ».
 -  Export PDF de la chronologie (16/06/2026, livré et testé)
+- **Nettoyage dette technique (16/06/2026)** : `cross-env` ajouté à `devDependencies` (`^7.0.3`)
+  → `npm ci` OK sur machine propre ; `lib/limiteurAppel.ts` (ancien limiteur mémoire, remplacé
+  par le quota en base `ia_appels`) **supprimé** ; `BoutonCaptureRapide` requalifié
+  « conservé volontairement » au lieu de « code mort ».
 
   Frise datée unique exportable en PDF pour la procédure active, filtrable par période (du/au) et par type. Réutilise fusionnerChronologie (données déjà triées/cloisonnées), euros() et le moteur jsPDF + jspdf-autotable.
 
