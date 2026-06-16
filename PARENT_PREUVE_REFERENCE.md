@@ -78,10 +78,13 @@ badges de statut colorés. Horodatage **HMAC-SHA256 non qualifié** via `/api/ho
 (429, compté dans `ia_appels` avec `fonctionnalite="horodatage"`) → signature. eIDAS qualifié
 (QTSP, RFC 3161) **différé** ; plomberie prête (swap ≈ `app/api/horodatage/route.ts`).
 
-**Mobile web (PWA) — partiel** : PWA installable (`app/manifest.ts`, icônes `public/icons/`,
-`viewport`/`theme-color`/`appleWebApp` dans `layout.tsx`). ⚠️ **Pas encore de service worker** →
-mode hors-ligne à faire (ne **jamais** mettre en cache preuves/jugements ; URLs signées 60 s).
-Responsive : grilles passées en `grid-cols-1 sm:grid-cols-2/3` sur les écrans de saisie.
+**Mobile web (PWA) — installable + hors-ligne ✅** : PWA installable (`app/manifest.ts`,
+icônes `public/icons/`, `viewport`/`theme-color`/`appleWebApp` dans `layout.tsx`).
+Service worker `public/sw.js` actif : coquille en cache hors-ligne + module de mise
+à jour (`components/MajServiceWorker.tsx`). Ne met JAMAIS en cache les données
+Supabase, le Storage ni `/api/` (URLs signées 60 s préservées).
+
+
 
 **RGPD / mise en ligne** : suppression de compte (`/api/compte/supprimer`, client `service_role`,
 efface Storage → tables → Auth) ; « Effacer toutes mes données » (`EffacerDonnees.tsx` bas de
@@ -261,8 +264,19 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
   `dossier.declarant_*`** car cette colonne vit toujours dans la table `dossier`
   (chaînes purement descriptives, affichées via `FormulaireNote.tsx`, aucune requête impactée).
 
-### Dettes encore OUVERTES
-- Service worker PWA absent.
+- ✅ **Mode hors-ligne PWA + module de mise à jour (16/06/2026).** Service worker
+  manuel `public/sw.js` (pas de `next-pwa`). Met en cache UNIQUEMENT la coquille
+  (HTML de `/`, `/_next/static/`, `/icons/`) en « réseau d'abord » pour les
+  navigations, « cache d'abord » pour les statiques. **Triple bypass de sécurité** :
+  ignore les requêtes non-GET, tout ce qui n'est pas same-origin (donc Supabase
+  données + Storage `*.supabase.co`, et Mistral) et tout `/api/`. Les preuves,
+  jugements et justificatifs (URLs signées 60 s) ne sont JAMAIS mis en cache.
+  Module de mise à jour : `components/MajServiceWorker.tsx` (monté dans
+  `app/layout.tsx`), enregistre le SW en production seulement (`updateViaCache:
+  "none"`), affiche un bandeau discret « Une nouvelle version est disponible » +
+  bouton « Recharger » quand un SW est en attente ; au clic → `SKIP_WAITING` puis
+  rechargement UNE seule fois ; jamais de rechargement forcé. Versionnage par
+  `const VERSION` dans `sw.js` (bump = nouvelle version détectée)..
 
 ### Pages légales — renseignées (16/06/2026)
 - `/mentions-legales` et `/confidentialite` : tous les placeholders `[À COMPLÉTER]` remplacés
