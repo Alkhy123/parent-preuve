@@ -296,9 +296,13 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 
   Pour changer un modèle à l'avenir : modifier UNE ligne dans lib/modelesIA.ts.
 
-  À surveiller : "mistral-medium-2604" est une montée de génération sur la reformulation
-  (comportement volontairement amélioré, pas identique). Diagnostic qualité "prompt vs modèle"
-  de la reformulation à traiter dans une session dédiée.
+Diagnostic qualité reformulation FAIT (16/06/2026) : la dérive de vocabulaire venait
+  du PROMPT, pas du modèle. La CONSIGNE de app/api/ia/reformuler/route.ts demandait de
+  "réécrire / clarifier / raccourcir" → le modèle paraphrasait et remplaçait les mots
+  de l'utilisateur. Modèle medium-2604 CONSERVÉ (capable, conforme contrainte).
+  Nouvelle CONSIGNE = "intervention minimale + fidélité au vocabulaire" : retirer seulement
+  la couche agressive, garder les mots neutres de l'auteur à l'identique. Température 0.2
+  inchangée. Validé sur 3 cas (insulte / accusation / texte déjà neutre).
 ---
 
 ## 5. Backlog / chantiers
@@ -306,8 +310,8 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 **Avant ouverture large**
 - Compléter les `[À COMPLÉTER]` des pages légales + relecture juridique.
 - Réactiver la confirmation e-mail + vrai service SMTP.
-- Harmoniser le design de `/reformuler` ; diagnostiquer la qualité de reformulation Mistral
-  (prompt vs choix de modèle).
+  - Harmoniser le design de `/reformuler`. (Qualité de reformulation : diagnostic + correctif
+  prompt faits le 16/06/2026, voir section modèles IA.)
 
 **Brique A (suite IA)** : moteur d'indexation INSEE (fonction pure mettant à jour
 `montant_courant`) ; comparaison « dû selon la règle » vs « payé » ; surfacer
