@@ -13,42 +13,37 @@ const GROUPES = [
     label: "Mon dossier",
     liens: [
       { href: "/chronologie", label: "Chronologie" },
-      { href: "/dossier", label: "Socle (état civil)" },
-      { href: "/procedure", label: "Procédure (autre parent)" },
-      { href: "/dossier/extraire", label: "Analyse du jugement" },
-      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
-      { href: "/enfants", label: "Enfants" },
+      { href: "/calendrier", label: "Calendrier de garde" },
+      { href: "/documents/coffre-fort", label: "Coffre-fort (pièces rangées)" },
     ],
   },
   {
-    label: "Suivi",
+    label: "Saisir",
     liens: [
+      { href: "/journal", label: "Journal (faits)" },
       { href: "/frais", label: "Frais" },
       { href: "/pension", label: "Pension" },
-    ],
-  },
-  {
-    label: "Organisation",
-    liens: [
-      { href: "/calendrier", label: "Calendrier" },
-      { href: "/journal", label: "Journal" },
-    ],
-  },
-  {
-    label: "Pièces & preuves",
-    liens: [
       { href: "/documents", label: "Documents" },
-      { href: "/documents/coffre-fort", label: "Coffre-fort" },
-      { href: "/preuves", label: "Preuves" },
+      { href: "/preuves", label: "Preuve photo" },
     ],
   },
   {
     label: "Production",
     liens: [
-      { href: "/courriers", label: "Courriers" },
       { href: "/export", label: "Export PDF" },
-      { href: "/reformuler", label: "Reformulation" },
+      { href: "/courriers", label: "Courriers" },
       { href: "/note-synthese", label: "Note pour l'avocat" },
+      { href: "/reformuler", label: "Reformulation" },
+    ],
+  },
+  {
+    label: "Réglages",
+    liens: [
+      { href: "/procedure", label: "Procédure (autre parent)" },
+      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
+      { href: "/dossier/extraire", label: "Analyser le jugement" },
+      { href: "/dossier", label: "Socle (état civil)" },
+      { href: "/enfants", label: "Enfants" },
     ],
   },
 ];
