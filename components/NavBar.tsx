@@ -12,6 +12,7 @@ const GROUPES = [
   {
     label: "Mon dossier",
     liens: [
+      { href: "/chronologie", label: "Chronologie" },
       { href: "/dossier", label: "Socle (état civil)" },
       { href: "/procedure", label: "Procédure (autre parent)" },
       { href: "/dossier/extraire", label: "Analyse du jugement" },
@@ -37,6 +38,7 @@ const GROUPES = [
     label: "Pièces & preuves",
     liens: [
       { href: "/documents", label: "Documents" },
+      { href: "/documents/coffre-fort", label: "Coffre-fort" },
       { href: "/preuves", label: "Preuves" },
     ],
   },
