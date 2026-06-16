@@ -5,7 +5,7 @@
 
 // Numéro de version. Le SEUL fait de changer ce fichier (même ce numéro)
 // suffit à ce que le navigateur détecte une "nouvelle version".
-const VERSION = "v1";
+const VERSION = "v2";
 
 // Phase 1 : installation du nouveau service worker.
 // On NE force PAS l'activation ici : on veut qu'une nouvelle version
