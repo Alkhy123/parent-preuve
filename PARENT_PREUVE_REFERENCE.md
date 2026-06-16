@@ -250,20 +250,22 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 
 ## 4. Dette technique (vérifiée 15/06/2026)
 
-**Encore ouvertes :**
-- `components/BoutonCaptureRapide.tsx` : **conservé volontairement**, pas encore monté.
-  Ce N'EST PAS du code mort — futur bouton de capture photo native mobile (décision 07/06/2026).
-  En-tête du fichier documenté pour éviter toute suppression par erreur. Reste à faire (non urgent) :
-  le monter dans `layout.tsx` pour l'afficher sur toutes les pages.
-- **README et `app/favicon.ico` par défaut** (create-next-app) → à dégénériciser.
-- **Pages légales** : champs `[À COMPLÉTER]` à remplir + **relecture par un professionnel du
-  droit** avant ouverture large.
-- **Service worker PWA (offline)** non fait.
-- **Migration progressive** des couleurs en dur (`slate`/`gray`) vers les tokens.
-- **Cosmétique** : `lib/structureNote.ts` contient encore des libellés `source: 'dossier.*'`
-  (autre parent / jugement) alors que la source réelle est `procedures` → renommer en
-  `procedure.*` quand l'occasion se présente (pures chaînes descriptives, aucune requête).
-- Alias Mistral `-latest` en dépréciation → migrer vers identifiants versionnés.
+### Dette légère — RÉSOLUE (16/06/2026)
+- ✅ `app/favicon.ico` : remplacé par le monogramme PP (16/32/48 px), dérivé de
+  `public/apple-touch-icon.png`. Plus de favicon Vercel par défaut.
+- ✅ `README.md` : dégénéricisé (mission, stack, démarrage local, variables d'env,
+  positionnement juridique). Plus de texte create-next-app.
+- ✅ `lib/structureNote.ts` : libellés `source` corrigés `dossier.*` → `procedure.*`
+  pour les champs réellement portés par la table `procedures` (jugement_juridiction,
+  jugement_numero_rg, jugement_intitule, autre_parent_*). **`declarant_*` laissé en
+  `dossier.declarant_*`** car cette colonne vit toujours dans la table `dossier`
+  (chaînes purement descriptives, affichées via `FormulaireNote.tsx`, aucune requête impactée).
+
+### Dettes encore OUVERTES
+- Champs `[À COMPLÉTER]` des pages légales (identité éditeur, email, régions Supabase/Vercel,
+  alignement DPA Mistral) avant ouverture publique.
+- Service worker PWA absent.
+- Alias Mistral `-latest` en cours de dépréciation → migrer vers identifiants versionnés.
 
 **✅ Fermées récemment (ne plus traiter comme dette) :**
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.

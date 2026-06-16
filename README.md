@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Parent Preuve
 
-## Getting Started
+**Quand tout est confus, Parent Preuve remet de l'ordre dans les faits pour que le parent reprenne pied.**
 
-First, run the development server:
+Parent Preuve est un outil d'**organisation personnelle** destiné à un parent seul, en situation
+de conflit co-parental après décision du Juge aux affaires familiales (JAF). L'application aide à
+constituer un dossier **factuel et structuré** : journal d'événements, frais, pension, documents,
+courriers, preuves photo scellées et export PDF.
+
+> ⚠️ Parent Preuve n'est **pas** un outil de conseil juridique. Elle ne remplace ni un avocat, ni un
+> commissaire de justice, et ne garantit ni la recevabilité d'une preuve ni l'issue d'une procédure.
+> Les éléments produits sont destinés à être relus, validés par l'utilisateur, et le cas échéant
+> soumis à l'appréciation d'un professionnel du droit.
+
+## Principales fonctionnalités
+
+- **Journal factuel** avec garde-fou de neutralité (détection de langage émotionnel)
+- **Suivi des frais partagés** et **suivi de la pension** (statuts calculés)
+- **Coffre-fort de documents** (stockage privé, accès renforcé)
+- **Preuves photo** : empreinte SHA-256, horodatage, traçabilité renforcée
+- **Assistant courriers** (modèles pré-remplis, validés par l'utilisateur)
+- **Note de synthèse factuelle** pour un professionnel du droit
+- **Extraction assistée par IA** des règles d'un jugement — *l'IA propose, l'utilisateur valide*
+
+## Pile technique
+
+- **Next.js 16** (App Router) + **TypeScript**
+- **Tailwind CSS**
+- **Supabase** (PostgreSQL + Auth + Storage), RLS sur 100 % des tables
+- **Mistral AI** (hébergement EU), appelé **uniquement côté serveur**
+- **jsPDF** / **jspdf-autotable** / **pdf-lib** pour les exports PDF
+- Déploiement **Vercel**
+
+Structure du dépôt à la racine : `app/`, `components/`, `lib/` (pas de dossier `src/`).
+
+## Démarrage en local
+
+Prérequis : Node.js 20+ et un fichier `.env.local` renseigné (voir ci-dessous).
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables d'environnement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Les **secrets restent strictement côté serveur**. Aucune clé sensible ne doit être préfixée par
+`NEXT_PUBLIC_`. À renseigner dans `.env.local` :
 
-## Learn More
+| Variable | Côté | Rôle |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | client | URL du projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Clé anon (protégée par RLS) |
+| `SUPABASE_SERVICE_ROLE_KEY` | serveur | Clé service (admin) — jamais exposée au client |
+| `MISTRAL_API_KEY` | serveur | Accès Mistral AI (appels serveur uniquement) |
+| `HMAC_SECRET` | serveur | Signature de l'horodatage |
 
-To learn more about Next.js, take a look at the following resources:
+> Pour générer un secret sous Windows (sans OpenSSL) :
+> `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Positionnement (règles immuables)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- L'IA **propose**, l'utilisateur **valide** avant tout enregistrement définitif.
+- Les articles de loi sont **saisis et vérifiés par l'utilisateur**, jamais générés par l'IA.
+- Les photos ne sont **jamais** présentées comme un constat de commissaire de justice.
+- L'application documente des **faits observables**, jamais l'intention d'un parent.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© Parent Preuve. Usage personnel d'organisation de dossier.

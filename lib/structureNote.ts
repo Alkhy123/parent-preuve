@@ -72,9 +72,9 @@ export type Volets = {
       titre: 'En-tête',
       estActive: toujours,
       champs: [
-        { id: 'juridiction', libelle: 'Juridiction', origine: 'dossier', type: 'texte_court', source: 'dossier.jugement_juridiction' },
-        { id: 'numero_rg', libelle: 'Numéro RG', origine: 'dossier', type: 'texte_court', source: 'dossier.jugement_numero_rg' },
-        { id: 'intitule', libelle: 'Intitulé du jugement', origine: 'dossier', type: 'texte_court', source: 'dossier.jugement_intitule' },
+        { id: 'juridiction', libelle: 'Juridiction', origine: 'dossier', type: 'texte_court', source: 'procedure.jugement_juridiction' },
+        { id: 'numero_rg', libelle: 'Numéro RG', origine: 'dossier', type: 'texte_court', source: 'procedure.jugement_numero_rg' },
+        { id: 'intitule', libelle: 'Intitulé du jugement', origine: 'dossier', type: 'texte_court', source: 'procedure.jugement_intitule' },
         { id: 'type_decision', libelle: 'Nature de la décision', origine: 'dossier', type: 'texte_court', source: 'decision_regle.type_decision' },
         { id: 'audience_prochaine', libelle: 'Prochaine audience', origine: 'dossier', type: 'date', source: 'decision_regle.date_audience_prochaine' },
       ],
@@ -85,7 +85,7 @@ export type Volets = {
       estActive: toujours,
       champs: [
         { id: 'declarant', libelle: 'Vous (déclarant)', origine: 'dossier', type: 'texte_court', source: 'dossier.declarant_*' },
-        { id: 'autre_parent', libelle: 'Autre parent', origine: 'dossier', type: 'texte_court', source: 'dossier.autre_parent_*' },
+        { id: 'autre_parent', libelle: 'Autre parent', origine: 'dossier', type: 'texte_court', source: 'procedure.autre_parent_*' },
       ],
     },
     {
