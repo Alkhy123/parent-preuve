@@ -2,10 +2,15 @@
 
 // components/BoutonCaptureRapide.tsx
 //
-// Bouton d'action flottant pour la capture rapide.
-// Toujours visible en bas à droite, il mène au geste quotidien le plus fréquent :
-// ajouter un fait au journal. Conçu pour être réutilisable (on pourra plus tard
-// le monter dans le layout pour l'afficher sur toutes les pages).
+// ⚠️ COMPOSANT VOLONTAIREMENT CONSERVÉ — NE PAS SUPPRIMER COMME "CODE MORT".
+// Il n'est pas encore monté dans une page, mais c'est un choix assumé (décision du 07/06/2026) :
+//   1) Il pourra être monté une seule fois dans le layout pour s'afficher sur TOUTES les pages.
+//   2) Il est le point d'ancrage de la future CAPTURE PHOTO NATIVE mobile (React Native/Expo ou PWA).
+//      Sur mobile, seule sa destination/action changera (ouvrir la caméra au lieu d'aller au journal) ;
+//      sa place flottante et son rôle de "geste rapide" restent les mêmes.
+//
+// Rôle actuel (web) : bouton d'action flottant en bas à droite, menant au geste quotidien
+// le plus fréquent — ajouter un fait au journal.
 
 import Link from "next/link";
 
