@@ -13,9 +13,9 @@ export default function MentionsLegalesPage() {
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
         {/* Avertissement */}
         <div className="rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
-          <strong>Modèle à faire vérifier.</strong> Ce texte est un modèle de départ. Il doit
-          être complété (champs entre crochets) et <strong>validé par un professionnel du
-          droit</strong> avant une ouverture publique plus large.
+          <strong>À faire relire.</strong> Ce texte est renseigné. Il reste recommandé de le
+          faire <strong>valider par un professionnel du droit</strong> avant une ouverture
+          publique plus large.
         </div>
 
         {/* MENTIONS LÉGALES */}
@@ -24,22 +24,23 @@ export default function MentionsLegalesPage() {
             <h2 className="font-display text-2xl text-[#15233F]">Éditeur</h2>
             <p>
               L&apos;application <strong>Parent Preuve</strong> est éditée par
-              [NOM ou RAISON SOCIALE], [statut : particulier / auto-entrepreneur / société],
-              [le cas échéant : capital social, n° SIREN/SIRET, RCS de …], dont l&apos;adresse
-              est : [ADRESSE COMPLÈTE]. Contact : [EMAIL] — [TÉLÉPHONE éventuel].
+              <strong> Anthony Magny</strong>, particulier, dont l&apos;adresse est :
+              12 cité Claude Debussy, appartement 7, 65000 Tarbes. Contact :{" "}
+              <a className="underline" href="mailto:alkhyomgame@gmail.com">alkhyomgame@gmail.com</a>.
             </p>
           </div>
 
           <div>
             <h3 className="font-medium text-[#15233F]">Directeur de la publication</h3>
-            <p>[NOM DU DIRECTEUR DE LA PUBLICATION].</p>
+            <p>Anthony Magny.</p>
           </div>
 
           <div>
             <h3 className="font-medium text-[#15233F]">Hébergement de l&apos;application</h3>
             <p>
-              L&apos;application web est hébergée par <strong>Vercel</strong>
-              [ADRESSE / RÉGION à confirmer], <a className="underline" href="https://vercel.com">vercel.com</a>.
+              L&apos;application web est hébergée par <strong>Vercel</strong>, dont les fonctions
+              sont exécutées dans la région de Paris, France (cdg1) ;{" "}
+              <a className="underline" href="https://vercel.com">vercel.com</a>.
             </p>
           </div>
 
@@ -47,8 +48,7 @@ export default function MentionsLegalesPage() {
             <h3 className="font-medium text-[#15233F]">Hébergement des données</h3>
             <p>
               Les données et fichiers sont hébergés par <strong>Supabase</strong>, sur une
-              infrastructure située dans l&apos;Union européenne [CONFIRMER LA RÉGION de votre
-              projet Supabase, ex. Europe (Paris / Francfort)].
+              infrastructure située dans l&apos;Union européenne (région Irlande, eu-west-1).
             </p>
           </div>
         </section>

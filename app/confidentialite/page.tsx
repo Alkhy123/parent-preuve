@@ -12,22 +12,24 @@ export default function ConfidentialitePage() {
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
         {/* Avertissement modèle */}
         <div className="rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
-          <strong>Modèle à faire vérifier.</strong> Ce texte décrit fidèlement le
-          fonctionnement de l&apos;application, mais reste un modèle de départ. Les champs entre
-          crochets doivent être complétés, et l&apos;ensemble{" "}
-          <strong>validé par un professionnel du droit</strong> avant une ouverture publique
+          <strong>À faire relire.</strong> Ce texte décrit fidèlement le fonctionnement de
+          l&apos;application. Il reste recommandé de le faire{" "}
+          <strong>valider par un professionnel du droit</strong> avant une ouverture publique
           plus large.
         </div>
 
-        <p className="text-sm text-gray-500">Dernière mise à jour : [DATE].</p>
+        <p className="text-sm text-gray-500">Dernière mise à jour : 16 juin 2026.</p>
 
         {/* Responsable */}
         <section className="space-y-2">
           <h2 className="font-display text-2xl text-[#15233F]">Responsable du traitement</h2>
           <p>
             L&apos;application <strong>Parent Preuve</strong> est éditée et exploitée par
-            [VOTRE NOM], joignable à l&apos;adresse <strong>[VOTRE EMAIL DE CONTACT]</strong>.
-            Cette personne décide des finalités et des moyens du traitement de vos données.
+            Anthony Magny, joignable à l&apos;adresse{" "}
+            <strong>
+              <a className="underline" href="mailto:alkhyomgame@gmail.com">alkhyomgame@gmail.com</a>
+            </strong>
+            . Cette personne décide des finalités et des moyens du traitement de vos données.
           </p>
         </section>
 
@@ -111,10 +113,9 @@ export default function ConfidentialitePage() {
           <p>
             Ces fonctions ne s&apos;activent qu&apos;<strong>après votre consentement</strong>,
             demandé séparément pour chacune. Le contenu transmis sert exclusivement à produire
-            la proposition demandée ; il n&apos;est pas réutilisé pour entraîner les modèles du
-            prestataire et n&apos;est pas conservé de façon durable. [À aligner sur votre
-            contrat Mistral : accord de sous-traitance — DPA, article 28 — et, le cas échéant,
-            option « zéro rétention ».]
+            la proposition demandée. Selon les conditions du prestataire, les contenus envoyés à
+            son interface de programmation ne sont pas utilisés pour entraîner ses modèles. Ce
+            traitement est réalisé au sein de l&apos;Union européenne.
           </p>
           <p>
             Principe constant : <strong>l&apos;IA propose, vous validez</strong>. Aucune
@@ -135,12 +136,11 @@ export default function ConfidentialitePage() {
             <li>
               <strong>Supabase</strong> — hébergement de la base de données, de
               l&apos;authentification et des fichiers, sur une infrastructure située dans
-              l&apos;Union européenne [CONFIRMER la région de votre projet, ex. Europe (Paris /
-              Francfort)].
+              l&apos;Union européenne (région Irlande, eu-west-1).
             </li>
             <li>
               <strong>Vercel</strong> — hébergement et exécution de l&apos;application web
-              [CONFIRMER la région d&apos;exécution].
+              (fonctions exécutées dans la région de Paris, France, cdg1).
             </li>
             <li>
               <strong>Mistral AI</strong> — uniquement pour les fonctions d&apos;intelligence
@@ -157,8 +157,9 @@ export default function ConfidentialitePage() {
             Vos données sont conservées tant que votre compte est actif. Vous pouvez à tout
             moment supprimer votre compte : cette action efface vos données enregistrées dans
             l&apos;application (journal, frais, pensions, documents, preuves et leurs fichiers,
-            règles, dossier) ainsi que votre compte. [PRÉCISER, le cas échéant, un délai
-            technique d&apos;effacement complet.]
+            règles, dossier) ainsi que votre compte. L&apos;effacement est immédiat dans
+            l&apos;application ; les éventuelles copies techniques de sauvegarde de nos
+            prestataires d&apos;hébergement sont supprimées dans un délai maximal de 30 jours.
           </p>
         </section>
 
@@ -182,8 +183,11 @@ export default function ConfidentialitePage() {
             Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de rectification,
             d&apos;effacement, de limitation, d&apos;opposition et de portabilité de vos
             données, ainsi que du droit de retirer votre consentement à tout moment. Pour les
-            exercer, écrivez à <strong>[VOTRE EMAIL DE CONTACT]</strong>. Vous pouvez également
-            introduire une réclamation auprès de la CNIL (www.cnil.fr).
+            exercer, écrivez à{" "}
+            <strong>
+              <a className="underline" href="mailto:alkhyomgame@gmail.com">alkhyomgame@gmail.com</a>
+            </strong>
+            . Vous pouvez également introduire une réclamation auprès de la CNIL (www.cnil.fr).
           </p>
         </section>
 
