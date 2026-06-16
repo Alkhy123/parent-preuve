@@ -270,6 +270,13 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.
 - `pdf-lib` installé et branché (`lib/exportNotePdf.ts`) — d'anciennes notes le disaient « non
   installé ».
+-  Export PDF de la chronologie (16/06/2026, livré et testé)
+
+  Frise datée unique exportable en PDF pour la procédure active, filtrable par période (du/au) et par type. Réutilise fusionnerChronologie (données déjà triées/cloisonnées), euros() et le moteur jsPDF + jspdf-autotable.
+
+  lib/chronologieExport.ts (pur) : filtrerEtFormaterPourPdf(entrees, { du?, au?, types? }, nomEnfant) → string[][] (colonnes : Date, Heure, Type, Enfant, Titre, Détails, Montant, Statut). Filtre en mémoire ; rappel « horodatage non qualifié, pas un constat » forcé sur chaque ligne preuve.
+  lib/chronologiePdf.ts : genererPdfChronologie(lignes, { du?, au?, etiquetteProcedure? }) → PDF A4 paysage, en-tête navy, avertissement global (non-constat + non-conseil + horodatage non qualifié).
+  app/chronologie/page.tsx : encart filtres (du/au + 4 cases types) + bouton « Exporter la frise en PDF ». Export 100 % en mémoire, aucune requête au clic, aucune table.
 
 ---
 

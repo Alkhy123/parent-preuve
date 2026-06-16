@@ -11,17 +11,36 @@ import {
   type FraisSource,
   type PensionSource,
   type PreuveSource,
+  type TypeEntree,
 } from "@/lib/chronologie";
 import {
   getProcedureActiveId,
   getEnfantsDeProcedureActive,
   type EnfantProcedure,
 } from "@/lib/procedureActive";
+import { filtrerEtFormaterPourPdf } from "@/lib/chronologieExport";
+import { genererPdfChronologie } from "@/lib/chronologiePdf";
+
+// Cases de filtre par type (toutes cochées par défaut).
+const TYPES: { cle: TypeEntree; label: string }[] = [
+  { cle: "fait", label: "Faits" },
+  { cle: "frais", label: "Frais" },
+  { cle: "pension", label: "Pension" },
+  { cle: "preuve", label: "Preuves" },
+];
 
 export default function ChronologiePage() {
   const [entrees, setEntrees] = useState<EntreeChronologie[]>([]);
   const [enfants, setEnfants] = useState<EnfantProcedure[]>([]);
+  const [etiquette, setEtiquette] = useState("");
   const [chargement, setChargement] = useState(true);
+
+  // État des filtres d'export.
+  const [du, setDu] = useState("");
+  const [au, setAu] = useState("");
+  const [typesActifs, setTypesActifs] = useState<TypeEntree[]>(
+    TYPES.map((t) => t.cle),
+  );
 
   useEffect(() => {
     async function charger() {
@@ -30,6 +49,16 @@ export default function ChronologiePage() {
         getProcedureActiveId(),
         getEnfantsDeProcedureActive(),
       ]);
+
+      // Étiquette de la procédure active (pour l'en-tête du PDF).
+      if (procId) {
+        const { data } = await supabase
+          .from("procedures")
+          .select("etiquette")
+          .eq("id", procId)
+          .single();
+        setEtiquette(data?.etiquette?.trim() || "Procédure sans nom");
+      }
 
       // On charge les 4 sources (la RLS limite déjà à l'utilisateur).
       // Le cloisonnement par procédure est fait par fusionnerChronologie.
@@ -67,6 +96,32 @@ export default function ChronologiePage() {
     charger();
   }, []);
 
+  // Coche / décoche un type dans les filtres.
+  function basculerType(cle: TypeEntree) {
+    setTypesActifs((prev) =>
+      prev.includes(cle) ? prev.filter((t) => t !== cle) : [...prev, cle],
+    );
+  }
+
+  // Résolveur id d'enfant → nom (jamais appelé avec null par la fonction pure).
+  function nomEnfant(id: string): string {
+    return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";
+  }
+
+  // Clic export : on filtre/formate en mémoire, puis on génère le PDF.
+  function exporter() {
+    const lignes = filtrerEtFormaterPourPdf(
+      entrees,
+      { du: du || undefined, au: au || undefined, types: typesActifs },
+      nomEnfant,
+    );
+    genererPdfChronologie(lignes, {
+      du: du || undefined,
+      au: au || undefined,
+      etiquetteProcedure: etiquette || undefined,
+    });
+  }
+
   return (
     <main>
       <PageHeader
@@ -78,7 +133,59 @@ export default function ChronologiePage() {
         {chargement ? (
           <p className="text-texte-doux">Chargement…</p>
         ) : (
-          <Chronologie entrees={entrees} enfants={enfants} />
+          <>
+            {/* Encart : filtres d'export */}
+            <div className="carte mb-8 rounded-xl bg-[var(--surface)] p-5">
+              <p className="text-sm text-texte-doux">
+                Exportez la frise en PDF. Choisissez une période (facultatif) et
+                les types à inclure. L'affichage ci-dessous n'est pas modifié.
+              </p>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium">Du</label>
+                  <input
+                    type="date"
+                    value={du}
+                    onChange={(e) => setDu(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Au</label>
+                  <input
+                    type="date"
+                    value={au}
+                    onChange={(e) => setAu(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-4">
+                {TYPES.map((t) => (
+                  <label key={t.cle} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={typesActifs.includes(t.cle)}
+                      onChange={() => basculerType(t.cle)}
+                    />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+
+              <button
+                onClick={exporter}
+                className="mt-5 rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+              >
+                Exporter la frise en PDF
+              </button>
+            </div>
+
+            {/* Affichage existant, inchangé */}
+            <Chronologie entrees={entrees} enfants={enfants} />
+          </>
         )}
       </div>
     </main>
