@@ -262,10 +262,19 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
   (chaînes purement descriptives, affichées via `FormulaireNote.tsx`, aucune requête impactée).
 
 ### Dettes encore OUVERTES
-- Champs `[À COMPLÉTER]` des pages légales (identité éditeur, email, régions Supabase/Vercel,
-  alignement DPA Mistral) avant ouverture publique.
 - Service worker PWA absent.
-- Alias Mistral `-latest` en cours de dépréciation → migrer vers identifiants versionnés.
+
+### Pages légales — renseignées (16/06/2026)
+- `/mentions-legales` et `/confidentialite` : tous les placeholders `[À COMPLÉTER]` remplacés
+  par les vraies valeurs (éditeur : Anthony Magny, particulier, Tarbes ; contact :
+  alkhyomgame@gmail.com ; hébergement Vercel Paris cdg1 ; données Supabase Irlande eu-west-1 ;
+  date 16/06/2026). Bandeaux d'avertissement reformulés « À faire relire » (crochets retirés,
+  recommandation de relecture juridique conservée).
+- **Mistral IA** : formulation prudente — pas de DPA signé, ZDR non encore demandé (le texte
+  n'affirme donc PAS la non-conservation des contenus). Avant ouverture publique : (1) demander
+  l'activation du **ZDR** à Mistral, (2) accepter/signer le **DPA** (art. 28), puis renforcer le
+  paragraphe IA de `/confidentialite`.
+- **Reste avant ouverture large** : relecture par un professionnel du droit.
 
 **✅ Fermées récemment (ne plus traiter comme dette) :**
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.
