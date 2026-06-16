@@ -6,6 +6,7 @@ import BandeauProcedure from "@/components/BandeauProcedure";
 import Footer from "@/components/Footer";
 import GardeAcces from "@/components/GardeAcces";
 import BienvenueRGPD from "@/components/BienvenueRGPD";
+import MajServiceWorker from "@/components/MajServiceWorker";
 import { Playfair_Display } from "next/font/google";
 
 const geistSans = Geist({
@@ -61,6 +62,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <BienvenueRGPD />
+        <MajServiceWorker />
       </body>
     </html>
   );
