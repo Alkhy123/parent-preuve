@@ -3,6 +3,8 @@
 // Utilisé à la fois par /api/ia/extraire (description libre) et /api/ia/extraire-pdf (PDF).
 // Un seul prompt, un seul validateur : une seule vérité. L'IA propose ; rien n'est écrit en base ici.
 
+import { MODELE_EXTRACTION } from "@/lib/modelesIA";
+
 const CONSIGNE = `Tu es un assistant qui lit la description libre d'un jugement du Juge aux affaires familiales (JAF), rédigée par un parent, et qui en extrait QUATRE règles : la règle de pension alimentaire, la règle de partage des frais, les modalités du droit de visite et d'hébergement (DVH), ET la nature/échéances de la décision (statut procédural).
 
 Tu réponds STRICTEMENT en JSON, sans aucun texte autour, sans balises Markdown.
@@ -215,7 +217,7 @@ export async function analyserDispositif(
         Authorization: `Bearer ${cle}`,
       },
       body: JSON.stringify({
-        model: "mistral-small-latest",
+        model: MODELE_EXTRACTION,
         temperature: 0,
         response_format: { type: "json_object" },
         messages: [

@@ -4,6 +4,7 @@
 import { verifierQuotaIa } from "@/lib/quotaIa";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
 import { enteteAuth } from "@/lib/enteteAuth";
+import { MODELE_REFORMULATION } from "@/lib/modelesIA";
 
 // Le "rôle" qu'on donne à l'IA. C'est le cœur du garde-fou : neutre, factuel, sans invention.
 const CONSIGNE = `Tu es un assistant qui reformule des messages entre parents séparés, dans un contexte de coparentalité.
@@ -65,7 +66,7 @@ if (!quota.autorise) {
         Authorization: `Bearer ${cle}`,
       },
       body: JSON.stringify({
-        model: "mistral-small-latest",
+        model: MODELE_REFORMULATION,
         temperature: 0.2, // bas = on reste sage et factuel, peu de fantaisie
         max_tokens: 1000,
         messages: [

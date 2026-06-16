@@ -277,7 +277,28 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
   lib/chronologieExport.ts (pur) : filtrerEtFormaterPourPdf(entrees, { du?, au?, types? }, nomEnfant) → string[][] (colonnes : Date, Heure, Type, Enfant, Titre, Détails, Montant, Statut). Filtre en mémoire ; rappel « horodatage non qualifié, pas un constat » forcé sur chaque ligne preuve.
   lib/chronologiePdf.ts : genererPdfChronologie(lignes, { du?, au?, etiquetteProcedure? }) → PDF A4 paysage, en-tête navy, avertissement global (non-constat + non-conseil + horodatage non qualifié).
   app/chronologie/page.tsx : encart filtres (du/au + 4 cases types) + bouton « Exporter la frise en PDF ». Export 100 % en mémoire, aucune requête au clic, aucune table.
+- ### Migration alias Mistral "-latest" → identifiants versionnés (16/06/2026) ✅ FERMÉ
 
+  Les alias "-latest" (dépréciés, instables en prod) ont été supprimés des appels IA.
+  Identifiants vérifiés via l'API Mistral GET /v1/models le 16/06/2026.
+
+  Source unique : `lib/modelesIA.ts`
+  - MODELE_REFORMULATION = "mistral-medium-2604"  (Medium 3.5 — montée en qualité voulue
+    pour la fidélité du français en reformulation ; bon rapport qualité/prix en vue monétisation)
+  - MODELE_EXTRACTION    = "mistral-small-2603"   (Small 4 — identique au comportement précédent,
+    "mistral-small-latest" pointait déjà vers cette version)
+  - MODELE_OCR           = "mistral-ocr-2512"     (OCR 3 — identique au comportement précédent)
+
+  Fichiers branchés sur la constante :
+  - app/api/ia/reformuler/route.ts   → MODELE_REFORMULATION
+  - lib/extractionRegles.ts          → MODELE_EXTRACTION
+  - app/api/ia/extraire-pdf/route.ts → MODELE_OCR
+
+  Pour changer un modèle à l'avenir : modifier UNE ligne dans lib/modelesIA.ts.
+
+  À surveiller : "mistral-medium-2604" est une montée de génération sur la reformulation
+  (comportement volontairement amélioré, pas identique). Diagnostic qualité "prompt vs modèle"
+  de la reformulation à traiter dans une session dédiée.
 ---
 
 ## 5. Backlog / chantiers

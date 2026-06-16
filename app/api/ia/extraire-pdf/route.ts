@@ -4,6 +4,7 @@ import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierQuotaIa } from "@/lib/quotaIa";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
 import { enteteAuth } from "@/lib/enteteAuth";
+import { MODELE_OCR } from "@/lib/modelesIA";
 
 // Cette route a besoin du moteur Node (pas "edge") pour lire un PDF.
 export const runtime = "nodejs";
@@ -101,7 +102,7 @@ if (!quota.autorise) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "mistral-ocr-latest",
+          model: MODELE_OCR,
           document: {
             type: "document_url",
             document_url: `data:application/pdf;base64,${base64}`,
