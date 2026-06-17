@@ -31,6 +31,10 @@ const TABLES_UTILISATEUR = [
   "acceptation_politique",
   "dossier",
   "children",
+  "note_brouillon",
+  // procedures EN DERNIER : children / regles / pension_payments le referencent
+  // via procedure_id (ON DELETE SET NULL) et sont deja supprimes au-dessus.
+  "procedures",
 ] as const;
 
 const BUCKETS = ["preuves", "justificatifs"] as const;
