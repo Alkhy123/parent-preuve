@@ -25,7 +25,8 @@
    `Alkhy123/parent-preuve`, branche `main`. Tarball d'inspection :
    `curl -sL "https://codeload.github.com/Alkhy123/parent-preuve/tar.gz/refs/heads/main"`.
 4. **Optimiser les tokens.** Ce socle suffit pour raisonner ; ne charger les fichiers compagnons
-   que si la tâche l'exige. Ne pas recoller tout le projet sans nécessité.
+   que si la tâche l'exige. Ne pas recoller tout le projet sans nécessité. Nouveau fichier autonome → Claude.AI donne à l'utilisateur directement le fichier à coller. Modification d'un fichier existant / vérification de build → Claude AI génère un prompt Claude Code (plus sûr)
+Modification d'un fichier existant / vérification de build → prompt Claude Code (plus sûr).
 
 ---
 
