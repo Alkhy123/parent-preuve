@@ -100,6 +100,21 @@ AsyncStorage. Le backend Supabase est réutilisé tel quel.
 
 ## 2. Schéma Supabase (référence)
 
+> **⚠️ Corrections issues de l'audit migrations (2026-06-17) — le réel fait foi :**
+> 1. **`dossier`** : les colonnes `consentement_ia` / `consentement_ia_date` **n'existent PAS**
+>    (le consentement vit dans `consentements_ia`). En revanche `declarant_email` et
+>    `declarant_telephone` existent bien. ⇒ corriger la description de `dossier`.
+> 2. **`documents.etat`** : CHECK à **3 valeurs** `actif | archive | a_traiter` (pas 2).
+>    Une colonne héritée **`archive` (boolean)** coexiste avec `etat` (redondance, dette légère).
+> 3. **CHECK en base = seulement 2** : `events.statut` et `documents.etat`. Toutes les autres
+>    colonnes « à choix » (`type_dvh`, `type_decision`, `debiteur`, `source`, `horodatage_statut`,
+>    `parent_principal`, `type_garde`…) sont du **texte libre sans CHECK** (encadrées par le code).
+> 4. **`consentements_ia.user_id`** : seule FK `user_id` **sans `ON DELETE CASCADE`** (incohérence
+>    mineure ; la suppression RGPD passe par le client admin).
+> 5. **Index réels = 7** : `procedure_id` sur `children`, `decision_regle`, `dvh_regle`,
+>    `frais_regle`, `pension_payments`, `pension_regle` + composite `ia_appels(user_id, created_at DESC)`.
+>    **Pas** d'index dédié `user_id`/`created_at` ailleurs (optimisation future possible, hors périmètre).c
+
 **Convention** : `id uuid` (PK), `user_id uuid default auth.uid()`, colonnes en français,
 `created_at timestamptz`. **RLS + 4 policies par table** sur `auth.uid() = user_id`. RLS active
 sur **100 %** des tables.
