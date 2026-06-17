@@ -20,11 +20,11 @@ const GROUPES = [
   {
     label: "Saisir",
     liens: [
-      { href: "/journal", label: "Journal (faits)" },
-      { href: "/frais", label: "Frais" },
-      { href: "/pension", label: "Pension" },
-      { href: "/documents", label: "Documents" },
-      { href: "/preuves", label: "Preuve photo" },
+      { href: "/journal", label: "Noter un fait" },
+      { href: "/frais", label: "Ajouter une dépense" },
+      { href: "/pension", label: "Ajouter un paiement de pension" },
+      { href: "/documents", label: "Ajouter un document" },
+      { href: "/preuves", label: "Capturer une preuve photo" },
     ],
   },
   {

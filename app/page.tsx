@@ -32,8 +32,8 @@ export default function Home() {
 
   // Utilisateur connecté : tableau de bord (contenu d'origine).
   const actions = [
-    { libelle: "Ajouter un fait", href: "/journal" },
-    { libelle: "Nouvelle preuve", href: "/preuves/nouvelle" },
+    { libelle: "Noter un fait", href: "/journal" },
+    { libelle: "Capturer une preuve photo", href: "/preuves/nouvelle" },
     { libelle: "Courrier", href: "/courriers" },
     { libelle: "Export PDF", href: "/export" },
   ];
@@ -58,7 +58,7 @@ export default function Home() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="carte rounded-xl border border-[#15233F]/20 bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:border-[#15233F] hover:bg-[#15233F]/5"
+                  className="carte rounded-xl bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:bg-[#15233F]/5"
                 >
                   {action.libelle}
                 </Link>
