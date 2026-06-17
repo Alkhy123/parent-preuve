@@ -3,18 +3,37 @@
 // components/BoutonCaptureRapide.tsx
 //
 // ⚠️ COMPOSANT VOLONTAIREMENT CONSERVÉ — NE PAS SUPPRIMER COMME "CODE MORT".
-// Il n'est pas encore monté dans une page, mais c'est un choix assumé (décision du 07/06/2026) :
-//   1) Il pourra être monté une seule fois dans le layout pour s'afficher sur TOUTES les pages.
-//   2) Il est le point d'ancrage de la future CAPTURE PHOTO NATIVE mobile (React Native/Expo ou PWA).
-//      Sur mobile, seule sa destination/action changera (ouvrir la caméra au lieu d'aller au journal) ;
-//      sa place flottante et son rôle de "geste rapide" restent les mêmes.
+// Monté une seule fois dans app/layout.tsx, il flotte sur toutes les pages du dossier.
+// Il est le point d'ancrage de la future CAPTURE PHOTO NATIVE mobile (React Native/Expo
+// ou PWA) : sur mobile, seule sa destination/action changera (ouvrir la caméra) ; sa place
+// flottante et son rôle de "geste rapide" restent les mêmes.
 //
-// Rôle actuel (web) : bouton d'action flottant en bas à droite, menant au geste quotidien
+// Rôle actuel (web) : bouton d'action flottant en bas à droite menant au geste quotidien
 // le plus fréquent — ajouter un fait au journal.
+//
+// Il se masque automatiquement sur les pages publiques (accueil, connexion, mots de passe,
+// pages légales) : un parent déconnecté ne doit pas voir un bouton "ajouter un fait".
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+// Pages où le bouton ne doit PAS apparaître.
+const ROUTES_PUBLIQUES = [
+  "/",
+  "/connexion",
+  "/mot-de-passe-oublie",
+  "/reinitialiser-mot-de-passe",
+  "/mentions-legales",
+  "/confidentialite",
+];
 
 export default function BoutonCaptureRapide() {
+  const pathname = usePathname();
+
+  if (ROUTES_PUBLIQUES.includes(pathname)) {
+    return null;
+  }
+
   return (
     <Link
       href="/journal"

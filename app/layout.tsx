@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import GardeAcces from "@/components/GardeAcces";
 import BienvenueRGPD from "@/components/BienvenueRGPD";
 import MajServiceWorker from "@/components/MajServiceWorker";
+import BoutonCaptureRapide from "@/components/BoutonCaptureRapide";
 import { Playfair_Display } from "next/font/google";
 
 const geistSans = Geist({
@@ -63,6 +64,7 @@ export default function RootLayout({
         <Footer />
         <BienvenueRGPD />
         <MajServiceWorker />
+        <BoutonCaptureRapide />
       </body>
     </html>
   );
