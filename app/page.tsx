@@ -31,13 +31,6 @@ export default function Home() {
   }
 
   // Utilisateur connecté : tableau de bord (contenu d'origine).
-  const actions = [
-    { libelle: "Noter un fait", href: "/journal" },
-    { libelle: "Capturer une preuve photo", href: "/preuves/nouvelle" },
-    { libelle: "Courrier", href: "/courriers" },
-    { libelle: "Export PDF", href: "/export" },
-  ];
-
   const reglages = [
     { libelle: "Procédure (autre parent)", href: "/procedure" },
     { libelle: "Enfants", href: "/enfants" },
@@ -55,21 +48,6 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-6 py-16">
           <div className="mt-10">
             <TableauDeBord />
-          </div>
-
-          <div className="mt-10">
-            <h2 className="font-display text-xl text-[#15233F]">Actions rapides</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {actions.map((action) => (
-                <Link
-                  key={action.href}
-                  href={action.href}
-                  className="carte rounded-xl bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:bg-[#15233F]/5"
-                >
-                  {action.libelle}
-                </Link>
-              ))}
-            </div>
           </div>
 
           <div className="mt-10">
