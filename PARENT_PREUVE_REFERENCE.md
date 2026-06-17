@@ -282,8 +282,11 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
    `ia_appels` est désormais vérifiée (`erreurInsert`) ; si l'enregistrement échoue, l'appel est
    **refusé** (`autorise: false`) avec un log serveur non sensible. Le quota ne peut plus être
    contourné par un insert silencieusement échoué. Validé `npx tsc --noEmit`.
-4. **Suppression de compte incomplète.** `app/api/compte/supprimer/route.ts` : confirmer que
-   **`procedures`** (et toute table à données utilisateur) est bien supprimée, dans le bon ordre FK.
+4. ✅ **RÉSOLU (17/06/2026) — Suppression de compte complète (17/17 tables).** `app/api/compte/supprimer/route.ts` :
+   `note_brouillon` et `procedures` ajoutées à `TABLES_UTILISATEUR`, `procedures` EN DERNIER (après `children`)
+   car children / regles / pension_payments la référencent via `procedure_id` (ON DELETE SET NULL).
+   Inchangé : auth par session, client admin filtré par user_id, effacement Storage (2 buckets), compte Auth
+   supprimé en dernier, AUCUNE protection quota (le RGPD interdit de bloquer l'effacement). Validé `npx tsc --noEmit`.
 5. **Hash preuve calculé côté client uniquement.** → Recalcul serveur du SHA-256 du fichier réellement
    stocké, comparaison client/serveur, colonnes `empreinte_sha256_client` / `empreinte_sha256_serveur` /
    `hash_verifie` (bool) / `hash_verifie_at`, et résultat affiché dans le rapport PDF (cf. §2.5).
