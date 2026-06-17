@@ -268,17 +268,20 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 ### ⚠️ Corrections issues de l'audit (à traiter — Sprint « fiabilisation »)
 Identifiées dans `audit_suggestions_parent_preuve.md` (17/06/2026). À vérifier dans le code réel avant
 de coder (l'audit a été fait sur snapshot, le code fait foi).
-1. **Incohérence de secret d'horodatage.** Le README/anciennes notes mentionnent `HMAC_SECRET` alors que
-   `app/api/horodatage/route.ts` lit `HORODATAGE_SECRET`. → Unifier sur **`HORODATAGE_SECRET`** partout
-   (code, README, `.env.example`, Vercel, docs). L'app doit échouer proprement si la variable manque.
+1. ✅ **RÉSOLU (17/06/2026) — Secret d'horodatage unifié.** Le code lisait déjà `HORODATAGE_SECRET`
+   (`app/api/horodatage/route.ts`) et échoue déjà proprement si la variable manque (500 explicite).
+   Reliquat `HMAC_SECRET` corrigé dans `README.md` ; table des variables complétée (ajout de
+   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). Nouveau `.env.example` (placeholders vides) + exception
+   `!.env.example` dans `.gitignore`.
 2. **Pas de dossier `supabase/migrations/`.** Le schéma (tables, colonnes, enums, CHECK, FK, index,
    policies RLS, policies Storage) vit uniquement côté Supabase, non versionné. → Créer
    `supabase/migrations/` (`001_init_schema.sql`, `002_rls_policies.sql`, `003_storage_policies.sql`,
    `004_indexes.sql`) reconstituant tout le schéma + RLS (`auth.uid() = user_id`) + index sur `user_id`,
    `procedure_id`, `created_at`. Prérequis pour audit sécurité, réinstall propre et monétisation.
-3. **Quota IA — insert non contrôlé.** `lib/quotaIa.ts` insère dans `ia_appels` sans vérifier l'erreur
-   d'insert → un appel pourrait passer sans être compté. → Vérifier `insertError` après l'insert et
-   **refuser l'appel** (fail-closed) si l'insert échoue ; log serveur non sensible.
+3. ✅ **RÉSOLU (17/06/2026) — Quota IA fail-closed.** `lib/quotaIa.ts` : l'erreur d'insert dans
+   `ia_appels` est désormais vérifiée (`erreurInsert`) ; si l'enregistrement échoue, l'appel est
+   **refusé** (`autorise: false`) avec un log serveur non sensible. Le quota ne peut plus être
+   contourné par un insert silencieusement échoué. Validé `npx tsc --noEmit`.
 4. **Suppression de compte incomplète.** `app/api/compte/supprimer/route.ts` : confirmer que
    **`procedures`** (et toute table à données utilisateur) est bien supprimée, dans le bon ordre FK.
 5. **Hash preuve calculé côté client uniquement.** → Recalcul serveur du SHA-256 du fichier réellement
