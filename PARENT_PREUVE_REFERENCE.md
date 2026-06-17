@@ -137,6 +137,12 @@ affichée dans le bandeau + le sélecteur). RLS + 4 policies.
   supprimé via client admin à la suppression de compte). Sert aussi à l'horodatage.
 - **`acceptation_politique`** — `version`, `accepted_at` (SELECT + INSERT). Pilote la boîte RGPD.
 
+> **Table proposée par l'audit (non créée) — `audit_log`** (journal append-only) : `id`, `user_id`
+> (FK `auth.users`, cascade), `procedure_id` (FK `procedures`, cascade), `objet_type`, `objet_id`,
+> `action` (`creation`|`modification`|`archivage`|`suppression`|`export_pdf`|`export_zip`|`horodatage`|
+> `verification_hash`), `hash_avant`, `hash_apres`, `metadata` (jsonb), `created_at`. RLS : SELECT par
+> l'utilisateur, **aucune** policy UPDATE/DELETE (immuable). Voir backlog §5.
+
 ### Patron des 4 tables RÈGLES (`pension_regle`, `frais_regle`, `dvh_regle`, `decision_regle`)
 `id`, `user_id` (FK `auth.users`, cascade), `enfant_id` (FK `children`, nullable — **présent mais
 inutilisé**), **`procedure_id`** (FK `procedures`, nullable), colonnes métier fidèles au
@@ -178,6 +184,11 @@ inutilisé**), **`procedure_id`** (FK `procedures`, nullable), colonnes métier 
 `ecart_heure_secondes`, `anomalies` (jsonb), `horodatage_jeton`, `horodatage_date`,
 `horodatage_statut` (`non_qualifie`|`a_refaire`|`qualifie`), `horodatage_prestataire`,
 `horodatage_algorithme`. `created_at` = horodatage serveur.
+> **Évolutions proposées par l'audit (non créées) :** `empreinte_sha256_client` /
+> `empreinte_sha256_serveur` / `hash_verifie` (bool) / `hash_verifie_at` (recalcul serveur du hash) ;
+> `token_verification` (non devinable, pour la page publique de vérification) ; statut horodatage
+> élargi vers un modèle eIDAS-ready (`interne_non_qualifie`|`qualifie_en_attente`|`qualifie_valide`|
+> `qualifie_echec`). Voir backlog §5 et `PARENT_PREUVE_ROADMAP_UX.md`.
 
 #### 2.6 `garde_regles`
 `enfant_id`, `type_garde` (`weekend_sur_deux`…), `parent_principal`, `date_reference`,
@@ -253,6 +264,28 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 
 ## 4. Dette technique (vérifiée 15/06/2026)
 
+### ⚠️ Corrections issues de l'audit (à traiter — Sprint « fiabilisation »)
+Identifiées dans `audit_suggestions_parent_preuve.md` (17/06/2026). À vérifier dans le code réel avant
+de coder (l'audit a été fait sur snapshot, le code fait foi).
+1. **Incohérence de secret d'horodatage.** Le README/anciennes notes mentionnent `HMAC_SECRET` alors que
+   `app/api/horodatage/route.ts` lit `HORODATAGE_SECRET`. → Unifier sur **`HORODATAGE_SECRET`** partout
+   (code, README, `.env.example`, Vercel, docs). L'app doit échouer proprement si la variable manque.
+2. **Pas de dossier `supabase/migrations/`.** Le schéma (tables, colonnes, enums, CHECK, FK, index,
+   policies RLS, policies Storage) vit uniquement côté Supabase, non versionné. → Créer
+   `supabase/migrations/` (`001_init_schema.sql`, `002_rls_policies.sql`, `003_storage_policies.sql`,
+   `004_indexes.sql`) reconstituant tout le schéma + RLS (`auth.uid() = user_id`) + index sur `user_id`,
+   `procedure_id`, `created_at`. Prérequis pour audit sécurité, réinstall propre et monétisation.
+3. **Quota IA — insert non contrôlé.** `lib/quotaIa.ts` insère dans `ia_appels` sans vérifier l'erreur
+   d'insert → un appel pourrait passer sans être compté. → Vérifier `insertError` après l'insert et
+   **refuser l'appel** (fail-closed) si l'insert échoue ; log serveur non sensible.
+4. **Suppression de compte incomplète.** `app/api/compte/supprimer/route.ts` : confirmer que
+   **`procedures`** (et toute table à données utilisateur) est bien supprimée, dans le bon ordre FK.
+5. **Hash preuve calculé côté client uniquement.** → Recalcul serveur du SHA-256 du fichier réellement
+   stocké, comparaison client/serveur, colonnes `empreinte_sha256_client` / `empreinte_sha256_serveur` /
+   `hash_verifie` (bool) / `hash_verifie_at`, et résultat affiché dans le rapport PDF (cf. §2.5).
+
+> Priorités complètes et découpage en sprints : voir `PARENT_PREUVE_ROADMAP_UX.md`.
+
 ### Dette légère — RÉSOLUE (16/06/2026)
 - ✅ `app/favicon.ico` : remplacé par le monogramme PP (16/32/48 px), dérivé de
   `public/apple-touch-icon.png`. Plus de favicon Vercel par défaut.
@@ -289,19 +322,13 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 Piste suivante notée : rendre les 3 cartes « Configuration du dossier » intelligentes
 (état « à configurer » / « configuré » selon les données réelles).
 
-- ✅ **Mode hors-ligne PWA + module de mise à jour (16/06/2026).** Service worker
-  manuel `public/sw.js` (pas de `next-pwa`). Met en cache UNIQUEMENT la coquille
-  (HTML de `/`, `/_next/static/`, `/icons/`) en « réseau d'abord » pour les
-  navigations, « cache d'abord » pour les statiques. **Triple bypass de sécurité** :
-  ignore les requêtes non-GET, tout ce qui n'est pas same-origin (donc Supabase
-  données + Storage `*.supabase.co`, et Mistral) et tout `/api/`. Les preuves,
-  jugements et justificatifs (URLs signées 60 s) ne sont JAMAIS mis en cache.
-  Module de mise à jour : `components/MajServiceWorker.tsx` (monté dans
-  `app/layout.tsx`), enregistre le SW en production seulement (`updateViaCache:
-  "none"`), affiche un bandeau discret « Une nouvelle version est disponible » +
-  bouton « Recharger » quand un SW est en attente ; au clic → `SKIP_WAITING` puis
-  rechargement UNE seule fois ; jamais de rechargement forcé. Versionnage par
-  `const VERSION` dans `sw.js` (bump = nouvelle version détectée)..
+- ✅ **Mode hors-ligne PWA + module de mise à jour (16/06/2026).** SW manuel `public/sw.js` (pas de
+  `next-pwa`) : cache la **coquille seule** (HTML `/`, `/_next/static/`, `/icons/`) ; navigations en
+  « réseau d'abord », statiques en « cache d'abord ». **Triple bypass** : ignore non-GET, tout le non
+  same-origin (Supabase données + Storage `*.supabase.co`, Mistral) et tout `/api/` → preuves/jugements/
+  justificatifs (URLs signées 60 s) jamais cachés. `components/MajServiceWorker.tsx` (monté dans
+  `layout.tsx`, prod uniquement) : bandeau « nouvelle version » + bouton Recharger → `SKIP_WAITING` +
+  un seul reload. Versionnage par `const VERSION` dans `sw.js`.
 
 ### Pages légales — renseignées (16/06/2026)
 - `/mentions-legales` et `/confidentialite` : tous les placeholders `[À COMPLÉTER]` remplacés
@@ -319,43 +346,24 @@ Piste suivante notée : rendre les 3 cartes « Configuration du dossier » intel
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.
 - `pdf-lib` installé et branché (`lib/exportNotePdf.ts`) — d'anciennes notes le disaient « non
   installé ».
--  Export PDF de la chronologie (16/06/2026, livré et testé)
-- **Nettoyage dette technique (16/06/2026)** : `cross-env` ajouté à `devDependencies` (`^7.0.3`)
-  → `npm ci` OK sur machine propre ; `lib/limiteurAppel.ts` (ancien limiteur mémoire, remplacé
-  par le quota en base `ia_appels`) **supprimé** ; `BoutonCaptureRapide` requalifié
-  « conservé volontairement » au lieu de « code mort ».
+- **Export PDF de la chronologie (16/06/2026, livré et testé)** : frise datée unique pour la procédure
+  active, filtrable par période (du/au) et par type. `lib/chronologieExport.ts` (pur,
+  `filtrerEtFormaterPourPdf` → colonnes Date/Heure/Type/Enfant/Titre/Détails/Montant/Statut, filtre en
+  mémoire, rappel « horodatage non qualifié, pas un constat » forcé sur chaque ligne preuve) +
+  `lib/chronologiePdf.ts` (`genererPdfChronologie`, A4 paysage, en-tête navy, avertissement global) +
+  encart filtres dans `app/chronologie/page.tsx`. Réutilise `fusionnerChronologie`, `euros()`, jsPDF +
+  jspdf-autotable. Export 100 % en mémoire (aucune requête, aucune table).
+- **Migration alias Mistral `-latest` → versionnés (16/06/2026)** : source unique `lib/modelesIA.ts`
+  (reformulation `mistral-medium-2604`, extraction `mistral-small-2603`, OCR `mistral-ocr-2512`), branchée
+  dans `api/ia/reformuler`, `lib/extractionRegles.ts`, `api/ia/extraire-pdf`. Changer un modèle = 1 ligne.
+- **Diagnostic qualité reformulation (16/06/2026)** : la dérive de vocabulaire venait du **prompt**, pas
+  du modèle (consigne « réécrire/clarifier » → paraphrase). Nouvelle consigne dans
+  `api/ia/reformuler/route.ts` = « intervention minimale + fidélité au vocabulaire » ; modèle medium-2604
+  conservé, température 0.2 inchangée. Validé sur 3 cas.
+- **Nettoyage dette (16/06/2026)** : `cross-env` ajouté à `devDependencies` (`^7.0.3`, `npm ci` OK) ;
+  `lib/limiteurAppel.ts` (ancien limiteur mémoire) supprimé au profit du quota en base `ia_appels` ;
+  `BoutonCaptureRapide` requalifié « conservé volontairement ».
 
-  Frise datée unique exportable en PDF pour la procédure active, filtrable par période (du/au) et par type. Réutilise fusionnerChronologie (données déjà triées/cloisonnées), euros() et le moteur jsPDF + jspdf-autotable.
-
-  lib/chronologieExport.ts (pur) : filtrerEtFormaterPourPdf(entrees, { du?, au?, types? }, nomEnfant) → string[][] (colonnes : Date, Heure, Type, Enfant, Titre, Détails, Montant, Statut). Filtre en mémoire ; rappel « horodatage non qualifié, pas un constat » forcé sur chaque ligne preuve.
-  lib/chronologiePdf.ts : genererPdfChronologie(lignes, { du?, au?, etiquetteProcedure? }) → PDF A4 paysage, en-tête navy, avertissement global (non-constat + non-conseil + horodatage non qualifié).
-  app/chronologie/page.tsx : encart filtres (du/au + 4 cases types) + bouton « Exporter la frise en PDF ». Export 100 % en mémoire, aucune requête au clic, aucune table.
-- ### Migration alias Mistral "-latest" → identifiants versionnés (16/06/2026) ✅ FERMÉ
-
-  Les alias "-latest" (dépréciés, instables en prod) ont été supprimés des appels IA.
-  Identifiants vérifiés via l'API Mistral GET /v1/models le 16/06/2026.
-
-  Source unique : `lib/modelesIA.ts`
-  - MODELE_REFORMULATION = "mistral-medium-2604"  (Medium 3.5 — montée en qualité voulue
-    pour la fidélité du français en reformulation ; bon rapport qualité/prix en vue monétisation)
-  - MODELE_EXTRACTION    = "mistral-small-2603"   (Small 4 — identique au comportement précédent,
-    "mistral-small-latest" pointait déjà vers cette version)
-  - MODELE_OCR           = "mistral-ocr-2512"     (OCR 3 — identique au comportement précédent)
-
-  Fichiers branchés sur la constante :
-  - app/api/ia/reformuler/route.ts   → MODELE_REFORMULATION
-  - lib/extractionRegles.ts          → MODELE_EXTRACTION
-  - app/api/ia/extraire-pdf/route.ts → MODELE_OCR
-
-  Pour changer un modèle à l'avenir : modifier UNE ligne dans lib/modelesIA.ts.
-
-Diagnostic qualité reformulation FAIT (16/06/2026) : la dérive de vocabulaire venait
-  du PROMPT, pas du modèle. La CONSIGNE de app/api/ia/reformuler/route.ts demandait de
-  "réécrire / clarifier / raccourcir" → le modèle paraphrasait et remplaçait les mots
-  de l'utilisateur. Modèle medium-2604 CONSERVÉ (capable, conforme contrainte).
-  Nouvelle CONSIGNE = "intervention minimale + fidélité au vocabulaire" : retirer seulement
-  la couche agressive, garder les mots neutres de l'auteur à l'identique. Température 0.2
-  inchangée. Validé sur 3 cas (insulte / accusation / texte déjà neutre).
 ---
 
 ## 5. Backlog / chantiers
@@ -368,7 +376,27 @@ Diagnostic qualité reformulation FAIT (16/06/2026) : la dérive de vocabulaire 
 
 **Brique A (suite IA)** : moteur d'indexation INSEE (fonction pure mettant à jour
 `montant_courant`) ; comparaison « dû selon la règle » vs « payé » ; surfacer
-`confiance`/`citation` côté import PDF.
+`confiance`/`citation` côté import PDF. *(L'indexation pension de l'audit recoupe ce chantier :
+saisie montant initial + date jugement + indice + date de revalorisation → montant revalorisé,
+tableau dû/payé/reste dû, export PDF + CSV.)*
+
+**Renforcement preuve, sécurité & exports (issus de l'audit — détail produit dans la ROADMAP)**
+- **Recalcul serveur du hash** (cf. §4-5) + colonnes `empreinte_sha256_client/_serveur`,
+  `hash_verifie`, `hash_verifie_at` ; résultat dans le rapport PDF.
+- **Vérification par QR code** : `token_verification` non devinable sur `preuves_photo`, page
+  `/preuves/verifier/[token]` (métadonnées minimales, **jamais** photo/données sensibles), QR dans le
+  rapport PDF.
+- **Journal d'audit `audit_log`** (append-only, cf. §2) câblé sur création/modification/archivage/
+  suppression/export/horodatage/vérification de hash.
+- **Export avocat ZIP** : assemblage `note_synthese.pdf` + `chronologie.pdf` + `bordereau_pieces.pdf` +
+  `pension.pdf`/`frais.pdf` + dossiers `preuves/` et `documents/` + `manifest.json` +
+  `hashes_sha256.txt` ; avertissement « données personnelles sensibles » avant téléchargement.
+- **Mode dossier audience** : export PDF structuré (résumé procédure, chronologie filtrée, pension
+  dû/payé/retard, frais, demandes de modification, preuves, documents, bordereau) — factuel, sans
+  conclusions juridiques. Réutilise `/export` et la note de synthèse.
+- **Horodatage eIDAS-ready** : statut élargi (`interne_non_qualifie`|`qualifie_en_attente`|
+  `qualifie_valide`|`qualifie_echec`), rapport PDF distinguant interne non qualifié vs qualifié.
+- **Export CSV** (événements, frais, pension, demandes, preuves, documents) en plus du PDF.
 
 **Sur l'horizon**
 - eIDAS qualifié (QTSP, swap de prestataire — plomberie prête).

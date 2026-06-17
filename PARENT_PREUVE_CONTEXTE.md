@@ -25,8 +25,9 @@
    `Alkhy123/parent-preuve`, branche `main`. Tarball d'inspection :
    `curl -sL "https://codeload.github.com/Alkhy123/parent-preuve/tar.gz/refs/heads/main"`.
 4. **Optimiser les tokens.** Ce socle suffit pour raisonner ; ne charger les fichiers compagnons
-   que si la tâche l'exige. Ne pas recoller tout le projet sans nécessité. Nouveau fichier autonome → Claude.AI donne à l'utilisateur directement le fichier à coller. Modification d'un fichier existant / vérification de build → Claude AI génère un prompt Claude Code (plus sûr)
-Modification d'un fichier existant / vérification de build → prompt Claude Code (plus sûr).
+   que si la tâche l'exige. Ne pas recoller tout le projet sans nécessité. Nouveau fichier autonome →
+   Claude.ai donne directement le fichier à coller ; modification d'un fichier existant / vérification de
+   build → générer un prompt Claude Code (plus sûr).
 
 ---
 
@@ -84,7 +85,11 @@ droit si nécessaire ».
 
 **Preuves photo** = « preuve numérique renforcée, scellée et horodatée ». Horodatage actuel
 **non qualifié au sens eIDAS** (à dire honnêtement partout, avertissement sur chaque export PDF).
-Jamais présenté comme équivalent à un constat de commissaire de justice.
+Jamais présenté comme équivalent à un constat de commissaire de justice. Pour un relevé de
+présence/géolocalisation : dire « relevé de présence horodaté », **jamais « constat »**. Tout export
+contenant des données personnelles doit afficher un avertissement avant téléchargement ; une éventuelle
+page de vérification publique ne doit **jamais** exposer de données sensibles (nom enfant/autre parent,
+adresse, photo originale, document judiciaire).
 
 **Élément matériel oui, élément moral jamais.** L'app documente des faits constatables (montant
 dû, montant payé, date, absence de remboursement, existence d'une clause, modalité de visite,
@@ -157,8 +162,9 @@ l'utilisateur**, mais jamais dans ce que l'app **conclut elle-même**.
   Bearer**. `SUPABASE_SERVICE_ROLE_KEY` réservée à `lib/supabaseAdmin.ts`.
 - **IA** : Mistral, `https://api.mistral.ai/v1/chat/completions`, Bearer. Reformulation
   `temperature: 0.2` ; extraction `temperature: 0` + `response_format json_object`. OCR scanné :
-  `/v1/ocr`. ⚠️ Les alias `-latest` sont en cours de dépréciation → migrer vers des identifiants
-  versionnés quand l'occasion se présente.
+  `/v1/ocr`. ✅ Alias `-latest` migrés vers des identifiants versionnés (16/06/2026) — source unique
+  `lib/modelesIA.ts` (reformulation `mistral-medium-2604`, extraction `mistral-small-2603`, OCR
+  `mistral-ocr-2512`). Changer un modèle = une seule ligne dans ce fichier.
 - **PDF** : `jspdf` ^4.2 + `jspdf-autotable` ^5 (images gérées nativement) **et `pdf-lib` ^1.17**
   (fusion de PDF existants, utilisé par `lib/exportNotePdf.ts`).
 - **Lecture PDF numérique** : `unpdf` ^1.6 (ESM-only ; `extractText(pdf, { mergePages: true })`).

@@ -26,17 +26,30 @@ qui pourra finir entre les mains d'un avocat ou d'un juge.
 
 ## 2. Fonctionnalités candidates — usage quotidien
 
-- **Carnet d'informations (Info Bank solo)** : médecins, allergies, école, contacts d'urgence,
-  tailles. Utile au quotidien, pas seulement en conflit.
-- **Journal des demandes de modification de garde** : registre daté des sollicitations et des
-  réponses (oui / non / sans réponse).
-- **Check-in d'échange géolocalisé** : réutilise la plomberie GPS + horodatage + SHA-256 du
-  module preuve photo. Wording « relevé horodaté », jamais « constat ».
-- **Export CSV des frais/pension** (en plus du PDF).
-- **Rapprochement paiement ↔ dépense** + gestion d'une part variable (comble une plainte
-  fréquente chez un concurrent).
-- **Import vacances scolaires + jours fériés FR** (API publique par zone) dans le calendrier.
-- **Synchronisation iCal en lecture seule** du calendrier de garde (flux `.ics`).
+- **Carnet d'informations enfant (Info Bank solo)** : école/classe/enseignant, médecin, allergies,
+  traitements, contacts d'urgence, activités, taille/pointure, infos administratives. Utile au quotidien,
+  pas seulement en conflit. ⚠️ Contient des **données de santé** : à marquer comme sensibles, minimiser,
+  permettre la suppression, **jamais envoyées à l'IA** sans action explicite, pas de partage public.
+- **Registre des demandes de modification de garde** : registre daté solo (pas de messagerie). Champs :
+  date, type (week-end/horaire/vacances/lieu/autre), canal (SMS/mail/oral/recommandé/autre), demande
+  formulée, réponse, statut (acceptée/refusée/sans réponse/en attente), date de réponse, pièce liée,
+  conséquence pratique, commentaire factuel. Filtre par période + export PDF, lien chronologie + pièces.
+- **Check-in d'échange géolocalisé** : réutilise GPS + horodatage + SHA-256 du module preuve. Enregistre
+  date serveur/appareil + écart, lat/long + précision, adresse approx., photo et commentaire optionnels.
+  Rapport « **Relevé de présence horodaté** » — jamais « constat / certificat / preuve irréfutable ».
+- **Indexation automatique de la pension** : saisie montant initial + date jugement + indice + date de
+  revalorisation annuelle → montant revalorisé, tableau dû/payé/reste dû, retard. *(Recoupe la Brique A
+  côté technique, voir REFERENCE §5.)*
+- **Calendrier enrichi** : zone scolaire A/B/C, import vacances scolaires + jours fériés FR (API publique),
+  **détection de conflits d'horaires**, rappels locaux, **export iCal en lecture seule** (`.ics`).
+- **Export CSV** des événements, frais, pension, demandes, preuves, documents (en plus du PDF).
+- **Rapprochement paiement ↔ dépense** + gestion d'une part variable (comble une plainte fréquente).
+- **Tableau de bord mensuel (« Résumé du mois »)** : nombre d'événements, frais demandés/payés, pension
+  due/reçue, retards, preuves et documents ajoutés.
+- **Tags personnalisés**, **pièces favorites** et **filtres avancés** (enfant, procédure, période,
+  catégorie, statut, pièce liée, paiement complet/partiel/absent, preuve horodatée/non).
+- **Aide à la rédaction factuelle** au point de saisie (transformer un ressenti en fait daté/neutre) —
+  contrôle utilisateur conservé, aucune affirmation juridique. *(Rapproche `/reformuler` du journal.)*
 
 ---
 
@@ -46,14 +59,36 @@ Fondé sur l'attendu d'un dossier d'audience : charge de la preuve sur le demand
 vite (15–30 min) un dossier classé par thème, preuve libre mais licite.
 
 ### Faible risque (directement exploitable)
-- **Chronologie unifiée exportable** : fusion `journal` + `frais` + `pension` + `preuves` en une
-  frise datée, filtrable par thème. *(Plus fort impact / plus faible risque.)*
+- **Chronologie unifiée exportable** ✅ **livré (16/06/2026)** : fusion `journal` + `frais` + `pension`
+  + `preuves` en une frise datée, filtrable par période/type, export PDF (`lib/chronologieExport.ts` +
+  `lib/chronologiePdf.ts`). Piste restante : filtrage **par thème** transverse.
 - **Dossier d'audience thématique** : export classé par thème, chaque section avec son bordereau
   numéroté (réutilise le bordereau de la note de synthèse).
 - **Marqueur « implication parentale »** : tag sur `documents` et `events`, exportable en section.
 - **Lien fait ↔ clause du jugement** : rattacher un fait aux règles déjà extraites du dispositif
   (`dvh_regle`, `pension_regle`, …). Wording « écart constaté par rapport au dispositif », jamais
   « manquement » ni « faute ».
+
+### Renforcement probatoire (issu de l'audit — fort impact, risque maîtrisé)
+- **Vérification des preuves par QR code** : chaque preuve a un **token public non devinable** ; page
+  `/preuves/verifier/[token]` affichant **seulement** des métadonnées de vérification (statut
+  authentique/modifié/introuvable, identifiant, empreinte SHA-256, dates serveur/horodatage, statut
+  d'horodatage, nom/taille/type du fichier, hash vérifié oui/non). QR code dans le rapport PDF. ⚠️ Ne
+  **jamais** exposer la photo originale ni de données sensibles (enfant, autre parent, adresse, document).
+- **Recalcul serveur du hash SHA-256** : comparer l'empreinte calculée à l'upload (client) et celle
+  recalculée côté serveur sur le fichier stocké ; afficher « conforme / non conforme » dans le rapport.
+- **Journal d'audit immuable** (`audit_log`, append-only) : tracer création/modification/archivage/
+  suppression/export/horodatage/vérification ; l'utilisateur le lit mais ne peut pas le modifier.
+- **Export avocat ZIP** : dossier complet et transmissible — note de synthèse, chronologie, bordereau,
+  pension, frais, dossiers preuves/documents, `manifest.json` + `hashes_sha256.txt`, avertissement
+  données sensibles. Renforce l'intégrité du dossier.
+- **Mode dossier audience** : écran dédié qui sélectionne procédure/période/catégories/pièces et génère
+  un PDF structuré (résumé, points de conflit, chronologie filtrée, pension dû/payé/retard, frais,
+  demandes de modification, preuves, documents, bordereau, points à faire relire). Factuel, **sans
+  conclusions juridiques** — la note de synthèse reste la référence de cadrage.
+- **Horodatage eIDAS qualifié (préparation)** : modèle de statut `interne_non_qualifie` /
+  `qualifie_en_attente` / `qualifie_valide` / `qualifie_echec` ; le PDF distingue clairement l'horodatage
+  interne non qualifié de l'horodatage qualifié, sans jamais les assimiler à un constat.
 
 ### À manier avec prudence (zone juridique sensible)
 - **Modèle d'attestation de témoin (Cerfa 11527 / art. 202 CPC)** : l'app fournit le formulaire +
@@ -71,6 +106,11 @@ vite (15–30 min) un dossier classé par thème, preuve libre mais licite.
   (terme interdit). La note de synthèse couvre déjà le bon périmètre.
 
 ### Idées explicitement écartées
+- **Messagerie directe entre parents** : implique invitations, modération, conservation probatoire,
+  RGPD complexe et risque d'escalade. Parent Preuve reste **solo** — c'est un atout, pas un manque.
+- **Assistant juridique automatisé** : dire « vous devez saisir le JAF » ou « votre preuve sera
+  recevable » crée un risque majeur. Préférer « cette information peut être utile à organiser dans votre
+  dossier ; faites vérifier votre situation par un professionnel ».
 - Simulateur de montant de pension (trop proche du conseil juridique, pertinent surtout
   avant jugement).
 - Tout module de soutien émotionnel (hors positionnement).
@@ -150,7 +190,8 @@ d'accueil. Routes et logique métier quasi inchangées.
 - **Dossier d'audience — `/export`** : déjà cloisonné par procédure, filtrable par période
   (`du`/`au`), totaux frais/pension, bordereau de pièces, `ControleDossier`. **Limite** : PDF
   organisé **par table**, pas par thème. → Piste : mode d'assemblage **par thème** + chronologie
-  unifiée en tête. *(Chantier Production prioritaire.)*
+  unifiée en tête. *(Chantier Production prioritaire.)* → Voir aussi **mode dossier audience** et
+  **export avocat ZIP** (§3, renforcement probatoire).
 - **Courriers — `/courriers`** : 4 modèles actifs, architecture extensible (`MODELES`). → Pistes :
   modèles « mise en demeure avant ARIPA » et « demande de modification d'organisation ». Vigilance
   vocabulaire : « manquement » acceptable dans un courrier signé par l'utilisateur, jamais dans ce
@@ -175,6 +216,23 @@ d'accueil. Routes et logique métier quasi inchangées.
 - Chantier Production prioritaire : **assemblage par thème du dossier d'audience**.
 - Réorganisation nav : faible risque, bon point de départ visible (réécriture de `GROUPES`).
 - Levier produit le plus fort : **la couche « thème » transversale**.
+
+### Plan d'attaque issu de l'audit (5 sprints)
+1. **Fiabilisation technique** : unifier `HORODATAGE_SECRET` + `.env.example`, migrations Supabase,
+   correction quota IA (insert vérifié), suppression de compte complète, audit des policies RLS, tests
+   des fonctions critiques. *(Détail technique : REFERENCE §4 « Corrections issues de l'audit ».)*
+2. **Renforcement des preuves** : recalcul serveur du hash, page de vérification + QR dans les PDF,
+   journal d'audit, manifest d'empreintes, statut d'horodatage, préparation eIDAS.
+3. **Utilité quotidienne** : indexation pension, calendrier enrichi (vacances/jours fériés/conflits),
+   registre des demandes de modification, check-in géolocalisé, carnet enfant.
+4. **Export & usage avocat** : mode dossier audience, export avocat ZIP, bordereau amélioré, filtres
+   avancés, export CSV, chronologie personnalisée.
+5. **Préparation monétisation** : registre des traitements RGPD, CGU, DPA Mistral + ZDR, politique de
+   conservation/sauvegarde, audit sécurité externe, tests utilisateurs, page pricing.
+
+> Niveau 1 (avant ouverture large) = sprints 1 + correctifs RGPD/légal ; niveau 2 (forte valeur) =
+> QR vérif, page publique limitée, journal d'audit, export ZIP, manifest SHA-256, mode dossier audience,
+> indexation pension, registre demandes, check-in, vacances/jours fériés.
 
 ### Arbitrages encore ouverts
 - Ordre d'attaque entre : base UI (finir les tokens), nouvelle fonctionnalité, ou réorganisation
