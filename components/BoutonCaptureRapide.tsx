@@ -6,19 +6,17 @@
 // Monté une seule fois dans app/layout.tsx, il flotte sur toutes les pages du dossier.
 // Point d'ancrage de la future CAPTURE PHOTO NATIVE mobile (React Native/Expo ou PWA).
 //
-// Rôle (web) : bouton d'action flottant en bas à droite. Un appui ouvre un petit menu
-// de raccourcis vers les gestes quotidiens les plus fréquents (fait, dépense, preuve).
-//
-// Masqué automatiquement sur les pages publiques : un parent déconnecté ne doit pas
-// voir de bouton "ajouter".
+// Rôle (web) : un appui ouvre un petit menu de raccourcis vers les gestes quotidiens
+// (fait, dépense, preuve). Visible uniquement quand le parent est connecté ; toujours
+// masqué sur les pages d'authentification et légales.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-// Pages où le bouton ne doit PAS apparaître.
-const ROUTES_PUBLIQUES = [
-  "/",
+// Pages où le bouton ne doit JAMAIS apparaître, même connecté.
+const ROUTES_MASQUEES = [
   "/connexion",
   "/mot-de-passe-oublie",
   "/reinitialiser-mot-de-passe",
@@ -36,8 +34,19 @@ const RACCOURCIS = [
 export default function BoutonCaptureRapide() {
   const pathname = usePathname();
   const [ouvert, setOuvert] = useState(false);
+  // null = état de connexion encore inconnu ; true/false = connu.
+  const [connecte, setConnecte] = useState<boolean | null>(null);
 
-  if (ROUTES_PUBLIQUES.includes(pathname)) {
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setConnecte(!!data.user));
+    const { data: ecouteur } = supabase.auth.onAuthStateChange((_e, session) =>
+      setConnecte(!!session?.user)
+    );
+    return () => ecouteur.subscription.unsubscribe();
+  }, []);
+
+  // Masqué si déconnecté, si état inconnu, ou sur une page auth/légale.
+  if (!connecte || ROUTES_MASQUEES.includes(pathname)) {
     return null;
   }
 
@@ -54,7 +63,6 @@ export default function BoutonCaptureRapide() {
       )}
 
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-        {/* Raccourcis, affichés au-dessus du bouton quand le menu est ouvert. */}
         {ouvert &&
           RACCOURCIS.map((r) => (
             <Link
@@ -67,7 +75,6 @@ export default function BoutonCaptureRapide() {
             </Link>
           ))}
 
-        {/* Bouton principal : ouvre / ferme le menu. */}
         <button
           type="button"
           onClick={() => setOuvert((v) => !v)}
