@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import ProchainesEcheances from "@/components/ProchainesEcheances";
 import TableauDeBord from "@/components/TableauDeBord";
 import PageHeader from "@/components/PageHeader";
 import AccueilPublic from "@/components/AccueilPublic";
+import ConfigurationDossier from "@/components/ConfigurationDossier";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
@@ -31,12 +31,6 @@ export default function Home() {
   }
 
   // Utilisateur connecté : tableau de bord (contenu d'origine).
-  const reglages = [
-    { libelle: "Procédure (autre parent)", href: "/procedure" },
-    { libelle: "Enfants", href: "/enfants" },
-    { libelle: "Le jugement", href: "/dossier/importer-pdf" },
-  ];
-
   return (
     <>
       <PageHeader
@@ -55,18 +49,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10">
-            <h2 className="font-display text-xl text-[#15233F]">Configuration du dossier</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {reglages.map((r) => (
-                <Link
-                  key={r.href}
-                  href={r.href}
-                  className="carte rounded-xl bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:bg-[#15233F]/5"
-                >
-                  {r.libelle}
-                </Link>
-              ))}
-            </div>
+            <ConfigurationDossier />
           </div>
         </div>
       </div>
