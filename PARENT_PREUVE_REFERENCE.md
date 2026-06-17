@@ -229,7 +229,7 @@ components/
   EncartPliable · PageHeader · CourrierModele
   ReglePension · RegleFrais · RegleDVH · RegleDecision
   SelecteurPieces · FormulaireNote · BrouillonNote · QuestionnaireAiguillage · EffacerDonnees
-  BoutonCaptureRapide  (conservé volontairement, pas encore monté — réservé capture mobile, voir §4)
+  
 
 lib/
   supabase · supabaseAdmin (service_role)
@@ -263,6 +263,31 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
   jugement_numero_rg, jugement_intitule, autre_parent_*). **`declarant_*` laissé en
   `dossier.declarant_*`** car cette colonne vit toujours dans la table `dossier`
   (chaînes purement descriptives, affichées via `FormulaireNote.tsx`, aucune requête impactée).
+
+### MAJ navigation + accueil (session du 2026-06-17)
+
+- **NavBar** (`components/NavBar.tsx`) : `GROUPES` réorganisé PAR INTENTION en 4 familles —
+  Mon dossier (Chronologie, Calendrier de garde, Coffre-fort) / Saisir (Noter un fait,
+  Ajouter une dépense, Ajouter un paiement de pension, Ajouter un document, Capturer une
+  preuve photo) / Production (Export PDF, Courriers, Note pour l'avocat, Reformulation) /
+  Réglages (Procédure, Importer un jugement, Analyser le jugement, Socle, Enfants).
+  Ancienne famille « Organisation » dissoute. Tous les liens pointent vers des pages existantes.
+- **BoutonCaptureRapide** (`components/BoutonCaptureRapide.tsx`) : N'EST PLUS DU CODE MORT.
+  Monté une seule fois dans `app/layout.tsx`. Conscient de l'auth (`supabase.auth.getUser`
+  + `onAuthStateChange`) : visible uniquement connecté, masqué sur auth/légal
+  (ROUTES_MASQUEES) ET pour visiteur déconnecté. Visible sur le tableau de bord `/`.
+  Menu de 3 raccourcis : Noter un fait (/journal), Ajouter une dépense (/frais),
+  Capturer une preuve photo (/preuves). « + » bascule en « × », appui dehors = fermeture.
+  Décision : menu gardé à 3 (Courrier/Export/Pension/Document NON ajoutés).
+- **Vocabulaire harmonisé** : un seul nom par geste de saisie dans nav + accueil + menu capture.
+- **Accueil** (`app/page.tsx`) : section « Actions rapides » + tableau `actions` SUPPRIMÉS.
+  Ajout section « Configuration du dossier » (3 cartes statiques : Procédure /procedure,
+  Enfants /enfants, Le jugement /dossier/importer-pdf). Double bordure des cartes retirée
+  (`.carte` sans `border` dur). Ordre accueil connecté : TableauDeBord → ProchainesEcheances
+  → Configuration du dossier.
+
+Piste suivante notée : rendre les 3 cartes « Configuration du dossier » intelligentes
+(état « à configurer » / « configuré » selon les données réelles).
 
 - ✅ **Mode hors-ligne PWA + module de mise à jour (16/06/2026).** Service worker
   manuel `public/sw.js` (pas de `next-pwa`). Met en cache UNIQUEMENT la coquille
