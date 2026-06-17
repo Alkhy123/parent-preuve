@@ -72,7 +72,16 @@ export async function verifierQuotaIa(
   }
 
   // 2. Sous le plafond : on enregistre l'appel (user_id et created_at par défaut).
-  await supabase.from("ia_appels").insert({ fonctionnalite });
+  const { error: erreurInsert } = await supabase
+    .from("ia_appels")
+    .insert({ fonctionnalite });
+
+  // Fail-closed : si l'enregistrement échoue, on REFUSE l'appel. Autoriser un appel
+  // qu'on n'a pas pu compter rendrait le quota contournable.
+  if (erreurInsert) {
+    console.error("[quotaIa] echec d'enregistrement de l'appel IA, appel refuse");
+    return { autorise: false, resteSecondes: fenetreSecondes };
+  }
 
   return { autorise: true, resteSecondes: 0 };
 }

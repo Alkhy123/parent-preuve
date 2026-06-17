@@ -329,9 +329,6 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
   Composant `components/ConfigurationDossier.tsx` (Option A pastille + libellé) branché dans
   `app/page.tsx` (tableau `reglages` + import `Link` retirés). Validé `npx tsc --noEmit`.
 
-Piste suivante notée : rendre les 3 cartes « Configuration du dossier » intelligentes
-(état « à configurer » / « configuré » selon les données réelles).
-
 - ✅ **Mode hors-ligne PWA + module de mise à jour (16/06/2026).** SW manuel `public/sw.js` (pas de
   `next-pwa`) : cache la **coquille seule** (HTML `/`, `/_next/static/`, `/icons/`) ; navigations en
   « réseau d'abord », statiques en « cache d'abord ». **Triple bypass** : ignore non-GET, tout le non
