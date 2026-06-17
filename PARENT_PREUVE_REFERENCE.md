@@ -213,7 +213,7 @@ sur `preuves`** (originaux scellés). URL signée 60 s pour la lecture.
 ```
 app/
   layout.tsx              NavBar + BandeauProcedure + GardeAcces(children) + Footer + BienvenueRGPD
-  page.tsx                ACCUEIL : AccueilPublic si déconnecté, sinon TableauDeBord + ProchainesEcheances (cloisonnés)
+  page.tsx                ACCUEIL : AccueilPublic si déconnecté, sinon TableauDeBord + ProchainesEcheances + ConfigurationDossier (cloisonnés)
   globals.css             tokens design + .font-display + .carte (--background #ECE7DC)
   manifest.ts             PWA (nom, couleurs, icônes)
   connexion · compte · mot-de-passe-oublie · reinitialiser-mot-de-passe   (auth)
@@ -235,7 +235,7 @@ app/
 
 components/
   NavBar · BandeauProcedure · SelecteurProcedure · Footer · GardeAcces · BienvenueRGPD · AccueilPublic
-  TableauDeBord · ProchainesEcheances · CalendrierMensuel · ControleDossier
+  TableauDeBord · ProchainesEcheances · ConfigurationDossier · CalendrierMensuel · ControleDossier
   ConsentementIA · StatutConsentementIA · ApercuExtraction · ReformulationIA
   EncartPliable · PageHeader · CourrierModele
   ReglePension · RegleFrais · RegleDVH · RegleDecision
@@ -245,6 +245,7 @@ components/
 lib/
   supabase · supabaseAdmin (service_role)
   procedureActive (⭐ getProcedureActiveId / getEnfantsDeProcedureActive / get|setProcedureActiveIdLocal)
+  etatConfiguration (getEtatConfigurationDossier → état des 3 cartes accueil, cloisonné, lecture seule)
   authServeur · enteteAuth · quotaIa
   dossierCalculs · controleDossier · gardeCalendrier · gardeNotifications
   courrierHelpers · courrierPdf · preuvePdf
@@ -314,10 +315,19 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
   Décision : menu gardé à 3 (Courrier/Export/Pension/Document NON ajoutés).
 - **Vocabulaire harmonisé** : un seul nom par geste de saisie dans nav + accueil + menu capture.
 - **Accueil** (`app/page.tsx`) : section « Actions rapides » + tableau `actions` SUPPRIMÉS.
-  Ajout section « Configuration du dossier » (3 cartes statiques : Procédure /procedure,
+  Ajout section « Configuration du dossier » (3 cartes : Procédure /procedure,
   Enfants /enfants, Le jugement /dossier/importer-pdf). Double bordure des cartes retirée
   (`.carte` sans `border` dur). Ordre accueil connecté : TableauDeBord → ProchainesEcheances
   → Configuration du dossier.
+
+- ✅ **Cartes « Configuration du dossier » intelligentes (17/06/2026, livré).** Les 3 cartes
+  affichent leur état réel, cloisonné par procédure active : pastille + libellé (vert #2E6A4D
+  « Configuré/Analysé », ambre #8A5A12 « À configurer/À analyser/À valider »), `…` gris pendant
+  le chargement. Logique pure `lib/etatConfiguration.ts` (`getEtatConfigurationDossier` :
+  procédure via `getProcedureActiveId`, comptage enfants `head:true`, jugement = état réuni des
+  4 tables règles `procedure_id` + `valide` ; repli prudent en cas d'erreur, lecture seule).
+  Composant `components/ConfigurationDossier.tsx` (Option A pastille + libellé) branché dans
+  `app/page.tsx` (tableau `reglages` + import `Link` retirés). Validé `npx tsc --noEmit`.
 
 Piste suivante notée : rendre les 3 cartes « Configuration du dossier » intelligentes
 (état « à configurer » / « configuré » selon les données réelles).
