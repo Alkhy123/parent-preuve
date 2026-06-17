@@ -52,10 +52,11 @@ Les **secrets restent strictement côté serveur**. Aucune clé sensible ne doit
 | Variable | Côté | Rôle |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | client | URL du projet Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Clé anon (protégée par RLS) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client | Clé publique (récente), lue en priorité — protégée par RLS |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Clé anon (ancien nom), repli si PUBLISHABLE absente |
 | `SUPABASE_SERVICE_ROLE_KEY` | serveur | Clé service (admin) — jamais exposée au client |
 | `MISTRAL_API_KEY` | serveur | Accès Mistral AI (appels serveur uniquement) |
-| `HMAC_SECRET` | serveur | Signature de l'horodatage |
+| `HORODATAGE_SECRET` | serveur | Signature de l'horodatage |
 
 > Pour générer un secret sous Windows (sans OpenSSL) :
 > `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
