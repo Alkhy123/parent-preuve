@@ -20,6 +20,26 @@
 
 ### 2026-06-18 — Export CSV de la chronologie
 
+### 2026-06-18 — Export CSV étendu (frais, pension, documents)
+
+- Nouveau `lib/csvExport.ts` : fonction pure générique `construireCsv({ enTete, lignes, contexte })`
+  (BOM UTF-8, séparateur `;`, CRLF, échappement, pied avec avertissement non-qualifié).
+  Réutilisable mobile (aucun accès navigateur). `lib/chronologieCsv.ts` reste inchangé.
+- Nouveau `lib/telechargerCsv.ts` : helper WEB UNIQUEMENT (Blob + lien), source unique
+  du téléchargement, à n'appeler que côté client.
+- Bouton « Exporter en CSV » ajouté sur 3 pages, cloisonné par procédure active,
+  exportant exactement ce qui est affiché :
+  - `app/frais/page.tsx` : 8 colonnes (Date, Catégorie, Libellé, Enfant, Montant total,
+    Part due, Statut, Justificatif).
+  - `app/pension/page.tsx` : 7 colonnes (Mois, Montant dû, Montant payé, Reste dû,
+    Statut, Date de paiement, Notes).
+  - `app/documents/page.tsx` : 4 colonnes (Date, Catégorie, Libellé, Enfant) — pièces
+    actives uniquement (coffre-fort non couvert).
+- Statuts factuels uniquement (Remboursé/Non remboursé, Payé/Partiel/En retard/À venir) :
+  aucune qualification. `npx tsc --noEmit` vert.
+- Reste possible plus tard : export du coffre-fort, et adoption éventuelle de `csvExport.ts`
+  par `chronologieCsv.ts` (non prioritaire, pas de régression à risquer).
+
 - Nouveau `lib/chronologieCsv.ts` : fonction pure `construireCsvChronologie(lignes, contexte)`.
   Réutilise les lignes déjà filtrées par `filtrerEtFormaterPourPdf`. Séparateur `;` (Excel FR),
   BOM UTF-8, échappement guillemets, avertissement non-qualifié en pied. Aucun accès navigateur
