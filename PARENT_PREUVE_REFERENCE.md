@@ -1,4 +1,3 @@
-
 ⁷# Parent Preuve — RÉFÉRENCE technique (état réel, schéma, fichiers, dette, backlog)
 
 > **Rôle de ce fichier.** Le **détail volatil** du projet : ce qui est réellement construit, le
@@ -346,8 +345,9 @@ racine : AGENTS.md · CLAUDE.md · README.md (⚠️ par défaut) · package.jso
 ## 4. Dette technique (vérifiée 15/06/2026)
 
 ### ⚠️ Corrections issues de l'audit (à traiter — Sprint « fiabilisation »)
-Identifiées dans `audit_suggestions_parent_preuve.md` (17/06/2026). À vérifier dans le code réel avant
-de coder (l'audit a été fait sur snapshot, le code fait foi).
+Identifiées lors de l'audit du 17/06/2026 (fichier source `audit_suggestions_parent_preuve.md`
+désormais absorbé/supprimé ; ses pistes produit sont passées dans `PARENT_PREUVE_ROADMAP_UX.md`).
+À vérifier dans le code réel avant de coder (l'audit a été fait sur snapshot, **le code fait foi**).
 1. ✅ **RÉSOLU (17/06/2026) — Secret d'horodatage unifié.** Le code lisait déjà `HORODATAGE_SECRET`
    (`app/api/horodatage/route.ts`) et échoue déjà proprement si la variable manque (500 explicite).
    Reliquat `HMAC_SECRET` corrigé dans `README.md` ; table des variables complétée (ajout de
