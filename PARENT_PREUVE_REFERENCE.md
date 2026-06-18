@@ -18,6 +18,21 @@
 
 ## 1. État réel — ce qui est construit
 
+### 2026-06-18 — « Résumé du mois » (page lecture seule)
+
+- Nouveau `app/resume-mois/page.tsx` : vue d'ensemble d'un mois choisi
+  (`<input type="month">`, mois courant par défaut). 3 sections : Frais du mois,
+  Pension du mois, Faits notés du mois (comptage + répartition par catégorie).
+- Lecture seule, AUCUNE écriture en base. Réutilise `totauxFrais` / `totauxPension`
+  / `euros` (`lib/dossierCalculs.ts`). Cloisonné par procédure active, même patron
+  que `TableauDeBord` (enfants via `getProcedureActiveId` ; frais & faits par
+  `child_id` ou sans enfant ; pension par `procedure_id`).
+- Filtrage par mois robuste : `chaine.startsWith("AAAA-MM")` sur `date_frais`,
+  `mois_du`, `date_evenement` (pas de parsing Date, pas de souci de fuseau).
+- Lien ajouté dans `components/NavBar.tsx`, famille « Mon dossier », en tête.
+- Statuts factuels uniquement (reste dû / trop-perçu / à jour) ; aucune qualification.
+  `npx tsc --noEmit` vert.
+
 ### 2026-06-18 — Export CSV de la chronologie
 
 ### 2026-06-18 — Export CSV étendu (frais, pension, documents)
