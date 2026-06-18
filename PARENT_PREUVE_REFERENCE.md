@@ -1,4 +1,4 @@
-# Parent Preuve — RÉFÉRENCE technique (état réel, schéma, fichiers, dette, backlog)
+⁷# Parent Preuve — RÉFÉRENCE technique (état réel, schéma, fichiers, dette, backlog)
 
 > **Rôle de ce fichier.** Le **détail volatil** du projet : ce qui est réellement construit, le
 > schéma Supabase complet, la carte des fichiers, la dette technique et le backlog. À charger
@@ -17,6 +17,22 @@
 ---
 
 ## 1. État réel — ce qui est construit
+
+### 2026-06-18 — Export CSV de la chronologie
+
+- Nouveau `lib/chronologieCsv.ts` : fonction pure `construireCsvChronologie(lignes, contexte)`.
+  Réutilise les lignes déjà filtrées par `filtrerEtFormaterPourPdf`. Séparateur `;` (Excel FR),
+  BOM UTF-8, échappement guillemets, avertissement non-qualifié en pied. Aucun accès navigateur
+  (réutilisable React Native).
+- `app/chronologie/page.tsx` : bouton « Exporter en CSV » + helper navigateur `telechargerCsv`
+  (Blob). Filtrage factorisé dans `lignesFiltrees()`, partagé par export PDF et CSV.
+
+### Corrections d'état (le code faisait foi au 2026-06-18)
+- `cross-env` : DÉJÀ présent dans devDependencies (dette close).
+- `lib/limiteurAppel.ts` : DÉJÀ supprimé (dette close).
+- Service worker PWA : DÉJÀ en place et monté (public/sw.js + MajServiceWorker dans layout).
+- `BoutonCaptureRapide.tsx` : DÉSORMAIS monté dans app/layout.tsx.
+- Plus aucun placeholder [À COMPLÉTER] dans app/ components/ lib/.
 
 **MVP fonctionnel** : auth Supabase, enfants (CRUD), journal factuel (avec garde-fou de
 neutralité), frais, pension (statuts calculés), documents, export PDF, calendrier de garde +
