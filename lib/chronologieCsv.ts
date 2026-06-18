@@ -9,8 +9,6 @@
 // Le téléchargement (propre au web) est fait côté page, pas ici.
 
 // En-tête des colonnes : identique à celui du PDF (lib/chronologiePdf.ts).
-// On le redéfinit ici plutôt que de l'importer, pour que ce fichier reste pur
-// (chronologiePdf.ts importe jsPDF, qu'on ne veut pas embarquer ici).
 const EN_TETE = [
   "Date",
   "Heure",
@@ -35,10 +33,45 @@ const SEPARATEUR = ";";
 const FIN_LIGNE = "\r\n";
 
 export type ContexteCsvChrono = {
-  du?: string;                 // "AAAA-MM-JJ" ou vide
-  au?: string;                 // "AAAA-MM-JJ" ou vide
-  etiquetteProcedure?: string; // libellé libre de la procédure active
+  du?: string;
+  au?: string;
+  etiquetteProcedure?: string;
 };
 
-// Échappe une cellule : on l'entoure toujours de guillemets et on double les
-// guillemets internes. Cela neutralise les ; ,
+// Échappe une cellule : guillemets autour + guillemets internes doublés.
+function echapper(valeur: string): string {
+  return `"${valeur.replace(/"/g, '""')}"`;
+}
+
+// Transforme un tableau de cellules en une ligne CSV échappée.
+function ligneCsv(cellules: string[]): string {
+  return cellules.map(echapper).join(SEPARATEUR);
+}
+
+export function construireCsvChronologie(
+  lignes: string[][],
+  contexte: ContexteCsvChrono,
+): string {
+  const blocs: string[] = [];
+
+  // 1) Tableau de données : en-tête + lignes (toutes à 8 colonnes).
+  blocs.push(ligneCsv(EN_TETE));
+  for (const l of lignes) {
+    blocs.push(ligneCsv(l));
+  }
+
+  // 2) Pied de fichier : ligne vide, puis métadonnées et avertissement.
+  blocs.push("");
+  if (contexte.etiquetteProcedure) {
+    blocs.push(ligneCsv([`Procédure : ${contexte.etiquetteProcedure}`]));
+  }
+  const periode =
+    contexte.du || contexte.au
+      ? `Période : ${contexte.du || "début"} au ${contexte.au || "aujourd'hui"}`
+      : "Période : toutes les données";
+  blocs.push(ligneCsv([periode]));
+  blocs.push(ligneCsv([AVERTISSEMENT]));
+
+  // BOM UTF-8 + assemblage final.
+  return "\uFEFF" + blocs.join(FIN_LIGNE) + FIN_LIGNE;
+}
