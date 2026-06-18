@@ -38,6 +38,19 @@
 
 ### 2026-06-18 — Export CSV étendu (frais, pension, documents)
 
+### Export CSV — Journal (livré 2026-06-18)
+- Fichier : app/journal/page.tsx (354 lignes)
+- Bouton « Exporter en CSV » dans la barre de filtre (ml-auto, désactivé si liste vide)
+- Périmètre exporté = evenementsFiltres (cloisonnement procédure active + filtre catégorie respectés)
+- Colonnes : Date · Heure · Catégorie · Titre · Description factuelle · Enfant · Statut
+- Statut exporté en clair via badgeStatut().texte (Brouillon / Validé / Exporté)
+- Réutilise construireCsv() (lib/csvExport.ts) + telechargerCsv() (lib/telechargerCsv.ts)
+- Avertissement non qualifié inséré automatiquement par construireCsv()
+- Aucune écriture, aucune IA, aucune modif Supabase — lecture seule
+
+Modules AVEC export CSV : pension, frais, chronologie, documents, journal
+Modules SANS export CSV restants : courriers, preuves
+
 - Nouveau `lib/csvExport.ts` : fonction pure générique `construireCsv({ enTete, lignes, contexte })`
   (BOM UTF-8, séparateur `;`, CRLF, échappement, pied avec avertissement non-qualifié).
   Réutilisable mobile (aucun accès navigateur). `lib/chronologieCsv.ts` reste inchangé.
