@@ -12,6 +12,7 @@ const GROUPES = [
   {
     label: "Mon dossier",
     liens: [
+      { href: "/resume-mois", label: "Résumé du mois" },
       { href: "/chronologie", label: "Chronologie" },
       { href: "/calendrier", label: "Calendrier de garde" },
       { href: "/documents/coffre-fort", label: "Coffre-fort (pièces rangées)" },
