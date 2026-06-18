@@ -491,7 +491,7 @@ tableau dû/payé/reste dû, export PDF + CSV.)*
 - **Horodatage eIDAS-ready** : statut élargi (`interne_non_qualifie`|`qualifie_en_attente`|
   `qualifie_valide`|`qualifie_echec`), rapport PDF distinguant interne non qualifié vs qualifié.
 - **Export CSV** (événements, frais, pension, demandes, preuves, documents) en plus du PDF.
-
+partiellement faite (chronologie + frais/pension/documents ✓ ; restent demandes/preuves)
 **Sur l'horizon**
 - eIDAS qualifié (QTSP, swap de prestataire — plomberie prête).
 - App mobile native (RN/Expo ou PWA — backend Supabase réutilisable ; le helper
