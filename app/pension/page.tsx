@@ -7,6 +7,8 @@ import EncartPliable from "@/components/EncartPliable";
 import ReglePension from "@/components/ReglePension";
 import { euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
+import { construireCsv } from "@/lib/csvExport";
+import { telechargerCsv } from "@/lib/telechargerCsv";
 
 type Paiement = {
   id: string;
@@ -113,6 +115,41 @@ export default function PensionPage() {
     0
   );
 
+  // Export CSV des paiements de la procédure active (ce qui est affiché à l'écran).
+  // Données factuelles uniquement : aucun jugement, aucune qualification.
+  function exporterCsv() {
+    const enTete = [
+      "Mois",
+      "Montant dû",
+      "Montant payé",
+      "Reste dû",
+      "Statut",
+      "Date de paiement",
+      "Notes",
+    ];
+    const lignes = paiements.map((p) => {
+      const resteDu = Math.max(0, Number(p.montant_du) - Number(p.montant_paye));
+      return [
+        moisLisible(p.mois_du),
+        euros(Number(p.montant_du)),
+        euros(Number(p.montant_paye)),
+        euros(resteDu),
+        statut(p).texte,
+        p.date_paiement ?? "",
+        p.notes ?? "",
+      ];
+    });
+    const csv = construireCsv({
+      enTete,
+      lignes,
+      contexte: { titre: "Pension alimentaire" },
+    });
+    const nomFichier = `pension-parent-preuve-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    telechargerCsv(csv, nomFichier);
+  }
+
   return (
     <>
       <PageHeader
@@ -130,6 +167,17 @@ export default function PensionPage() {
           <div className="mt-6 carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
             <p className="text-sm text-[#1F2733]/60">Total restant dû (tous mois)</p>
             <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(totalDu)}</p>
+          </div>
+
+          {/* Export CSV */}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={exporterCsv}
+              disabled={paiements.length === 0}
+              className="rounded-lg border border-[#C2A24C]/30 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-[#ECE7DC]/40 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Exporter en CSV
+            </button>
           </div>
 
           {/* Formulaire */}
