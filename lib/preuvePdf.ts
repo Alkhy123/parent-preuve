@@ -9,6 +9,8 @@ export type PreuvePourPdf = {
   type_fichier: string | null;
   taille_octets: number | null;
   empreinte_sha256: string | null;
+  empreinte_sha256_serveur: string | null;
+  hash_verifie: boolean | null;
   heure_appareil: string | null;
   ecart_heure_secondes: number | null;
   gps_latitude: number | null;
@@ -45,6 +47,17 @@ function statutHorodatageFr(statut: string | null): string {
   if (statut === "qualifie") return "horodatage qualifié (eIDAS)";
   if (statut === "a_refaire") return "horodatage non effectué (à refaire)";
   return "aucun horodatage";
+}
+
+// Statut de la vérification serveur du hash (intégrité technique).
+// Formulation prudente : on décrit un fait (concordance ou écart), jamais
+// une garantie d'authenticité ou de recevabilité.
+function statutIntegriteFr(hashVerifie: boolean | null): string {
+  if (hashVerifie === true)
+    return "empreinte recalculée côté serveur : concordante";
+  if (hashVerifie === false)
+    return "écart constaté entre l'empreinte d'origine et l'empreinte recalculée";
+  return "vérification serveur non effectuée";
 }
 
 export function exporterPreuvePdf(p: PreuvePourPdf, image: ImagePdf) {
@@ -150,6 +163,7 @@ export function exporterPreuvePdf(p: PreuvePourPdf, image: ImagePdf) {
   ligne("Type", p.type_fichier || "—");
   ligne("Taille", formaterTaille(p.taille_octets));
   ligne("Empreinte SHA-256", p.empreinte_sha256 || "—");
+  ligne("Intégrité serveur", statutIntegriteFr(p.hash_verifie));
   y += 2;
 
   // --- Horodatage ---

@@ -19,6 +19,8 @@ type Preuve = {
   type_fichier: string | null;
   taille_octets: number | null;
   empreinte_sha256: string | null;
+  empreinte_sha256_serveur: string | null;
+  hash_verifie: boolean | null;
   storage_path: string | null;
   gps_latitude: number | null;
   gps_longitude: number | null;
@@ -132,6 +134,8 @@ export default function PreuvesPage() {
           type_fichier: p.type_fichier,
           taille_octets: p.taille_octets,
           empreinte_sha256: p.empreinte_sha256,
+          empreinte_sha256_serveur: p.empreinte_sha256_serveur,
+          hash_verifie: p.hash_verifie,
           heure_appareil: p.heure_appareil,
           ecart_heure_secondes: p.ecart_heure_secondes,
           gps_latitude: p.gps_latitude,
