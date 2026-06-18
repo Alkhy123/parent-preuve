@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { construireCsv } from "@/lib/csvExport";
+import { telechargerCsv } from "@/lib/telechargerCsv";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -131,6 +133,45 @@ export default function JournalPage() {
       ? evenementsProcedure
       : evenementsProcedure.filter((e) => e.categorie === filtreCategorie);
 
+  // Export CSV de ce qui est affiché à l'écran : on repart de evenementsFiltres,
+  // donc le cloisonnement par procédure active ET le filtre catégorie en cours
+  // sont respectés. On n'exporte que les faits saisis par l'utilisateur, sans
+  // aucune qualification ajoutée. L'avertissement non qualifié est inséré
+  // automatiquement par construireCsv().
+  function exporterCsv() {
+    const enTete = [
+      "Date",
+      "Heure",
+      "Catégorie",
+      "Titre",
+      "Description factuelle",
+      "Enfant",
+      "Statut",
+    ];
+    const lignes = evenementsFiltres.map((ev) => [
+      ev.date_evenement ?? "",
+      ev.heure_evenement ?? "",
+      ev.categorie ?? "",
+      ev.titre ?? "",
+      ev.description_factuelle ?? "",
+      nomEnfant(ev.child_id) ?? "",
+      badgeStatut(ev.statut).texte,
+    ]);
+    const csv = construireCsv({
+      enTete,
+      lignes,
+      contexte: {
+        titre:
+          "Journal factuel" +
+          (filtreCategorie !== "Toutes" ? ` — ${filtreCategorie}` : ""),
+      },
+    });
+    const nomFichier = `journal-parent-preuve-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    telechargerCsv(csv, nomFichier);
+  }
+
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
@@ -239,6 +280,14 @@ export default function JournalPage() {
             <option value="Toutes">Toutes les catégories</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
+
+          <button
+            onClick={exporterCsv}
+            disabled={evenementsFiltres.length === 0}
+            className="ml-auto rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
         </div>
 
         {/* Liste */}
