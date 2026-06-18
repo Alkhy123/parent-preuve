@@ -5,6 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { construireCsv } from "@/lib/csvExport";
+import { telechargerCsv } from "@/lib/telechargerCsv";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -172,6 +174,32 @@ export default function DocumentsPage() {
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
   }
 
+  // Export CSV des pièces actives de la procédure active (ce qui est affiché à
+  // l'écran). On aplatit les groupes pour conserver le même périmètre et le même
+  // ordre (par enfant, par type, puis par date décroissante).
+  function exporterCsv() {
+    const enTete = ["Date", "Catégorie", "Libellé", "Enfant"];
+    const lignes = groupes.flatMap((g) =>
+      g.types.flatMap((t) =>
+        t.docs.map((doc) => [
+          doc.date_document ?? "",
+          doc.categorie ?? "",
+          doc.libelle ?? "",
+          nomEnfant(doc.child_id) ?? "",
+        ])
+      )
+    );
+    const csv = construireCsv({
+      enTete,
+      lignes,
+      contexte: { titre: "Documents et justificatifs (pièces actives)" },
+    });
+    const nomFichier = `documents-parent-preuve-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    telechargerCsv(csv, nomFichier);
+  }
+
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
@@ -188,6 +216,17 @@ export default function DocumentsPage() {
           </Link>
           .
         </p>
+
+        {/* Export CSV */}
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={exporterCsv}
+            disabled={groupes.length === 0}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
+        </div>
 
         {/* Formulaire d'envoi */}
         <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
@@ -338,4 +377,4 @@ export default function DocumentsPage() {
       </div>
     </main>
   );
-                          }
+}
