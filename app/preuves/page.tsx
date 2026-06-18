@@ -263,7 +263,14 @@ export default function PreuvesPage() {
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={exporterPreuvePhotoCsv}
+            disabled={preuvesProcedure.length === 0}
+            className="rounded-md border border-[#15233F]/30 px-4 py-2 text-sm font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
           <Link
             href="/preuves/nouvelle"
             className="rounded-md bg-[#15233F] px-4 py-2 text-sm font-medium text-white hover:bg-[#15233F]/90"
