@@ -53,6 +53,7 @@ export default function NouvellePreuvePage() {
     gps: string;
     ecart: number;
     horodatage: string;
+    verification: string;
   } | null>(null);
 
   // Charger la liste des enfants pour le menu déroulant
@@ -204,6 +205,29 @@ export default function NouvellePreuvePage() {
           .eq("id", preuveId);
       }
 
+      // 7ter) Vérification serveur du hash.
+      // Le serveur retélécharge le fichier stocké, recalcule son empreinte et la
+      // compare à celle calculée par le navigateur. Comme pour l'horodatage
+      // (Option A) : si la vérification échoue, on N'ANNULE PAS la preuve.
+      let verificationTexte = "non vérifié";
+      try {
+        const reponseV = await fetch("/api/preuves/verifier-hash", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
+          body: JSON.stringify({ id: preuveId }),
+        });
+        if (!reponseV.ok) throw new Error("réponse non OK");
+        const v = await reponseV.json();
+        verificationTexte = v.hash_verifie
+          ? "empreinte recalculée côté serveur : concordante"
+          : "écart constaté entre l'empreinte d'origine et l'empreinte recalculée";
+      } catch {
+        // La preuve reste scellée ; la vérification pourra être refaite plus tard.
+        verificationTexte = "vérification serveur indisponible (à refaire)";
+      }
+
+      // 8) Récap à l'écran
+
       // 8) Récap à l'écran
       setRecap({
         gps: gps
@@ -213,9 +237,10 @@ export default function NouvellePreuvePage() {
           : "non disponible",
         ecart: ecartSec,
         horodatage: horodatageOK
-          ? "horodaté (non qualifié)"
-          : "à refaire (échec, preuve quand même scellée)",
-      });
+        ? "horodaté (non qualifié)"
+        : "à refaire (échec, preuve quand même scellée)",
+      verification: verificationTexte,
+    });
       setMessageSucces("Preuve enregistrée et scellée.");
 
       // Réinitialiser le formulaire pour une éventuelle nouvelle preuve
@@ -286,7 +311,9 @@ export default function NouvellePreuvePage() {
                     " — écart important, à vérifier"}
                 </p>
                 <p>Horodatage : {recap.horodatage}</p>
+                <p>Intégrité : {recap.verification}</p>
               </>
+              
             )}
           </div>
         )}
