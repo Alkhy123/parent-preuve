@@ -6,6 +6,8 @@ import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { construireCsv } from "@/lib/csvExport";
+import { telechargerCsv } from "@/lib/telechargerCsv";
 
 type Preuve = {
   id: string;
@@ -198,6 +200,51 @@ export default function PreuvesPage() {
   const preuvesProcedure = preuves.filter(
     (p) => p.enfant_id === null || idsProc.has(p.enfant_id)
   );
+
+  // Export CSV : bordereau léger des preuves de la procédure active.
+  // Champs non sensibles uniquement (pas de GPS, pas de chemin de stockage).
+  function exporterPreuvePhotoCsv() {
+    const libelleHorodatage = (statut: string | null): string => {
+      if (statut === "non_qualifie") return "horodaté (non qualifié)";
+      if (statut === "qualifie") return "horodaté (qualifié)";
+      if (statut === "a_refaire") return "à refaire";
+      return "—";
+    };
+
+    const enTete = [
+      "Date",
+      "Titre",
+      "Enfant",
+      "Fichier",
+      "Type",
+      "Taille",
+      "Horodatage",
+      "Date horodatage",
+      "Empreinte SHA-256",
+    ];
+
+    const lignes = preuvesProcedure.map((p) => [
+      dateHeureFr(p.created_at),
+      p.titre ?? "",
+      nomEnfant(p.enfant_id),
+      p.nom_fichier ?? "",
+      p.type_fichier ?? "",
+      formaterTaille(p.taille_octets),
+      libelleHorodatage(p.horodatage_statut),
+      p.horodatage_date ? dateHeureFr(p.horodatage_date) : "—",
+      p.empreinte_sha256 ?? "",
+    ]);
+
+    const csv = construireCsv({
+      enTete,
+      lignes,
+      contexte: { titre: "Preuves photo (procédure active)" },
+    });
+    const nomFichier = `preuves-parent-preuve-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    telechargerCsv(csv, nomFichier);
+  }
 
   // Regrouper les preuves (filtrées) par enfant
   const groupes = new Map<string, Preuve[]>();
