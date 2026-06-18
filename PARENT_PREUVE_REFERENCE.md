@@ -369,6 +369,13 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
   l'activation du **ZDR** à Mistral, (2) accepter/signer le **DPA** (art. 28), puis renforcer le
   paragraphe IA de `/confidentialite`.
 - **Reste avant ouverture large** : relecture par un professionnel du droit.
+- ✅ 2026-06-18 — Migrations Supabase VALIDÉES par rejeu sur base de test vierge.
+  Les 4 fichiers (001→004) s'enchaînent sans erreur et reconstruisent
+  fidèlement le schéma : 17 tables, RLS active partout (63 policies),
+  2 buckets privés (justificatifs, preuves) + 6 policies storage, 7 index.
+  Dépendances Supabase confirmées requises : schémas `extensions`, `auth`
+  (table auth.users), `storage` — fournis nativement par Supabase.
+  → supabase/migrations/ est désormais une source de vérité fiable.
 
 **✅ Fermées récemment (ne plus traiter comme dette) :**
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.
@@ -395,6 +402,29 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
 ---
 
 ## 5. Backlog / chantiers
+
+### Chantier Migrations Supabase — TERMINÉ (session 2026-06-18)
+4 fichiers SQL créés sous `supabase/migrations/`, fidèles au schéma réel
+(audit 2026-06-17, aucun nettoyage) :
+- `001_init_schema.sql` : extension pgcrypto + 17 CREATE TABLE (ordre de
+  dépendance) + PK + 2 CHECK (documents.etat 3 valeurs, events.statut 3 valeurs)
+  + 2 UNIQUE (dossier.user_id, note_brouillon.user_id) + toutes les FK.
+  Contraintes en ligne sans nom → Postgres régénère les noms réels.
+  Points fins reproduits : acceptation_politique & note_brouillon SANS FK user_id ;
+  consentements_ia FK user_id SANS cascade ; garde_regles.enfant_id en CASCADE
+  (seule exception, les autres enfant_id/child_id en SET NULL).
+  Redondance documents.archive + documents.etat conservée.
+- `002_rls_policies.sql` : ENABLE RLS sur 17 tables + 63 policies à l'identique.
+  UPDATE avec with check : procedures, decision_regle, dvh_regle, frais_regle,
+  garde_regles, note_brouillon. Trous volontaires conservés :
+  acceptation_politique (INSERT+SELECT), consentements_ia (pas d'UPDATE),
+  ia_appels (INSERT+SELECT).
+- `003_storage_policies.sql` : 2 buckets privés + 6 policies storage.objects
+  (3 par bucket, PAS d'UPDATE → originaux scellés). RLS storage.objects déjà
+  actif par défaut (non réactivé).
+- `004_indexes.sql` : 7 index explicites (6 procedure_id + composite
+  ia_appels(user_id, created_at DESC)). PK/UNIQUE non répétés.
+Statut : à rejouer dans l'ordre sur base de test pour validation de bout en bout.
 
 **Avant ouverture large**
 - Compléter les `[À COMPLÉTER]` des pages légales + relecture juridique.
