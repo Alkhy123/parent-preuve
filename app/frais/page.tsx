@@ -7,6 +7,8 @@ import EncartPliable from "@/components/EncartPliable";
 import { euros } from "@/lib/dossierCalculs";
 import RegleFrais from '@/components/RegleFrais';
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { construireCsv } from "@/lib/csvExport";
+import { telechargerCsv } from "@/lib/telechargerCsv";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -177,6 +179,40 @@ export default function FraisPage() {
     .filter((f) => f.rembourse)
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
 
+  // Export CSV des frais de la procédure active (ce qui est affiché à l'écran).
+  // Données factuelles uniquement : aucun jugement, aucune qualification.
+  function exporterCsv() {
+    const enTete = [
+      "Date",
+      "Catégorie",
+      "Libellé",
+      "Enfant",
+      "Montant total",
+      "Part due",
+      "Statut",
+      "Justificatif",
+    ];
+    const lignes = fraisProcedure.map((f) => [
+      f.date_frais ?? "",
+      f.categorie ?? "",
+      f.libelle ?? "",
+      nomEnfant(f.child_id) ?? "",
+      euros(Number(f.montant)),
+      euros(Number(f.part_autre)),
+      f.rembourse ? "Remboursé" : "Non remboursé",
+      f.document_id ? "Oui" : "Non",
+    ]);
+    const csv = construireCsv({
+      enTete,
+      lignes,
+      contexte: { titre: "Frais partagés" },
+    });
+    const nomFichier = `frais-parent-preuve-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    telechargerCsv(csv, nomFichier);
+  }
+
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
@@ -200,6 +236,17 @@ export default function FraisPage() {
             <p className="text-sm text-slate-500">Déjà remboursé</p>
             <p className="mt-1 text-2xl font-bold text-slate-500">{euros(dejaRembourse)}</p>
           </div>
+        </div>
+
+        {/* Export CSV */}
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={exporterCsv}
+            disabled={fraisProcedure.length === 0}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
         </div>
 
         {/* Formulaire */}
@@ -379,4 +426,4 @@ export default function FraisPage() {
       </div>
     </main>
   );
-}
+      }
