@@ -463,6 +463,34 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
 - **Nettoyage dette (16/06/2026)** : `cross-env` ajouté à `devDependencies` (`^7.0.3`, `npm ci` OK) ;
   `lib/limiteurAppel.ts` (ancien limiteur mémoire) supprimé au profit du quota en base `ia_appels` ;
   `BoutonCaptureRapide` requalifié « conservé volontairement ».
+  ### 2026-06-18 — Migrations Supabase validées en local + nouveautés
+
+**Environnement local Supabase opérationnel (Voie A — Docker + CLI)**
+- Docker Desktop installé (WSL 2 mis à jour via `wsl --update --web-download`).
+- CLI Supabase 2.107.0 installée via Scoop (jamais via npm -g).
+- `supabase init` → `config.toml` créé. Port inbucket déplacé 54324 → 54325
+  (conflit de port local au démarrage).
+- `supabase db reset` : les 4 migrations s'appliquent de zéro, dans l'ordre,
+  sans erreur. NOTICE pgcrypto = normal (if not exists).
+- Vérifié dans Studio : 17 tables publiques, 63 policies, 2 buckets privés.
+- Commandes utiles : `supabase start` / `supabase stop` / `supabase db reset`.
+- Studio local : http://127.0.0.1:54323
+
+**Export CSV preuves (livré + commité)**
+- `app/preuves/page.tsx` : fonction `exporterPreuvePhotoCsv` + bouton
+  « Exporter en CSV ». Réutilise `construireCsv` + `telechargerCsv`.
+- Colonnes : Date, Titre, Enfant, Fichier, Type, Taille, Horodatage,
+  Date horodatage, Empreinte SHA-256. GPS et storage_path exclus (sensibles).
+
+**Correction de contexte importante**
+- Il n'existe PAS de table `courriers`. La page /courriers est un menu de
+  modèles générant des PDF à la volée. → l'« export CSV courriers » est sans
+  objet (à retirer du backlog).
+
+**Note migrations (à savoir)**
+- 001/002/003 NON idempotentes (create table/policy sans if not exists).
+  À exécuter UNE FOIS sur base vierge, dans l'ordre. Jamais sur la prod
+  existante. 004 idempotente (create index if not exists).
 
 ---
 
