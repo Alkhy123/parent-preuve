@@ -64,7 +64,8 @@ vite (15–30 min) un dossier classé par thème, preuve libre mais licite.
   `lib/chronologiePdf.ts`). Piste restante : filtrage **par thème** transverse.
 - **Dossier d'audience thématique** : export classé par thème, chaque section avec son bordereau
   numéroté (réutilise le bordereau de la note de synthèse).
-- **Marqueur « implication parentale »** : tag sur `documents` et `events`, exportable en section.
+- - **Marqueur « implication parentale »** ✅ livré (2026-06-18) : tag catégorisé sur
+  `events` + `documents`, page `/implication-parentale` classée par thème + export CSV.
 - **Lien fait ↔ clause du jugement** : rattacher un fait aux règles déjà extraites du dispositif
   (`dvh_regle`, `pension_regle`, …). Wording « écart constaté par rapport au dispositif », jamais
   « manquement » ni « faute ».

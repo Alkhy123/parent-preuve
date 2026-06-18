@@ -7,6 +7,10 @@ import EncartPliable from "@/components/EncartPliable";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import {
+  CATEGORIES_IMPLICATION,
+  libelleImplication,
+} from "@/lib/implicationParentale";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -19,6 +23,7 @@ type Evenement = {
   description_factuelle: string | null;
   child_id: string | null;
   statut: string;
+  implication_categorie: string | null;
 };
 
 const CATEGORIES = ["Remise d'enfant", "Santé", "École", "Communication", "Frais", "Autre"];
@@ -48,6 +53,7 @@ export default function JournalPage() {
   const [heureEvenement, setHeureEvenement] = useState("");
   const [description, setDescription] = useState("");
   const [childId, setChildId] = useState("");
+  const [implicationCategorie, setImplicationCategorie] = useState("");
 
   const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
   const [message, setMessage] = useState("");
@@ -62,7 +68,7 @@ export default function JournalPage() {
   async function chargerEvenements() {
     const { data, error } = await supabase
       .from("events")
-      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut")
+      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut, implication_categorie")
       .order("date_evenement", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setEvenements(data ?? []);
@@ -80,6 +86,7 @@ export default function JournalPage() {
 
     // On n'envoie pas `statut` : la base applique son défaut « brouillon »
     // (même logique que source/valide/actif sur les tables règles).
+    // implication_categorie = null si non marqué (champ facultatif).
     const { error } = await supabase.from("events").insert({
       titre: titre.trim(),
       categorie,
@@ -87,6 +94,7 @@ export default function JournalPage() {
       heure_evenement: heureEvenement || null,
       description_factuelle: description.trim() || null,
       child_id: childId || null,
+      implication_categorie: implicationCategorie || null,
     });
 
     if (error) {
@@ -94,6 +102,7 @@ export default function JournalPage() {
     } else {
       setTitre(""); setCategorie("Autre"); setDateEvenement("");
       setHeureEvenement(""); setDescription(""); setChildId("");
+      setImplicationCategorie("");
       setSignalAjout((n) => n + 1);
       chargerEvenements();
     }
@@ -242,6 +251,26 @@ export default function JournalPage() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Implication parentale (facultatif)
+            </label>
+            <select
+              value={implicationCategorie}
+              onChange={(e) => setImplicationCategorie(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
+              <option value="">— Non concerné —</option>
+              {CATEGORIES_IMPLICATION.map((c) => (
+                <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              À renseigner si ce fait illustre une démarche concrète envers
+              l&apos;enfant (rendez-vous honoré, présence à un événement…).
+            </p>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-slate-700">Description factuelle</label>
             <textarea
               rows={3} placeholder="Décrivez les faits observables, sans interprétation."
@@ -297,6 +326,7 @@ export default function JournalPage() {
           )}
           {evenementsFiltres.map((ev) => {
             const badge = badgeStatut(ev.statut);
+            const implication = libelleImplication(ev.implication_categorie);
             return (
               <div key={ev.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -308,6 +338,11 @@ export default function JournalPage() {
                       <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
                         {badge.texte}
                       </span>
+                      {implication && (
+                        <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                          Implication : {implication}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
                     <p className="text-sm text-slate-500">

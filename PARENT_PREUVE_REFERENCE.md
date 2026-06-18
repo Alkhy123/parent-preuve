@@ -442,6 +442,27 @@ de coder (l'audit a été fait sur snapshot, le code fait foi).
   (table auth.users), `storage` — fournis nativement par Supabase.
   → supabase/migrations/ est désormais une source de vérité fiable.
 
+### 2026-06-18 — Marqueur « implication parentale » (complet, bout en bout)
+
+- Nouvelle colonne `implication_categorie` (text, nullable, NULL = non marqué) sur
+  `events` et `documents`. Catégories encadrées par le code (PAS de CHECK) :
+  `sante | scolarite | activites | quotidien`. Migration idempotente
+  `supabase/migrations/005_implication_parentale.sql` (ADD COLUMN IF NOT EXISTS).
+  Appliquée en local (`supabase db reset`) ET en prod en ligne (SQL Editor, même
+  contenu) — rappel : toute migration de colonne = 2 endroits à mettre à jour.
+- Source unique des libellés : `lib/implicationParentale.ts` (`CATEGORIES_IMPLICATION`,
+  `libelleImplication`). Réutilisable mobile (aucun accès navigateur).
+- Saisie : sélecteur neutre « Implication parentale (facultatif) » sur les
+  formulaires de `app/journal/page.tsx` et `app/documents/page.tsx`. Étiquette
+  dorée discrète dans les listes quand une ligne est marquée. Cloisonnement
+  procédure, garde-fou neutralité et exports CSV existants inchangés.
+- Production : nouvelle page lecture seule `app/implication-parentale/page.tsx`
+  rassemblant faits + pièces marqués, classés par catégorie, triés par date,
+  cloisonnés par procédure active. Export CSV (réutilise `construireCsv` +
+  `telechargerCsv`). Aucune écriture, aucune IA, aucune qualification ; bandeau
+  « soumis à l'appréciation du juge ». Lien ajouté dans `NavBar` (famille Production).
+- `npx tsc --noEmit` vert.
+
 **✅ Fermées récemment (ne plus traiter comme dette) :**
 - `/api/horodatage` sécurisée (auth + quota) le 15/06/2026.
 - `pdf-lib` installé et branché (`lib/exportNotePdf.ts`) — d'anciennes notes le disaient « non

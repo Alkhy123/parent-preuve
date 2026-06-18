@@ -7,6 +7,10 @@ import PageHeader from "@/components/PageHeader";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import {
+  CATEGORIES_IMPLICATION,
+  libelleImplication,
+} from "@/lib/implicationParentale";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -17,6 +21,7 @@ type Document = {
   chemin_fichier: string;
   date_document: string | null;
   child_id: string | null;
+  implication_categorie: string | null;
 };
 
 const CATEGORIES = ["Facture", "Certificat médical", "Capture d'écran", "Courrier", "Autre"];
@@ -29,6 +34,7 @@ export default function DocumentsPage() {
   const [categorie, setCategorie] = useState("Autre");
   const [dateDocument, setDateDocument] = useState("");
   const [childId, setChildId] = useState("");
+  const [implicationCategorie, setImplicationCategorie] = useState("");
   const [fichier, setFichier] = useState<File | null>(null);
 
   const [enCours, setEnCours] = useState(false);
@@ -44,7 +50,7 @@ export default function DocumentsPage() {
   async function chargerDocuments() {
     const { data, error } = await supabase
       .from("documents")
-      .select("id, libelle, categorie, chemin_fichier, date_document, child_id")
+      .select("id, libelle, categorie, chemin_fichier, date_document, child_id, implication_categorie")
       .eq("etat", "actif")
       .order("created_at", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
@@ -120,12 +126,14 @@ export default function DocumentsPage() {
         return;
       }
 
+      // implication_categorie = null si non marqué (champ facultatif).
       const { error: insertError } = await supabase.from("documents").insert({
         libelle: libelle.trim(),
         categorie,
         chemin_fichier: chemin,
         date_document: dateDocument || null,
         child_id: childId || null,
+        implication_categorie: implicationCategorie || null,
       });
       if (insertError) {
         setMessage("Erreur d'enregistrement : " + insertError.message);
@@ -133,7 +141,7 @@ export default function DocumentsPage() {
       }
 
       setLibelle(""); setCategorie("Autre"); setDateDocument("");
-      setChildId(""); setFichier(null);
+      setChildId(""); setImplicationCategorie(""); setFichier(null);
       (document.getElementById("champ-fichier") as HTMLInputElement).value = "";
       chargerDocuments();
     } finally {
@@ -284,6 +292,26 @@ export default function DocumentsPage() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Implication parentale (facultatif)
+            </label>
+            <select
+              value={implicationCategorie}
+              onChange={(e) => setImplicationCategorie(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
+              <option value="">— Non concerné —</option>
+              {CATEGORIES_IMPLICATION.map((c) => (
+                <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              À renseigner si cette pièce illustre une démarche concrète envers
+              l&apos;enfant (rendez-vous honoré, inscription, suivi…).
+            </p>
+          </div>
+
           <button
             onClick={envoyerDocument}
             disabled={enCours}
@@ -312,7 +340,9 @@ export default function DocumentsPage() {
                     {t.type}
                   </p>
 
-                  {t.docs.map((doc) => (
+                  {t.docs.map((doc) => {
+                    const implication = libelleImplication(doc.implication_categorie);
+                    return (
                     <div key={doc.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -320,6 +350,11 @@ export default function DocumentsPage() {
                           <p className="text-sm text-slate-500">
                             {doc.date_document ?? "Sans date"}
                           </p>
+                          {implication && (
+                            <span className="mt-2 inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                              Implication : {implication}
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <button
@@ -368,7 +403,8 @@ export default function DocumentsPage() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
             </div>

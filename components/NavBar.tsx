@@ -32,6 +32,7 @@ const GROUPES = [
     label: "Production",
     liens: [
       { href: "/export", label: "Export PDF" },
+      { href: "/implication-parentale", label: "Implication parentale" },
       { href: "/courriers", label: "Courriers" },
       { href: "/note-synthese", label: "Note pour l'avocat" },
       { href: "/reformuler", label: "Reformulation" },
