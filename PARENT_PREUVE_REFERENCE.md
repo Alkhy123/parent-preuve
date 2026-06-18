@@ -1,3 +1,4 @@
+
 ⁷# Parent Preuve — RÉFÉRENCE technique (état réel, schéma, fichiers, dette, backlog)
 
 > **Rôle de ce fichier.** Le **détail volatil** du projet : ce qui est réellement construit, le
