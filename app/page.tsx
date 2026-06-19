@@ -6,6 +6,7 @@ import TableauDeBord from "@/components/TableauDeBord";
 import PageHeader from "@/components/PageHeader";
 import AccueilPublic from "@/components/AccueilPublic";
 import ConfigurationDossier from "@/components/ConfigurationDossier";
+import WidgetDossierPret from "@/components/WidgetDossierPret";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
@@ -42,6 +43,10 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-6 py-16">
           <div className="mt-10">
             <TableauDeBord />
+          </div>
+
+          <div className="mt-10">
+            <WidgetDossierPret />
           </div>
 
           <div className="mt-10">
