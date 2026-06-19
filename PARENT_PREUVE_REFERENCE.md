@@ -406,6 +406,13 @@ désormais absorbé/supprimé ; ses pistes produit sont passées dans `PARENT_PR
   (`.carte` sans `border` dur). Ordre accueil connecté : TableauDeBord → ProchainesEcheances
   → Configuration du dossier.
 
+- **WidgetActionsPrioritaires** (Sprint 1, étape accueil cockpit) — `components/WidgetActionsPrioritaires.tsx`.
+  Lecture seule, cloisonné par procédure active. Affiche 3-4 actions max
+  (pension impayée, frais non remboursés, preuves à refaire, événements en brouillon),
+  chacune avec libellé + raison + lien direct. État vide « Rien d'urgent ».
+  Monté en haut de `app/page.tsx`, avant TableauDeBord.
+  Réutilise : getProcedureActiveId, totauxPension, euros. Aucune écriture, aucun appel IA.
+
 - ✅ **Cartes « Configuration du dossier » intelligentes (17/06/2026, livré).** Les 3 cartes
   affichent leur état réel, cloisonné par procédure active : pastille + libellé (vert #2E6A4D
   « Configuré/Analysé », ambre #8A5A12 « À configurer/À analyser/À valider »), `…` gris pendant
