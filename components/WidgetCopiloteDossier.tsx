@@ -55,7 +55,7 @@ function choisirProchaineAction(donnees: EtatDossier): ActionCopilote {
     return {
       niveau: "avertissement",
       titre: "Rattacher les justificatifs manquants",
-      description: `${donnees.fraisSansJustificatif} frais n'ont pas encore de justificatif rattaché. C&apos;est une bonne prochaine action pour renforcer le dossier.`,
+      description: `${donnees.fraisSansJustificatif} frais n'ont pas encore de justificatif rattaché. C'est une bonne prochaine action pour renforcer le dossier.`,
       href: "/frais",
       cta: "Voir les frais",
     };
@@ -85,7 +85,7 @@ function choisirProchaineAction(donnees: EtatDossier): ActionCopilote {
       titre: "Reprendre l'horodatage des preuves",
       description: `${n} preuve${n > 1 ? "s" : ""} ${
         n > 1 ? "nécessitent" : "nécessite"
-      } une vérification d&apos;horodatage avant d&apos;être considérée${
+      } une vérification d'horodatage avant d&apos;être considérée${
         n > 1 ? "s" : ""
       } comme proprement exploitable${n > 1 ? "s" : ""}.`,
       href: "/preuves",
@@ -204,12 +204,21 @@ export default function WidgetCopiloteDossier() {
           {action.description}
         </p>
 
-        <Link
-          href={action.href}
-          className="mt-4 inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E]"
-        >
-          {action.cta}
-        </Link>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Link
+                href={action.href}
+                className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E]"
+            >
+                {action.cta}
+            </Link>
+
+            <Link
+                href="/copilote"
+                className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0]"
+            >
+                Tester le copilote agent
+            </Link>
+        </div>
       </div>
 
       <p className="mt-3 text-xs leading-5 text-slate-500">
