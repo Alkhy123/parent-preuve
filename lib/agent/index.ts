@@ -36,3 +36,11 @@ export type {
     estDemandeJuridiqueSensibleAgent,
     orienterDemandeAgent,
   } from "@/lib/agent/orientation";
+  
+  export type { ConstruirePromptSystemeAgentParams } from "@/lib/agent/prompt";
+  
+  export {
+    PROMPT_SYSTEME_AGENT_PARENT_PREUVE,
+    VERSION_PROMPT_AGENT_PARENT_PREUVE,
+    construirePromptSystemeAgent,
+  } from "@/lib/agent/prompt";
