@@ -46,6 +46,7 @@ const GROUPES = [
       { href: "/dossier/extraire", label: "Analyser le jugement" },
       { href: "/dossier", label: "Socle (état civil)" },
       { href: "/enfants", label: "Enfants" },
+      { href: "/test-resume", label: "🧪 Test résumé (temporaire)" },
     ],
   },
 ];
