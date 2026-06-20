@@ -44,3 +44,12 @@ export type {
     VERSION_PROMPT_AGENT_PARENT_PREUVE,
     construirePromptSystemeAgent,
   } from "@/lib/agent/prompt";
+  
+  export type { ResultatValidationReponseAgent } from "@/lib/agent/schemaReponse";
+  
+  export {
+    construireReponseFallback,
+    parserEtValiderReponseAgent,
+    parserJsonReponseAgent,
+    validerReponseAgent,
+  } from "@/lib/agent/schemaReponse";
