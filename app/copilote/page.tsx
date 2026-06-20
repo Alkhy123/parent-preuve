@@ -4,7 +4,7 @@
 //
 // Page de test du Copilote Agent.
 //
-// Cette page permet deux tests séparés :
+// Cette page permet trois tests contrôlés :
 // 1. Dry-run sécurisé : /api/agent/analyser-demande
 //    - aucun appel IA ;
 //    - aucun quota IA ;
@@ -17,6 +17,12 @@
 //    - validation stricte de la réponse ;
 //    - aucune écriture métier ;
 //    - aucune action automatique.
+//
+// 3. Test Mistral avec résumé factuel du dossier
+//    - résumé chargé côté client ;
+//    - lecture seule ;
+//    - envoyé uniquement si l'utilisateur coche l'option ;
+//    - aucun document, pièce jointe ou donnée de santé ne doit être envoyé.
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
@@ -26,6 +32,7 @@ import ConsentementIA from "@/components/ConsentementIA";
 
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
+import { chargerResumeDossier, formaterResumeTexte } from "@/lib/resumeDossier";
 import type { AgentReponseStructuree } from "@/lib/agent";
 
 type ValidationAgentApi = {
@@ -68,6 +75,9 @@ export default function PageCopilote() {
   const [verificationConnexion, setVerificationConnexion] = useState(true);
 
   const [message, setMessage] = useState("");
+  const [inclureResume, setInclureResume] = useState(false);
+  const [resumeEnvoye, setResumeEnvoye] = useState(false);
+
   const [reponse, setReponse] = useState<AgentReponseStructuree | null>(null);
   const [validation, setValidation] = useState<ValidationAgentApi | null>(null);
   const [modeReponse, setModeReponse] = useState<ModeReponse | null>(null);
@@ -99,6 +109,23 @@ export default function PageCopilote() {
     setModeReponse(null);
     setSourceApi("");
     setErreur("");
+    setResumeEnvoye(false);
+  }
+
+  async function construireCorpsRequete(mode: ModeReponse, demande: string) {
+    if (mode !== "mistral" || !inclureResume) {
+      return {
+        message: demande,
+      };
+    }
+
+    const resume = await chargerResumeDossier();
+    const resumeTexte = formaterResumeTexte(resume);
+
+    return {
+      message: demande,
+      resume: resumeTexte,
+    };
   }
 
   async function envoyerDemandeAgent({
@@ -123,13 +150,16 @@ export default function PageCopilote() {
     viderResultats();
 
     try {
+      const corps = await construireCorpsRequete(mode, demande);
+      setResumeEnvoye("resume" in corps);
+
       const resultat = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(await enteteAuth()),
         },
-        body: JSON.stringify({ message: demande }),
+        body: JSON.stringify(corps),
       });
 
       const data = (await resultat.json().catch(() => ({
@@ -148,7 +178,11 @@ export default function PageCopilote() {
       setModeReponse(mode);
       setSourceApi(data.source ?? "");
     } catch {
-      setErreur("Connexion impossible avec le copilote.");
+      setErreur(
+        mode === "mistral" && inclureResume
+          ? "Impossible de charger le résumé du dossier ou de contacter le copilote."
+          : "Connexion impossible avec le copilote."
+      );
     } finally {
       setChargementDryRun(false);
       setChargementMistral(false);
@@ -221,9 +255,10 @@ export default function PageCopilote() {
         </h1>
 
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-          Cette page permet de tester séparément le dry-run déterministe et la
-          route expérimentale Mistral. Aucune donnée métier n&apos;est modifiée et
-          aucune action automatique n&apos;est déclenchée.
+          Cette page permet de tester séparément le dry-run déterministe, la
+          route expérimentale Mistral et l&apos;envoi optionnel du résumé factuel
+          du dossier. Aucune donnée métier n&apos;est modifiée et aucune action
+          automatique n&apos;est déclenchée.
         </p>
       </div>
 
@@ -272,21 +307,42 @@ export default function PageCopilote() {
 
             <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
               <ConsentementIA fonctionnalite="agent">
-                <button
-                  type="button"
-                  onClick={analyserAvecMistral}
-                  disabled={chargementGlobal || message.trim() === ""}
-                  className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {chargementMistral
-                    ? "Test Mistral…"
-                    : "Tester avec Mistral"}
-                </button>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={analyserAvecMistral}
+                    disabled={chargementGlobal || message.trim() === ""}
+                    className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {chargementMistral
+                      ? inclureResume
+                        ? "Test Mistral avec résumé…"
+                        : "Test Mistral…"
+                      : "Tester avec Mistral"}
+                  </button>
 
-                <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-                  Test expérimental : appel IA réel, quota IA consommé, réponse
-                  validée par les garde-fous Agent.
-                </p>
+                  <label className="flex items-start gap-2 text-xs leading-5 text-[#5A6473]">
+                    <input
+                      type="checkbox"
+                      checked={inclureResume}
+                      onChange={(event) =>
+                        setInclureResume(event.target.checked)
+                      }
+                      className="mt-1"
+                    />
+
+                    <span>
+                      Inclure le résumé factuel du dossier pour ce test Mistral.
+                      Ce résumé est chargé en lecture seule et ne contient pas de
+                      pièce jointe.
+                    </span>
+                  </label>
+
+                  <p className="text-xs leading-5 text-[#5A6473]">
+                    Test expérimental : appel IA réel, quota IA consommé,
+                    réponse validée par les garde-fous Agent.
+                  </p>
+                </div>
               </ConsentementIA>
             </div>
           </div>
@@ -344,6 +400,12 @@ export default function PageCopilote() {
               <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
                 {libelleMode(modeReponse)}
               </span>
+
+              {resumeEnvoye && (
+                <span className="inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">
+                  Résumé dossier inclus
+                </span>
+              )}
             </div>
           </div>
 
