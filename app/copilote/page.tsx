@@ -306,7 +306,12 @@ export default function PageCopilote() {
             </button>
 
             <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
-              <ConsentementIA fonctionnalite="agent">
+            <ConsentementIA
+                fonctionnalite="agent"
+                titre="Avant d'utiliser le Copilote Agent avec Mistral"
+                 descriptionTransmission="Le Copilote Agent peut envoyer à Mistral le texte que vous saisissez. Si vous cochez l'option correspondante, il peut aussi envoyer un résumé factuel limité de votre dossier. Aucune pièce jointe, photo, document original ou donnée de santé ne doit être envoyé."
+                descriptionResponsabilite="Le Copilote Agent sert à tester une aide d'organisation factuelle. Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires et ne déclenche aucune action automatique."
+            >
                 <div className="space-y-3">
                   <button
                     type="button"
