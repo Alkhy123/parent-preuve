@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
-    "build": "next build",
+    "check:agent-boundaries": "node scripts/check-agent-boundaries.mjs",
+    "build": "node scripts/check-agent-boundaries.mjs && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -20,7 +21,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "cross-env": "^7.0.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
