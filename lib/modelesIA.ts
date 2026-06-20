@@ -13,3 +13,7 @@ export const MODELE_EXTRACTION = "mistral-small-2603";
 
 // OCR des PDF de jugement : OCR 3.
 export const MODELE_OCR = "mistral-ocr-2512";
+
+// Assistant (questions/réponses lecture seule sur le résumé du dossier) :
+// modèle "small", suffisant pour des réponses courtes et factuelles.
+export const MODELE_ASSISTANT = "mistral-small-2603";
