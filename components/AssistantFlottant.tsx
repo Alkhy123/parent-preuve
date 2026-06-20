@@ -2,18 +2,21 @@
 
 // components/AssistantFlottant.tsx
 //
-// Assistant flottant (LECTURE SEULE), monte une fois dans app/layout.tsx.
-// Bouton DEPLACABLE (voir lib/useDeplacable). Deux usages : s'orienter et poser
-// une question sur l'etat du dossier. Aucune ecriture en base.
+// Assistant flottant (LECTURE SEULE cote base), monte une fois dans app/layout.tsx.
+// Bouton DEPLACABLE (voir lib/useDeplacable). Trois usages : s'orienter, poser une
+// question sur l'etat du dossier, et PRE-REMPLIR une saisie (frais/journal).
+// L'IA n'ecrit jamais en base : le pre-remplissage est seulement propose, puis
+// l'utilisateur valide lui-meme a l'ecran /frais ou /journal.
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { chargerResumeDossier, formaterResumeTexte } from "@/lib/resumeDossier";
 import { DESTINATIONS } from "@/lib/destinationsAssistant";
 import { useDeplacable } from "@/lib/useDeplacable";
+import { CLE_SESSION_PREREMPLISSAGE } from "@/lib/preRemplissage";
 
 const ROUTES_MASQUEES = [
   "/connexion",
@@ -27,6 +30,7 @@ const TAILLE = 48; // h-12 w-12
 
 export default function AssistantFlottant() {
   const pathname = usePathname();
+  const router = useRouter();
   const [ouvert, setOuvert] = useState(false);
   const [connecte, setConnecte] = useState<boolean | null>(null);
   const { pos, onPointerDown, consommerDeplacement, ancrage } = useDeplacable(
@@ -49,6 +53,12 @@ export default function AssistantFlottant() {
   const [reponse, setReponse] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [erreurQuestion, setErreurQuestion] = useState("");
+
+  // Pré-remplissage : phrase libre -> proposition de champs, transmise par
+  // sessionStorage puis ouverte sur /frais ou /journal pour validation humaine.
+  const [saisie, setSaisie] = useState("");
+  const [enCoursPre, setEnCoursPre] = useState(false);
+  const [erreurPre, setErreurPre] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setConnecte(!!data.user));
@@ -136,6 +146,56 @@ export default function AssistantFlottant() {
     }
   }
 
+  // Demande une proposition de pré-remplissage, la dépose dans sessionStorage
+  // (jamais dans l'URL), puis ouvre l'écran de saisie correspondant. L'IA n'écrit
+  // rien : c'est l'utilisateur qui validera via le bouton « Ajouter » de l'écran.
+  async function preRemplir() {
+    if (saisie.trim() === "") return;
+    setEnCoursPre(true);
+    setErreurPre("");
+    try {
+      const r = await fetch("/api/assistant/pre-remplir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
+        body: JSON.stringify({ phrase: saisie }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        setErreurPre(data.erreur ?? "Erreur inconnue.");
+        return;
+      }
+      const proposition = data.proposition;
+      if (!proposition || proposition.type === "aucun") {
+        setErreurPre(
+          "Aucune saisie reconnue. Reformulez en précisant une dépense (avec un montant) ou un fait à noter."
+        );
+        return;
+      }
+      // Destination tirée de la liste fermée (jamais fabriquée).
+      const dest = DESTINATIONS.find((d) => d.cle === proposition.type);
+      if (!dest) {
+        setErreurPre("Type de saisie non pris en charge.");
+        return;
+      }
+      try {
+        sessionStorage.setItem(
+          CLE_SESSION_PREREMPLISSAGE,
+          JSON.stringify(proposition)
+        );
+      } catch {
+        setErreurPre("Stockage local indisponible : impossible de transmettre la proposition.");
+        return;
+      }
+      setSaisie("");
+      setOuvert(false);
+      router.push(dest.href);
+    } catch {
+      setErreurPre("Connexion impossible.");
+    } finally {
+      setEnCoursPre(false);
+    }
+  }
+
   const a = ancrage();
   const classesPanneau = [
     "absolute w-80 max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto rounded-2xl border border-[#C2A24C]/40 bg-white p-4 shadow-xl",
@@ -194,6 +254,30 @@ export default function AssistantFlottant() {
                 Aucune page ne correspond clairement. Reformulez ?
               </p>
             )}
+
+            <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-[#C2A24C]">
+              Pré-remplir une saisie
+            </h3>
+            <input
+              value={saisie}
+              onChange={(e) => setSaisie(e.target.value)}
+              placeholder="Ex. : payé 45 € de cantine pour Léa le 12 mars"
+              className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-[#5A6473]">
+              Votre saisie est envoyée à notre prestataire d'IA (hébergé dans l'UE)
+              pour proposer un pré-remplissage. Aucune donnée n'est enregistrée à
+              cette étape : rien n'est ajouté à votre dossier tant que vous ne
+              validez pas vous-même à l'écran.
+            </p>
+            <button
+              onClick={preRemplir}
+              disabled={enCoursPre || saisie.trim() === ""}
+              className="mt-2 rounded-lg bg-[#15233F] px-3 py-2 text-sm text-[#F8F6F1] disabled:opacity-50"
+            >
+              {enCoursPre ? "…" : "Pré-remplir"}
+            </button>
+            {erreurPre && <p className="mt-2 text-sm text-[#9B2C2C]">{erreurPre}</p>}
 
             <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-[#C2A24C]">
               Poser une question

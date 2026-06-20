@@ -9,6 +9,10 @@ import RegleFrais from '@/components/RegleFrais';
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import {
+  nettoyerProposition,
+  CLE_SESSION_PREREMPLISSAGE,
+} from "@/lib/preRemplissage";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -50,6 +54,14 @@ export default function FraisPage() {
   const [message, setMessage] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
 
+  // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
+  // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
+  // rapproché d'un enfant réel une fois la liste chargée ; avertissements sont
+  // des notes neutres signalant une incertitude (date supposée, etc.).
+  const [preRempli, setPreRempli] = useState(false);
+  const [enfantPropose, setEnfantPropose] = useState<string | null>(null);
+  const [avertissements, setAvertissements] = useState<string[]>([]);
+
   async function chargerEnfants() {
     // Enfants de la procédure active uniquement.
     const data = await getEnfantsDeProcedureActive();
@@ -87,6 +99,54 @@ export default function FraisPage() {
     chargerFrais();
   }, []);
 
+  // Au montage : lit UNE FOIS un éventuel pré-remplissage déposé par l'assistant,
+  // puis efface la clé (usage unique). Le serveur a déjà verrouillé la sortie ;
+  // on la repasse quand même par nettoyerProposition() par sécurité.
+  // On n'agit que sur une proposition de type "frais".
+  useEffect(() => {
+    let brut: string | null = null;
+    try {
+      brut = sessionStorage.getItem(CLE_SESSION_PREREMPLISSAGE);
+      if (brut) sessionStorage.removeItem(CLE_SESSION_PREREMPLISSAGE);
+    } catch {
+      return; // sessionStorage indisponible : on ignore le pré-remplissage.
+    }
+    if (!brut) return;
+
+    let objet: unknown = null;
+    try {
+      objet = JSON.parse(brut);
+    } catch {
+      return;
+    }
+
+    const proposition = nettoyerProposition(objet);
+    if (proposition.type !== "frais") return;
+
+    const c = proposition.champs;
+    if (c.libelle !== null) setLibelle(c.libelle);
+    setCategorie(c.categorie); // toujours une valeur sûre (liste fermée)
+    if (c.montant !== null) setMontant(String(c.montant));
+    if (c.date !== null) setDateFrais(c.date);
+    setEnfantPropose(c.enfant); // rapproché plus bas, une fois les enfants chargés
+    setAvertissements(proposition.avertissements);
+    setPreRempli(true);
+  }, []);
+
+  // Rapprochement de l'enfant proposé (TEXTE) avec un enfant réel de la procédure
+  // active. Comparaison souple (espaces/majuscules ignorés). Si aucun ne
+  // correspond, on laisse le champ vide : l'utilisateur choisit lui-même.
+  useEffect(() => {
+    if (enfantPropose === null) return;
+    if (enfants.length === 0) return;
+    const cible = enfantPropose.trim().toLowerCase();
+    const trouve = enfants.find(
+      (e) => e.prenom_ou_alias.trim().toLowerCase() === cible
+    );
+    if (trouve) setChildId(trouve.id);
+    setEnfantPropose(null);
+  }, [enfants, enfantPropose]);
+
   async function ajouterFrais() {
     setMessage("");
     if (!libelle.trim()) return setMessage("Le libellé est obligatoire.");
@@ -114,6 +174,8 @@ export default function FraisPage() {
     } else {
       setLibelle(""); setCategorie("Autre"); setMontant("");
       setPartAutre(""); setDateFrais(""); setChildId(""); setDocumentId("");
+      // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
+      setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
       setSignalAjout((n) => n + 1);
       chargerFrais();
     }
@@ -249,14 +311,33 @@ export default function FraisPage() {
           </button>
         </div>
 
-        {/* Formulaire */}
+        {/* Formulaire. La clé force l'ouverture de l'encart quand un
+            pré-remplissage arrive (sans modifier le composant partagé). */}
         <div className="mt-8">
           <EncartPliable
+            key={preRempli ? "frais-prerempli" : "frais-standard"}
             titre="Ajouter un frais"
-            replieParDefaut
+            replieParDefaut={!preRempli}
             signalFermeture={signalAjout}
           >
             <div className="space-y-4">
+          {preRempli && (
+            <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
+              <p className="font-medium text-[#15233F]">
+                Proposition pré-remplie à partir de votre saisie.
+              </p>
+              <p className="mt-1 text-slate-600">
+                Vérifiez chaque champ, complétez si besoin, puis cliquez sur « Ajouter le frais » pour valider vous-même l’enregistrement.
+              </p>
+              {avertissements.length > 0 && (
+                <ul className="mt-2 list-disc pl-5 text-slate-600">
+                  {avertissements.map((a, i) => (
+                    <li key={i}>{a}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-700">Libellé</label>
             <input
