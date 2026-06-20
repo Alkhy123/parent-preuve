@@ -29,3 +29,10 @@ export type {
     estTexteProbablementJuridiquePersonnalise,
     evaluerActionAgent,
   } from "@/lib/agent/gardeFous";
+  
+  export type { AgentOrientation } from "@/lib/agent/orientation";
+  
+  export {
+    estDemandeJuridiqueSensibleAgent,
+    orienterDemandeAgent,
+  } from "@/lib/agent/orientation";
