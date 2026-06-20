@@ -97,26 +97,67 @@ export default function AssistantFlottant() {
   }
 
   async function aiguiller() {
-    if (phrase.trim() === "") return;
+    const demande = phrase.trim();
+  
+    if (demande === "") return;
+  
     setEnCoursAig(true);
     setDestination(null);
     setRaison("");
     setPasDeDestination(false);
     setErreurAig("");
+  
     try {
-      const r = await fetch("/api/assistant/aiguiller", {
+      const r = await fetch("/api/agent/analyser-demande", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
-        body: JSON.stringify({ phrase }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(await enteteAuth()),
+        },
+        body: JSON.stringify({ message: demande }),
       });
-      const data = await r.json();
-      if (!r.ok) {
+  
+      const data = await r.json().catch(() => ({
+        erreur: "Réponse serveur illisible.",
+      }));
+  
+      if (!r.ok || data.erreur) {
         setErreurAig(data.erreur ?? "Erreur inconnue.");
+        return;
+      }
+  
+      const reponseAgent = data.reponse;
+  
+      if (!reponseAgent) {
+        setErreurAig("Réponse du copilote invalide.");
+        return;
+      }
+  
+      const messages = Array.isArray(reponseAgent.messages)
+        ? reponseAgent.messages
+        : [];
+  
+      const texteRaison = [reponseAgent.resume, ...messages]
+        .filter(Boolean)
+        .join("\n\n");
+  
+      setRaison(texteRaison);
+  
+      if (reponseAgent.gardeFous?.conseilJuridiqueRefuse) {
+        setDestination(null);
+        setPasDeDestination(false);
+        return;
+      }
+  
+      const action = reponseAgent.actionProposee;
+  
+      if (action?.href && action?.titre) {
+        setDestination({
+          href: action.href,
+          label: action.titre,
+        });
       } else {
-        setRaison(data.raison ?? "");
-        const d = DESTINATIONS.find((x) => x.cle === data.cle);
-        if (d) setDestination({ href: d.href, label: d.label });
-        else setPasDeDestination(true);
+        setPasDeDestination(true);
       }
     } catch {
       setErreurAig("Connexion impossible.");
