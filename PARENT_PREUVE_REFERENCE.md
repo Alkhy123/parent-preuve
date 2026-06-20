@@ -65,6 +65,45 @@ déplace. Réutilisé par `AssistantFlottant` (clé `pos-assistant`, défaut bas
 > Tout le reste du module assistant est **définitif** (les deux routes, `resumeDossier`,
 > `destinationsAssistant`, `useDeplacable`, `AssistantFlottant`, `MODELE_ASSISTANT`).
 
+### 2026-06-20 — Assistant « niveau 3 » : pré-remplissage assisté (l'IA propose, l'utilisateur valide)
+
+**But.** À partir d'une phrase libre (« payé 45 € de cantine pour Léa le 12 mars »), l'assistant
+**propose** des champs pré-remplis pour `/frais` (priorité) ou `/journal`. **Aucune écriture IA en
+base** : le clic sur « Ajouter » de l'écran existant **est** la validation humaine. Aucune nouvelle
+table, aucune nouvelle variable d'environnement (réutilise `MISTRAL_API_KEY`). `npx tsc --noEmit` vert.
+
+- **Route** `app/api/assistant/pre-remplir/route.ts` : même chaîne que l'aiguillage
+  **auth (401) → quota (429) → Mistral**. Quota dans `ia_appels` avec `fonctionnalite="pre-remplir"`
+  (15/60 s, compteur distinct, texte libre → pas de modif de schéma). `MODELE_ASSISTANT`, température 0,
+  sortie JSON strict `{type:"frais"|"journal"|"aucun", champs, avertissements}`. La **date du jour est
+  fournie par le serveur** pour résoudre les dates relatives. La **phrase n'est jamais journalisée**
+  (les `console.error` ne loggent que le statut/détail Mistral).
+- **Verrou serveur** : la sortie IA est toujours assainie par `nettoyerProposition()` avant de sortir,
+  même si le JSON est cassé (→ `{type:"aucun"}`). Catégorie forcée dans la liste fermée sinon « Autre » ;
+  montant = nombre fini ≥ 0 sinon `null` ; date `AAAA-MM-JJ` **calendairement valide** sinon `null` ;
+  enfant en **texte** (prénom/alias), jamais d'UUID. L'IA n'invente rien (valeur absente → `null`).
+- **Lib PURE** `lib/preRemplissage.ts` (aucun accès navigateur, réutilisable mobile/serveur) : listes
+  fermées `CATEGORIES_FRAIS` / `CATEGORIES_JOURNAL` (identiques aux `<select>` des écrans), types du
+  contrat (`Proposition`, `ChampsFrais`, `ChampsJournal`…), `nettoyerProposition()`, et la clé de
+  transport `CLE_SESSION_PREREMPLISSAGE = "pp_preremplissage"`.
+- **Transport** par `sessionStorage` (clé lue **une seule fois** au montage puis effacée), **jamais par
+  l'URL** : un prénom/montant ne doit pas finir dans l'URL/l'historique/les journaux.
+- **Écrans `/frais` et `/journal`** : lecture unique du `sessionStorage`, **re-passage** par
+  `nettoyerProposition()` (défense en profondeur), action **uniquement** sur le `type` de l'écran.
+  L'encart « Ajouter » s'**ouvre automatiquement** via un `key` qui force le remontage (sans modifier
+  `EncartPliable` ; champs contrôlés par le parent → aucune perte de saisie). Bandeau or neutre
+  « **proposition à vérifier avant d'ajouter** » + liste des `avertissements`. **Rapprochement enfant**
+  par texte contre `getEnfantsDeProcedureActive()` (cloisonné par procédure active) ; sans
+  correspondance, champ laissé vide.
+- **`components/AssistantFlottant.tsx`** : 3ᵉ section « **Pré-remplir une saisie** ». Appel de la route,
+  écriture de la proposition dans `sessionStorage`, puis `router.push()` vers la destination **issue de
+  la liste fermée** `DESTINATIONS` (jamais fabriquée). Mention de confidentialité sous le champ (saisie
+  envoyée au prestataire d'IA UE, **rien enregistré tant que l'utilisateur ne valide pas**). Cas
+  `type:"aucun"` → message neutre, pas de redirection.
+
+**Fichiers du module :** créés `lib/preRemplissage.ts`, `app/api/assistant/pre-remplir/route.ts` ;
+modifiés `app/frais/page.tsx`, `app/journal/page.tsx`, `components/AssistantFlottant.tsx`.
+
 ### 2026-06-18 — « Résumé du mois » (page lecture seule)
 
 - Nouveau `app/resume-mois/page.tsx` : vue d'ensemble d'un mois choisi
