@@ -3,31 +3,48 @@
 // app/copilote/page.tsx
 //
 // Page de test du Copilote Agent.
-// Cette page appelle la route dry-run /api/agent/analyser-demande.
 //
-// Sécurité étape 5 :
-// - aucune écriture en base ;
-// - aucun appel IA ;
-// - aucune consommation de quota ;
-// - aucune action automatique ;
-// - affichage uniquement de la réponse structurée renvoyée par la route.
+// Cette page permet deux tests séparés :
+// 1. Dry-run sécurisé : /api/agent/analyser-demande
+//    - aucun appel IA ;
+//    - aucun quota IA ;
+//    - aucune écriture.
+//
+// 2. Test expérimental Mistral : /api/agent/repondre
+//    - appel IA réel ;
+//    - consentement IA requis ;
+//    - quota IA requis ;
+//    - validation stricte de la réponse ;
+//    - aucune écriture métier ;
+//    - aucune action automatique.
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
+import ConsentementIA from "@/components/ConsentementIA";
+
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import type { AgentReponseStructuree } from "@/lib/agent";
 
+type ValidationAgentApi = {
+  ok: boolean;
+  erreur: string;
+};
+
 type ReponseAgentApi =
   | {
       ok: true;
+      source?: "dry_run" | "mistral" | "garde_fou_local";
+      validation?: ValidationAgentApi;
       reponse: AgentReponseStructuree;
     }
   | {
       erreur: string;
     };
+
+type ModeReponse = "dry-run" | "mistral";
 
 const EXEMPLES_DEMANDES = [
   "Je veux ajouter une facture de cantine",
@@ -41,14 +58,24 @@ function libelleBooleen(valeur: boolean) {
   return valeur ? "Oui" : "Non";
 }
 
+function libelleMode(mode: ModeReponse | null) {
+  if (mode === "mistral") return "Test Mistral expérimental";
+  return "Dry-run sécurisé";
+}
+
 export default function PageCopilote() {
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
   const [verificationConnexion, setVerificationConnexion] = useState(true);
 
   const [message, setMessage] = useState("");
   const [reponse, setReponse] = useState<AgentReponseStructuree | null>(null);
+  const [validation, setValidation] = useState<ValidationAgentApi | null>(null);
+  const [modeReponse, setModeReponse] = useState<ModeReponse | null>(null);
+  const [sourceApi, setSourceApi] = useState("");
+
   const [erreur, setErreur] = useState("");
-  const [chargement, setChargement] = useState(false);
+  const [chargementDryRun, setChargementDryRun] = useState(false);
+  const [chargementMistral, setChargementMistral] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -66,21 +93,37 @@ export default function PageCopilote() {
     return () => ecouteur.subscription.unsubscribe();
   }, []);
 
-  async function analyserDemande(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function viderResultats() {
+    setReponse(null);
+    setValidation(null);
+    setModeReponse(null);
+    setSourceApi("");
+    setErreur("");
+  }
 
+  async function envoyerDemandeAgent({
+    endpoint,
+    mode,
+  }: {
+    endpoint: "/api/agent/analyser-demande" | "/api/agent/repondre";
+    mode: ModeReponse;
+  }) {
     const demande = message.trim();
 
     if (demande === "") {
       return;
     }
 
-    setChargement(true);
-    setErreur("");
-    setReponse(null);
+    if (mode === "dry-run") {
+      setChargementDryRun(true);
+    } else {
+      setChargementMistral(true);
+    }
+
+    viderResultats();
 
     try {
-      const resultat = await fetch("/api/agent/analyser-demande", {
+      const resultat = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -101,11 +144,31 @@ export default function PageCopilote() {
       }
 
       setReponse(data.reponse);
+      setValidation(data.validation ?? null);
+      setModeReponse(mode);
+      setSourceApi(data.source ?? "");
     } catch {
       setErreur("Connexion impossible avec le copilote.");
     } finally {
-      setChargement(false);
+      setChargementDryRun(false);
+      setChargementMistral(false);
     }
+  }
+
+  async function analyserDemande(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    await envoyerDemandeAgent({
+      endpoint: "/api/agent/analyser-demande",
+      mode: "dry-run",
+    });
+  }
+
+  async function analyserAvecMistral() {
+    await envoyerDemandeAgent({
+      endpoint: "/api/agent/repondre",
+      mode: "mistral",
+    });
   }
 
   if (verificationConnexion) {
@@ -129,8 +192,8 @@ export default function PageCopilote() {
           </h1>
 
           <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-            Vous devez être connecté pour tester le copilote. La route Agent
-            refuse les demandes non authentifiées.
+            Vous devez être connecté pour tester le copilote. Les routes Agent
+            refusent les demandes non authentifiées.
           </p>
 
           <Link
@@ -144,6 +207,8 @@ export default function PageCopilote() {
     );
   }
 
+  const chargementGlobal = chargementDryRun || chargementMistral;
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <div className="mb-8">
@@ -156,9 +221,9 @@ export default function PageCopilote() {
         </h1>
 
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-          Cette page teste uniquement la route dry-run du copilote. Aucun appel
-          IA n&apos;est effectué, aucun quota n&apos;est consommé et aucune donnée
-          n&apos;est modifiée.
+          Cette page permet de tester séparément le dry-run déterministe et la
+          route expérimentale Mistral. Aucune donnée métier n&apos;est modifiée et
+          aucune action automatique n&apos;est déclenchée.
         </p>
       </div>
 
@@ -188,8 +253,7 @@ export default function PageCopilote() {
               type="button"
               onClick={() => {
                 setMessage("");
-                setReponse(null);
-                setErreur("");
+                viderResultats();
               }}
               className="text-[#8A6F2A] underline-offset-2 hover:underline"
             >
@@ -197,13 +261,35 @@ export default function PageCopilote() {
             </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={chargement || message.trim() === ""}
-            className="mt-4 inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {chargement ? "Analyse…" : "Analyser ma demande"}
-          </button>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+            <button
+              type="submit"
+              disabled={chargementGlobal || message.trim() === ""}
+              className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {chargementDryRun ? "Analyse dry-run…" : "Analyser en dry-run"}
+            </button>
+
+            <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
+              <ConsentementIA fonctionnalite="agent">
+                <button
+                  type="button"
+                  onClick={analyserAvecMistral}
+                  disabled={chargementGlobal || message.trim() === ""}
+                  className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {chargementMistral
+                    ? "Test Mistral…"
+                    : "Tester avec Mistral"}
+                </button>
+
+                <p className="mt-2 text-xs leading-5 text-[#5A6473]">
+                  Test expérimental : appel IA réel, quota IA consommé, réponse
+                  validée par les garde-fous Agent.
+                </p>
+              </ConsentementIA>
+            </div>
+          </div>
         </form>
 
         <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
@@ -218,8 +304,7 @@ export default function PageCopilote() {
                 type="button"
                 onClick={() => {
                   setMessage(exemple);
-                  setReponse(null);
-                  setErreur("");
+                  viderResultats();
                 }}
                 className="rounded-full border border-[#C2A24C]/50 bg-white px-3 py-1 text-xs text-[#15233F] transition hover:bg-[#F1E8D0]"
               >
@@ -251,10 +336,51 @@ export default function PageCopilote() {
               </h2>
             </div>
 
-            <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
-              {reponse.version}
-            </span>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                {reponse.version}
+              </span>
+
+              <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+                {libelleMode(modeReponse)}
+              </span>
+            </div>
           </div>
+
+          {sourceApi && (
+            <p className="mt-3 text-xs text-slate-500">
+              Source API : <span className="font-medium">{sourceApi}</span>
+            </p>
+          )}
+
+          {validation && (
+            <div
+              className={`mt-4 rounded-xl border p-4 ${
+                validation.ok
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              <h3
+                className={`font-semibold ${
+                  validation.ok ? "text-emerald-900" : "text-amber-900"
+                }`}
+              >
+                Validation de la réponse IA
+              </h3>
+
+              <p
+                className={`mt-2 text-sm ${
+                  validation.ok ? "text-emerald-800" : "text-amber-800"
+                }`}
+              >
+                {validation.ok
+                  ? "La réponse a passé le validateur Agent."
+                  : validation.erreur ||
+                    "La réponse IA a été remplacée par une réponse de sécurité."}
+              </p>
+            </div>
+          )}
 
           <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
             <h3 className="font-semibold text-[#15233F]">Résumé</h3>
