@@ -53,14 +53,3 @@ export type {
     parserJsonReponseAgent,
     validerReponseAgent,
   } from "@/lib/agent/schemaReponse";
-  
-  export {
-    ENDPOINT_MISTRAL_CHAT_COMPLETIONS,
-    FONCTIONNALITE_CONSENTEMENT_AGENT,
-    FONCTIONNALITE_QUOTA_AGENT,
-    LIMITE_CARACTERES_MESSAGE_AGENT,
-    LIMITE_CARACTERES_RESUME_AGENT,
-    MAX_TOKENS_AGENT_MISTRAL,
-    QUOTA_AGENT_FENETRE_SECONDES,
-    QUOTA_AGENT_NOMBRE_APPELS,
-  } from "@/lib/agent/config";
