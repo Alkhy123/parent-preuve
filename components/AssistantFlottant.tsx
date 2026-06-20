@@ -2,10 +2,9 @@
 
 // components/AssistantFlottant.tsx
 //
-// Assistant flottant (LECTURE SEULE). Monte une seule fois dans app/layout.tsx,
-// il flotte sur toutes les pages du dossier et suit la navigation.
-// Deux usages : s'orienter ("que voulez-vous faire ?") et poser une question
-// sur l'etat du dossier. Aucune ecriture en base : l'IA propose, l'utilisateur agit.
+// Assistant flottant (LECTURE SEULE), monte une fois dans app/layout.tsx.
+// Bouton DEPLACABLE (voir lib/useDeplacable). Deux usages : s'orienter et poser
+// une question sur l'etat du dossier. Aucune ecriture en base.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,8 +13,8 @@ import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { chargerResumeDossier, formaterResumeTexte } from "@/lib/resumeDossier";
 import { DESTINATIONS } from "@/lib/destinationsAssistant";
+import { useDeplacable } from "@/lib/useDeplacable";
 
-// Pages ou l'assistant ne doit jamais apparaitre, meme connecte.
 const ROUTES_MASQUEES = [
   "/connexion",
   "/mot-de-passe-oublie",
@@ -24,16 +23,21 @@ const ROUTES_MASQUEES = [
   "/confidentialite",
 ];
 
+const TAILLE = 48; // h-12 w-12
+
 export default function AssistantFlottant() {
   const pathname = usePathname();
   const [ouvert, setOuvert] = useState(false);
   const [connecte, setConnecte] = useState<boolean | null>(null);
+  const { pos, onPointerDown, consommerDeplacement, ancrage } = useDeplacable(
+    "pos-assistant",
+    "bas-gauche",
+    TAILLE
+  );
 
-  // Resume du dossier (recharge a chaque ouverture, pour les questions).
   const [resume, setResume] = useState("");
   const [resumePret, setResumePret] = useState(false);
 
-  // Aiguillage
   const [phrase, setPhrase] = useState("");
   const [destination, setDestination] = useState<{ href: string; label: string } | null>(null);
   const [raison, setRaison] = useState("");
@@ -41,13 +45,11 @@ export default function AssistantFlottant() {
   const [enCoursAig, setEnCoursAig] = useState(false);
   const [erreurAig, setErreurAig] = useState("");
 
-  // Question / reponse
   const [question, setQuestion] = useState("");
   const [reponse, setReponse] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [erreurQuestion, setErreurQuestion] = useState("");
 
-  // Auth (meme logique que le bouton de capture rapide).
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setConnecte(!!data.user));
     const { data: ecouteur } = supabase.auth.onAuthStateChange((_e, session) =>
@@ -56,12 +58,10 @@ export default function AssistantFlottant() {
     return () => ecouteur.subscription.unsubscribe();
   }, []);
 
-  // On referme le panneau a chaque changement de page.
   useEffect(() => {
     setOuvert(false);
   }, [pathname]);
 
-  // A chaque ouverture : resume frais (lecture seule).
   useEffect(() => {
     if (!ouvert) return;
     let annule = false;
@@ -82,7 +82,7 @@ export default function AssistantFlottant() {
     };
   }, [ouvert]);
 
-  if (!connecte || ROUTES_MASQUEES.includes(pathname)) {
+  if (!connecte || ROUTES_MASQUEES.includes(pathname) || !pos) {
     return null;
   }
 
@@ -136,9 +136,15 @@ export default function AssistantFlottant() {
     }
   }
 
+  const a = ancrage();
+  const classesPanneau = [
+    "absolute w-80 max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto rounded-2xl border border-[#C2A24C]/40 bg-white p-4 shadow-xl",
+    a.vertical === "haut" ? "bottom-full mb-3" : "top-full mt-3",
+    a.horizontal === "droite" ? "right-0" : "left-0",
+  ].join(" ");
+
   return (
     <>
-      {/* Appui en dehors : referme le panneau. */}
       {ouvert && (
         <button
           type="button"
@@ -148,15 +154,14 @@ export default function AssistantFlottant() {
         />
       )}
 
-      <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
+      <div style={{ left: pos.x, top: pos.y }} className="fixed z-50 h-12 w-12">
         {ouvert && (
-          <div className="w-80 max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto rounded-2xl border border-[#C2A24C]/40 bg-white p-4 shadow-xl">
+          <div className={classesPanneau}>
             <h2 className="font-display text-lg text-[#15233F]">Assistant</h2>
             <p className="mt-1 text-xs text-[#5A6473]">
               Il vous oriente et répond à partir de vos saisies. Il n'enregistre rien.
             </p>
 
-            {/* Aiguillage */}
             <h3 className="mt-4 text-xs font-medium uppercase tracking-wide text-[#C2A24C]">
               Que voulez-vous faire ?
             </h3>
@@ -190,7 +195,6 @@ export default function AssistantFlottant() {
               </p>
             )}
 
-            {/* Question / reponse */}
             <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-[#C2A24C]">
               Poser une question
             </h3>
@@ -219,12 +223,16 @@ export default function AssistantFlottant() {
 
         <button
           type="button"
-          onClick={() => setOuvert((v) => !v)}
+          onPointerDown={onPointerDown}
+          onClick={() => {
+            if (consommerDeplacement()) return;
+            setOuvert((v) => !v);
+          }}
           aria-expanded={ouvert}
           aria-label={ouvert ? "Fermer l'assistant" : "Ouvrir l'assistant"}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#15233F] text-[#ECE7DC] shadow-lg transition hover:bg-[#1d3056] focus:outline-none focus:ring-2 focus:ring-[#C2A24C] focus:ring-offset-2"
+          className="flex h-12 w-12 touch-none items-center justify-center rounded-full bg-[#15233F] text-[#ECE7DC] shadow-lg transition hover:bg-[#1d3056] focus:outline-none focus:ring-2 focus:ring-[#C2A24C] focus:ring-offset-2"
         >
-          <span aria-hidden="true" className="text-2xl">
+          <span aria-hidden="true" className="text-xl">
             {ouvert ? "×" : "?"}
           </span>
         </button>
