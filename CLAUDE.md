@@ -28,6 +28,30 @@ For any Agent IA work:
 * Do not send or delete anything without explicit user confirmation.
 * Keep the rule: AI proposes, user verifies, user validates.
 
+## Séparation Assistant historique / Agent nouvelle génération
+
+Le projet contient deux générations IA qui cohabitent temporairement.
+
+Assistant historique encore utilisé en production :
+- `app/api/assistant/repondre/route.ts`
+- `app/api/assistant/pre-remplir/route.ts`
+
+Agent nouvelle génération :
+- `app/api/agent/analyser-demande/route.ts`
+- `app/api/agent/repondre/route.ts`
+- `lib/agent/`
+- `app/copilote/`
+
+Règles obligatoires :
+- Ne jamais fusionner les routes `assistant` et `agent`.
+- Ne jamais mettre Mistral, quota IA, consentement IA ou validation Mistral dans `app/api/agent/analyser-demande/route.ts`.
+- `app/api/agent/analyser-demande/route.ts` doit rester une route dry-run déterministe : authentification, garde-fous, orientation, aucune écriture.
+- `app/api/agent/repondre/route.ts` est la seule route Agent autorisée à appeler Mistral.
+- `components/AssistantFlottant.tsx` ne doit pas appeler directement `/api/agent/repondre`.
+- `/api/agent/repondre` doit rester réservé au test avancé via `/copilote`, tant qu’une étape dédiée de mise en production n’a pas été validée.
+- Avant tout commit touchant l’Agent ou le bouton flottant, lancer `npm run check:agent-boundaries`.
+
+
 Development method
 
 Use one small testable step at a time.

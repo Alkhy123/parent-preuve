@@ -642,3 +642,25 @@ Règle finale :
 ```text
 Quand il y a un doute, le Copilote doit refuser, recadrer et ramener l'utilisateur vers l'organisation factuelle du dossier.
 ```
+
+---
+
+# 14. Séparation Assistant historique / Agent nouvelle génération
+
+## 14.1. Pourquoi cette séparation existe
+
+Parent Preuve contient temporairement deux générations de fonctionnalités IA.
+
+La première génération est l'ancien Assistant, déjà utilisé en production pour certaines fonctions pratiques.
+
+La seconde génération est le nouveau Copilote Agent, conçu pour devenir une couche plus structurée, plus contrôlée et mieux sécurisée.
+
+Ces deux générations ne doivent pas être mélangées.
+
+## 14.2. Assistant historique
+
+Routes concernées :
+
+```text
+app/api/assistant/repondre/route.ts
+app/api/assistant/pre-remplir/route.ts
