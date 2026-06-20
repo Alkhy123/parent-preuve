@@ -1,123 +1,89 @@
-// app/api/agent/repondre/route.ts
+// app/api/agent/analyser-demande/route.ts
 //
-// Agent Parent Preuve — route expérimentale IA.
+// Agent Parent Preuve — route dry-run sécurisée.
 //
-// Cette route prépare le futur Copilote IA avec Mistral.
-// Elle n'est pas encore branchée à l'interface principale.
+// Cette route sert uniquement à orienter l'utilisateur dans l'application.
 //
 // Sécurité :
 // - authentification obligatoire ;
-// - consentement IA obligatoire ;
-// - quota IA obligatoire ;
-// - refus local des demandes juridiques sensibles avant appel Mistral ;
-// - appel Mistral côté serveur uniquement ;
-// - validation stricte de la réponse IA ;
-// - aucune écriture métier en base ;
+// - aucun appel IA ;
+// - aucun appel Mistral ;
+// - aucun consentement IA requis ;
+// - aucune consommation de quota IA ;
+// - aucune lecture métier Supabase ;
+// - aucune écriture en base ;
 // - aucune action automatique.
 
-import { createClient } from "@supabase/supabase-js";
-
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
-import { verifierQuotaIa } from "@/lib/quotaIa";
-import { MODELE_ASSISTANT } from "@/lib/modelesIA";
 
+import { LIMITE_CARACTERES_MESSAGE_AGENT } from "@/lib/agent/config";
+
+import type { AgentOrientation } from "@/lib/agent/orientation";
+import type { AgentReponseStructuree } from "@/lib/agent/types";
+
+import { trouverActionAgent } from "@/lib/agent/catalogueActions";
 import {
-  ENDPOINT_MISTRAL_CHAT_COMPLETIONS,
-  FONCTIONNALITE_CONSENTEMENT_AGENT,
-  FONCTIONNALITE_QUOTA_AGENT,
-  LIMITE_CARACTERES_MESSAGE_AGENT,
-  LIMITE_CARACTERES_RESUME_AGENT,
-  MAX_TOKENS_AGENT_MISTRAL,
-  QUOTA_AGENT_FENETRE_SECONDES,
-  QUOTA_AGENT_NOMBRE_APPELS,
-  construirePromptSystemeAgent,
   construireRefusConseilJuridique,
+  evaluerActionAgent,
+} from "@/lib/agent/gardeFous";
+import {
   estDemandeJuridiqueSensibleAgent,
-  parserEtValiderReponseAgent,
-} from "@/lib/agent";
+  orienterDemandeAgent,
+} from "@/lib/agent/orientation";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function construireReponseOrientation(
+  orientation: AgentOrientation
+): AgentReponseStructuree {
+  const actionCatalogue = trouverActionAgent(orientation.actionId);
 
-function clientUtilisateur(request: Request) {
-  const entete = request.headers.get("authorization") ?? "";
-  const jeton = entete.toLowerCase().startsWith("bearer ")
-    ? entete.slice(7).trim()
-    : "";
-
-  return createClient(supabaseUrl, supabaseKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${jeton}`,
-      },
-    },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
+  const decision = evaluerActionAgent({
+    action: actionCatalogue,
+    mode: "lecture_seule",
   });
-}
 
-async function verifierConsentementAgent(request: Request) {
-  const supabase = clientUtilisateur(request);
-
-  const { data, error } = await supabase
-    .from("consentements_ia")
-    .select("id")
-    .eq("fonctionnalite", FONCTIONNALITE_CONSENTEMENT_AGENT)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
+  if (!decision.autorise) {
     return {
-      autorise: false,
-      erreur:
-        "Impossible de vérifier le consentement IA. L'appel est refusé par sécurité.",
-    };
-  }
-
-  if (!data) {
-    return {
-      autorise: false,
-      erreur:
-        "Consentement IA requis pour utiliser le Copilote Agent avec Mistral.",
+      version: "agent-parent-preuve-v1",
+      resume:
+        "Le copilote ne peut pas proposer cette action dans le mode actuel.",
+      messages: [
+        decision.raison,
+        "Aucune donnée n'a été modifiée. Vous pouvez continuer à utiliser les rubriques habituelles.",
+      ],
+      actionProposee: {
+        id: "consulter_etat_dossier",
+        titre: "Revenir au tableau de bord",
+        raison:
+          "Le tableau de bord reste le point d'entrée le plus sûr pour organiser le dossier.",
+        href: "/",
+      },
+      gardeFous: {
+        conseilJuridiqueRefuse: false,
+        ecritureAutomatiqueRefusee: true,
+        validationHumaineRequise: true,
+      },
     };
   }
 
   return {
-    autorise: true,
-    erreur: "",
+    version: "agent-parent-preuve-v1",
+    resume: "Le copilote peut vous orienter vers la rubrique adaptée.",
+    messages: [
+      orientation.raison,
+      "Cette orientation est générée en mode sécurisé : aucun appel Mistral, aucun quota IA et aucune donnée modifiée.",
+    ],
+    actionProposee: {
+      id: orientation.actionId,
+      titre: orientation.titre,
+      raison: orientation.raison,
+      href: orientation.href,
+    },
+    gardeFous: {
+      conseilJuridiqueRefuse: false,
+      ecritureAutomatiqueRefusee: true,
+      validationHumaineRequise: decision.validationUtilisateurObligatoire,
+    },
   };
-}
-
-function nettoyerJsonEventuel(texte: string) {
-  return texte.replace(/```json/gi, "").replace(/```/g, "").trim();
-}
-
-function construireMessageUtilisateur(message: string, resume: string | null) {
-  const blocs = [
-    "DEMANDE UTILISATEUR :",
-    message,
-    "",
-    "CONTEXTE DOSSIER :",
-  ];
-
-  if (resume) {
-    blocs.push(resume);
-  } else {
-    blocs.push(
-      "Aucun résumé de dossier n'est fourni. Répondre uniquement à partir de la demande, sans inventer de contexte."
-    );
-  }
-
-  blocs.push(
-    "",
-    "Consigne finale : répondre uniquement en JSON strict, sans Markdown et sans texte autour du JSON."
-  );
-
-  return blocs.join("\n");
 }
 
 export async function POST(request: Request) {
@@ -129,7 +95,6 @@ export async function POST(request: Request) {
 
   const corps = await request.json().catch(() => ({}));
   const message = corps.message;
-  const resume = corps.resume;
 
   if (typeof message !== "string" || message.trim() === "") {
     return Response.json({ erreur: "Aucune demande." }, { status: 400 });
@@ -146,131 +111,18 @@ export async function POST(request: Request) {
     );
   }
 
-  let resumeNettoye: string | null = null;
-
-  if (typeof resume === "string" && resume.trim() !== "") {
-    resumeNettoye = resume.trim();
-
-    if (resumeNettoye.length > LIMITE_CARACTERES_RESUME_AGENT) {
-      return Response.json(
-        {
-          erreur: `Résumé trop long (${LIMITE_CARACTERES_RESUME_AGENT} caractères maximum).`,
-        },
-        { status: 400 }
-      );
-    }
-  }
-
   if (estDemandeJuridiqueSensibleAgent(messageNettoye)) {
     return Response.json({
       ok: true,
-      source: "garde_fou_local",
-      validation: {
-        ok: true,
-        erreur: "",
-      },
       reponse: construireRefusConseilJuridique(),
     });
   }
 
-  const consentement = await verifierConsentementAgent(request);
+  const orientation = orienterDemandeAgent(messageNettoye);
+  const reponse = construireReponseOrientation(orientation);
 
-  if (!consentement.autorise) {
-    return Response.json({ erreur: consentement.erreur }, { status: 403 });
-  }
-
-  const quota = await verifierQuotaIa(
-    request,
-    FONCTIONNALITE_QUOTA_AGENT,
-    QUOTA_AGENT_NOMBRE_APPELS,
-    QUOTA_AGENT_FENETRE_SECONDES
-  );
-
-  if (!quota.autorise) {
-    return Response.json(
-      {
-        erreur: `Trop de demandes. Réessayez dans ${quota.resteSecondes} secondes.`,
-      },
-      { status: 429 }
-    );
-  }
-
-  const cle = process.env.MISTRAL_API_KEY;
-
-  if (!cle) {
-    return Response.json(
-      { erreur: "Clé MISTRAL_API_KEY absente du .env.local" },
-      { status: 500 }
-    );
-  }
-
-  try {
-    const reponse = await fetch(ENDPOINT_MISTRAL_CHAT_COMPLETIONS, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${cle}`,
-      },
-      body: JSON.stringify({
-        model: MODELE_ASSISTANT,
-        temperature: 0,
-        max_tokens: MAX_TOKENS_AGENT_MISTRAL,
-        messages: [
-          {
-            role: "system",
-            content: construirePromptSystemeAgent({
-              mode: "lecture_seule",
-              contexteDossierDisponible: resumeNettoye !== null,
-            }),
-          },
-          {
-            role: "user",
-            content: construireMessageUtilisateur(messageNettoye, resumeNettoye),
-          },
-        ],
-      }),
-    });
-
-    if (!reponse.ok) {
-      const detail = await reponse.text();
-
-      console.error(
-        "=== ERREUR MISTRAL (agent/repondre) ===",
-        reponse.status,
-        detail
-      );
-
-      return Response.json(
-        { erreur: `Mistral a répondu ${reponse.status}` },
-        { status: 502 }
-      );
-    }
-
-    const data = await reponse.json();
-    const brut = data.choices?.[0]?.message?.content?.trim();
-
-    if (!brut) {
-      return Response.json({ erreur: "Réponse vide de l'IA." }, { status: 502 });
-    }
-
-    const nettoye = nettoyerJsonEventuel(brut);
-    const validation = parserEtValiderReponseAgent(nettoye, "lecture_seule");
-
-    return Response.json({
-      ok: true,
-      source: "mistral",
-      validation: {
-        ok: validation.ok,
-        erreur: validation.ok ? "" : validation.erreur,
-      },
-      reponse: validation.reponse,
-    });
-  } catch (e) {
-    console.error("=== APPEL IMPOSSIBLE (agent/repondre) ===", e);
-
-    return Response.json(
-      { erreur: "Appel à Mistral impossible." },
-      { status: 502 }
-    );
-  }
+  return Response.json({
+    ok: true,
+    reponse,
+  });
 }
