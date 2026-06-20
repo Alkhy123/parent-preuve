@@ -314,7 +314,7 @@ export default function AssistantFlottant() {
             setOuvert((v) => !v);
           }}
           aria-expanded={ouvert}
-          aria-label={ouvert ? "Fermer l'assistant" : "Ouvrir l'assistant"}
+          aria-label={ouvert ? "Fermer le copilote" : "Ouvrir le copilote"}
           className="flex h-12 w-12 touch-none items-center justify-center rounded-full bg-[#15233F] text-[#ECE7DC] shadow-lg transition hover:bg-[#1d3056] focus:outline-none focus:ring-2 focus:ring-[#C2A24C] focus:ring-offset-2"
         >
           <span aria-hidden="true" className="text-xl">
