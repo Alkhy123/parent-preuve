@@ -208,7 +208,7 @@ export default function AssistantFlottant() {
       {ouvert && (
         <button
           type="button"
-          aria-label="Fermer l'assistant"
+          aria-label="Fermer le copilote"
           onClick={() => setOuvert(false)}
           className="fixed inset-0 z-40 cursor-default"
         />
@@ -217,9 +217,10 @@ export default function AssistantFlottant() {
       <div style={{ left: pos.x, top: pos.y }} className="fixed z-50 h-12 w-12">
         {ouvert && (
           <div className={classesPanneau}>
-            <h2 className="font-display text-lg text-[#15233F]">Assistant</h2>
+            <h2 className="font-display text-lg text-[#15233F]">Copilote Parent Preuve</h2>
             <p className="mt-1 text-xs text-[#5A6473]">
-              Il vous oriente et répond à partir de vos saisies. Il n'enregistre rien.
+            Il vous aide à organiser votre dossier factuel. Il propose, vous validez :
+            rien n'est enregistré sans votre action.
             </p>
 
             <h3 className="mt-4 text-xs font-medium uppercase tracking-wide text-[#C2A24C]">
@@ -265,10 +266,10 @@ export default function AssistantFlottant() {
               className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm"
             />
             <p className="mt-1 text-xs text-[#5A6473]">
-              Votre saisie est envoyée à notre prestataire d'IA (hébergé dans l'UE)
-              pour proposer un pré-remplissage. Aucune donnée n'est enregistrée à
-              cette étape : rien n'est ajouté à votre dossier tant que vous ne
-              validez pas vous-même à l'écran.
+              Votre saisie est envoyée à notre prestataire d'IA hébergé dans l'UE
+                pour proposer un pré-remplissage. Aucune donnée n'est enregistrée à
+                cette étape : rien n'est ajouté à votre dossier tant que vous ne
+                validez pas vous-même à l'écran.
             </p>
             <button
               onClick={preRemplir}

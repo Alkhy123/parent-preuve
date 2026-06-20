@@ -93,35 +93,71 @@ export default function ConfidentialitePage() {
         {/* IA */}
         <section className="space-y-2">
           <h2 className="font-display text-2xl text-[#15233F]">Intelligence artificielle</h2>
+
           <p>
-            Trois fonctions optionnelles s&apos;appuient sur un prestataire d&apos;intelligence
-            artificielle, <strong>Mistral AI</strong> (société française, traitement réalisé
-            dans l&apos;Union européenne) :
+            Certaines fonctions optionnelles s&apos;appuient sur un prestataire
+            d&apos;intelligence artificielle, <strong>Mistral AI</strong> (société française,
+            traitement réalisé dans l&apos;Union européenne).
           </p>
+
+          <p>
+            Selon les écrans utilisés, ces fonctions peuvent notamment servir à :
+          </p>
+
           <ul className="list-disc space-y-1 pl-5">
             <li>
-              <strong>la reformulation neutre</strong> d&apos;un message : le texte que vous
-              soumettez est transmis pour en proposer une version factuelle ;
+              <strong>reformuler un message</strong> dans un style plus neutre, factuel et
+              apaisé ;
             </li>
+
             <li>
-              <strong>l&apos;analyse d&apos;une décision</strong> à partir d&apos;un texte que
-              vous collez, et <strong>l&apos;import d&apos;un jugement au format PDF</strong> :
-              le texte (ou le fichier, le cas échéant analysé pour en extraire le texte) est
-              transmis afin de proposer une lecture structurée des règles qu&apos;il contient.
+              <strong>analyser une décision ou un jugement</strong> à partir d&apos;un texte
+              collé ou d&apos;un fichier importé, afin de proposer une lecture structurée
+              des informations utiles au dossier ;
+            </li>
+
+            <li>
+              <strong>orienter l&apos;utilisateur</strong> vers la page la plus adaptée de
+              l&apos;application selon sa demande ;
+            </li>
+
+            <li>
+              <strong>répondre à une question</strong> à partir du résumé de votre dossier
+              déjà saisi dans l&apos;application ;
+            </li>
+
+            <li>
+              <strong>pré-remplir une saisie</strong>, par exemple une dépense ou un
+              événement de journal, avant validation manuelle par l&apos;utilisateur.
             </li>
           </ul>
+
           <p>
             Ces fonctions ne s&apos;activent qu&apos;<strong>après votre consentement</strong>,
-            demandé séparément pour chacune. Le contenu transmis sert exclusivement à produire
-            la proposition demandée. Selon les conditions du prestataire, les contenus envoyés à
-            son interface de programmation ne sont pas utilisés pour entraîner ses modèles. Ce
-            traitement est réalisé au sein de l&apos;Union européenne.
+            demandé séparément au moment de leur première utilisation. Le contenu transmis
+            sert exclusivement à produire la proposition demandée. Selon les conditions du
+            prestataire, les contenus envoyés à son interface de programmation ne sont pas
+            utilisés pour entraîner ses modèles. Ce traitement est réalisé au sein de
+            l&apos;Union européenne.
           </p>
+
           <p>
             Principe constant : <strong>l&apos;IA propose, vous validez</strong>. Aucune
             proposition issue de l&apos;IA n&apos;est enregistrée dans votre dossier sans votre
-            relecture et votre validation. La fonction de reformulation est prévue pour des
-            messages : n&apos;y insérez pas de données de santé.
+            relecture et votre validation. L&apos;IA ne remplace pas un avocat, un médiateur,
+            un commissaire de justice ou un professionnel du droit.
+          </p>
+
+          <p>
+            L&apos;assistant intégré à l&apos;application est conçu comme un outil
+            d&apos;orientation et d&apos;organisation factuelle. Il ne doit pas être utilisé pour
+            obtenir une stratégie judiciaire personnalisée, des conclusions juridiques ou
+            une interprétation certaine de vos droits.
+          </p>
+
+          <p>
+            Les fonctions d&apos;intelligence artificielle ne sont pas conçues pour recevoir
+            des données de santé : merci de ne pas en saisir.
           </p>
         </section>
 
