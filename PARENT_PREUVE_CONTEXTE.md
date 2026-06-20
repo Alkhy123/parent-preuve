@@ -29,6 +29,7 @@
    Claude.ai donne directement le fichier à coller ; modification d'un fichier existant / vérification de
    build → générer un prompt Claude Code (plus sûr).
 
+
 ---
 
 ## 1. Vision produit — la boussole
