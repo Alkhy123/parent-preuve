@@ -22,6 +22,7 @@ const fichiers = {
   agentDryRun: "app/api/agent/analyser-demande/route.ts",
   agentMistral: "app/api/agent/repondre/route.ts",
   agentPreRemplir: "app/api/agent/pre-remplir/route.ts",
+  agentQuestionDossier: "app/api/agent/question-dossier/route.ts",
   assistantRepondre: "app/api/assistant/repondre/route.ts",
   assistantFlottant: "components/AssistantFlottant.tsx",
   copilote: "app/copilote/page.tsx",
@@ -139,6 +140,20 @@ verifierPresences(
 );
 
 verifierPresences(
+  fichiers.agentQuestionDossier,
+  [
+    "Agent Parent Preuve — question sur le dossier",
+    "agent-question-dossier-v1",
+    "ENDPOINT_MISTRAL_CHAT_COMPLETIONS",
+    "verifierQuotaIa",
+    "MISTRAL_API_KEY",
+    "parserEtValiderReponseQuestionDossierAgent",
+    "aucune écriture métier en base",
+  ],
+  "la route /api/agent/question-dossier doit être la nouvelle route expérimentale de question dossier Agent"
+);
+
+verifierPresences(
   fichiers.assistantRepondre,
   [
     "app/api/assistant/repondre/route.ts",
@@ -164,8 +179,9 @@ verifierAbsences(
   [
     'fetch("/api/agent/repondre"',
     'fetch("/api/assistant/pre-remplir"',
+    'fetch("/api/agent/question-dossier"',
   ],
-  "le bouton flottant ne doit pas appeler directement /api/agent/repondre ni l'ancien pré-remplissage assistant"
+  "le bouton flottant ne doit pas appeler directement /api/agent/repondre, l'ancien pré-remplissage assistant, ni la question dossier Agent tant que le test /copilote n'est pas validé"
 );
 
 verifierPresences(
@@ -174,6 +190,7 @@ verifierPresences(
     'fetch("/api/agent/analyser-demande"',
     'fetch("/api/agent/repondre"',
     'fetch("/api/agent/pre-remplir"',
+    'fetch("/api/agent/question-dossier"',
   ],
   "la page /copilote doit rester le laboratoire Agent"
 );

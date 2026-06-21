@@ -82,3 +82,20 @@ export {
   parserJsonPreRemplissageAgent,
   validerReponsePreRemplissageAgent,
 } from "@/lib/agent/preRemplissage";
+
+export type {
+  AgentGardeFousQuestionDossier,
+  AgentQuestionDossierReponse,
+  ResultatValidationQuestionDossierAgent,
+} from "@/lib/agent/questionDossier";
+
+export {
+  VERSION_CONTRAT_QUESTION_DOSSIER_AGENT,
+  construirePromptSystemeQuestionDossierAgent,
+  construireReponseQuestionDossierFallback,
+  construireReponseQuestionDossierSansContexte,
+  construireRefusQuestionDossierJuridique,
+  parserEtValiderReponseQuestionDossierAgent,
+  parserJsonQuestionDossierAgent,
+  validerReponseQuestionDossierAgent,
+} from "@/lib/agent/questionDossier";

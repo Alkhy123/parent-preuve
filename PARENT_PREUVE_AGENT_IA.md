@@ -97,6 +97,7 @@ lib/agent/config.ts
 lib/agent/prompt.ts
 lib/agent/schemaReponse.ts
 lib/agent/preRemplissage.ts
+lib/agent/questionDossier.ts
 lib/agent/index.ts
 ```
 
@@ -106,6 +107,7 @@ Routes :
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
 app/api/agent/pre-remplir/route.ts
+app/api/agent/question-dossier/route.ts
 ```
 
 Page de test :
@@ -298,6 +300,88 @@ Elle pourra être supprimée après stabilisation.
 
 ---
 
+# 5 bis. Route Agent question dossier
+
+Route :
+
+```text
+app/api/agent/question-dossier/route.ts
+```
+
+Statut :
+
+```text
+livrée
+expérimentale
+testée uniquement dans /copilote
+non branchée au bouton flottant
+```
+
+Contrat :
+
+```text
+lib/agent/questionDossier.ts
+agent-question-dossier-v1
+```
+
+Rôle :
+
+```text
+remplacer progressivement /api/assistant/repondre pour la question dossier
+vérifier l'authentification
+vérifier le consentement IA fonctionnalité agent
+vérifier le quota IA fonctionnalité agent
+refuser localement les demandes juridiques sensibles avant appel Mistral
+répondre uniquement à partir du résumé factuel transmis
+répondre sécurisé si le résumé est vide ou insuffisant
+appeler Mistral côté serveur uniquement
+forcer le contrat agent-question-dossier-v1
+valider la réponse avec parserEtValiderReponseQuestionDossierAgent()
+ne jamais écrire en base métier
+ne jamais déclencher d'action automatique
+forcer la validation humaine
+```
+
+Entrée :
+
+```text
+{ question: string (max 1000), resume: string (max 4000) }
+```
+
+Sortie :
+
+```text
+{
+  ok: true,
+  source: "mistral" | "garde_fou_local" | "fallback",
+  validation: { ok: boolean, erreur: string },
+  reponse: AgentQuestionDossierReponse
+}
+```
+
+Garde-fous obligatoires du contrat :
+
+```text
+conseilJuridiqueRefuse
+strategieJudiciaireRefusee
+redactionConclusionsRefusee
+predictionDecisionRefusee
+ecritureAutomatiqueRefusee = true
+validationHumaineRequise = true
+```
+
+Règles strictes :
+
+```text
+La question dossier Agent ne donne aucun conseil juridique.
+Elle répond uniquement à partir du résumé factuel.
+Elle ne rédige pas de conclusions et ne prédit aucune décision.
+Le bouton flottant ne doit pas l'appeler tant que les tests /copilote ne sont pas validés.
+Tant que la migration n'est pas validée, le bouton flottant garde /api/assistant/repondre.
+```
+
+---
+
 # 6. Page `/copilote`
 
 Page :
@@ -321,6 +405,7 @@ Analyser en dry-run
 Tester avec Mistral
 Tester avec Mistral + résumé factuel du dossier
 Tester le pré-remplissage Agent
+Tester la question dossier Agent
 Comparer ancien assistant / Agent pré-remplissage
 afficher la source API
 afficher la validation Agent
@@ -421,9 +506,12 @@ Le script doit bloquer le build si :
 /api/agent/analyser-demande contient Mistral, quota ou consentement
 /api/agent/repondre perd son validateur ou son fallback déterministe
 /api/agent/pre-remplir perd son contrat de validation
+/api/agent/question-dossier perd son contrat agent-question-dossier-v1 ou son validateur
 components/AssistantFlottant.tsx appelle directement /api/agent/repondre
 components/AssistantFlottant.tsx appelle /api/assistant/pre-remplir
+components/AssistantFlottant.tsx appelle /api/agent/question-dossier (migration prématurée)
 components/AssistantFlottant.tsx n'appelle plus /api/agent/pre-remplir
+/copilote n'appelle plus /api/agent/question-dossier
 les routes assistant historiques disparaissent alors qu'elles sont encore conservées ou utilisées
 ```
 
@@ -554,7 +642,7 @@ ne pas réintroduire l'ancien pré-remplissage assistant dans le bouton flottant
 Route dépréciée :
 
 ```text
-app/api/assistant/pre-remplir/route.ts
+app/api/assistant/pre-remplir/route.ts supprimé
 ```
 
 Condition avant retrait :
@@ -569,14 +657,31 @@ Vercel vert
 
 ## 11.3. Migrer la question dossier vers Agent
 
-À faire plus tard.
+En cours.
 
-Motif :
+État :
+
+```text
+/api/agent/question-dossier est livrée et testée dans /copilote.
+Contrat dédié agent-question-dossier-v1 en place.
+Le bouton flottant utilise encore /api/assistant/repondre pour la question dossier.
+```
+
+Motif du contrat dédié :
 
 ```text
 la question libre sur le dossier est plus risquée que le pré-remplissage structuré
 elle peut produire des réponses trop larges ou juridiquement ambiguës
-elle nécessite un contrat Agent dédié ou un validateur plus strict
+elle nécessite un contrat Agent dédié et un validateur strict
+```
+
+Condition avant de brancher le bouton flottant :
+
+```text
+tests /copilote validés (factuels et garde-fous)
+script anti-régression mis à jour pour autoriser l'appel dans le bouton flottant
+étape de mise en production dédiée validée
+Vercel vert
 ```
 
 ---
@@ -589,6 +694,7 @@ Assistant pré-remplir = ancienne route supprimée après migration vers l'Agent
 Agent dry-run = orientation déterministe sécurisée.
 Agent Mistral général = expérimentation avancée dans /copilote.
 Agent pré-remplissage = validé et branché dans le bouton flottant.
+Agent question dossier = nouvelle route expérimentale, testée dans /copilote, pas encore branchée.
 Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique pour question dossier.
 ```
 

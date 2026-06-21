@@ -173,6 +173,7 @@ lib/agent/config.ts
 lib/agent/prompt.ts
 lib/agent/schemaReponse.ts
 lib/agent/preRemplissage.ts
+lib/agent/questionDossier.ts
 lib/agent/index.ts
 ```
 
@@ -182,6 +183,7 @@ Routes :
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
 app/api/agent/pre-remplir/route.ts
+app/api/agent/question-dossier/route.ts
 ```
 
 Page de test :
@@ -390,6 +392,74 @@ Elle pourra être supprimée après stabilisation.
 
 ---
 
+## 4.4. `/api/agent/question-dossier`
+
+Fichier :
+
+```text
+app/api/agent/question-dossier/route.ts
+```
+
+Statut :
+
+```text
+livré
+expérimental
+testé dans /copilote
+non branché au bouton flottant
+```
+
+Contrat :
+
+```text
+lib/agent/questionDossier.ts
+version : agent-question-dossier-v1
+```
+
+Rôle :
+
+```text
+remplacer progressivement /api/assistant/repondre pour la question dossier
+auth obligatoire
+consentement Agent obligatoire
+quota Agent obligatoire
+refus local des demandes juridiques sensibles avant Mistral
+réponse uniquement à partir du résumé factuel transmis
+réponse sécurisée si résumé vide ou insuffisant
+appel Mistral côté serveur
+validation du contrat agent-question-dossier-v1
+aucune écriture métier
+aucune action automatique
+validation humaine obligatoire
+```
+
+Entrée / sortie :
+
+```text
+entrée : { question (max 1000), resume (max 4000) }
+sortie : { ok, source: "mistral" | "garde_fou_local" | "fallback", validation, reponse }
+```
+
+Garde-fous obligatoires :
+
+```text
+conseilJuridiqueRefuse
+strategieJudiciaireRefusee
+redactionConclusionsRefusee
+predictionDecisionRefusee
+ecritureAutomatiqueRefusee = true
+validationHumaineRequise = true
+```
+
+Règle actuelle :
+
+```text
+Le bouton flottant garde /api/assistant/repondre pour la question dossier.
+Il ne doit pas appeler /api/agent/question-dossier tant que les tests /copilote ne sont pas validés.
+```
+
+---
+
 # 5. Orientation Agent
 
 Fichier :
@@ -580,9 +650,12 @@ Le script bloque le build si :
 /api/agent/analyser-demande contient Mistral, quota ou consentement
 /api/agent/repondre perd validateur ou fallback
 /api/agent/pre-remplir perd son contrat expérimental
+/api/agent/question-dossier perd son contrat agent-question-dossier-v1 ou son validateur
 AssistantFlottant appelle /api/agent/repondre
 AssistantFlottant appelle /api/assistant/pre-remplir
+AssistantFlottant appelle /api/agent/question-dossier (migration prématurée)
 AssistantFlottant n'appelle plus /api/agent/pre-remplir
+/copilote n'appelle plus /api/agent/question-dossier
 les routes assistant historiques disparaissent alors qu'elles sont encore utilisées ou conservées temporairement
 ```
 
@@ -1020,6 +1093,7 @@ app/api/assistant/pre-remplir/route.ts supprimé
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
 app/api/agent/pre-remplir/route.ts
+app/api/agent/question-dossier/route.ts
 ```
 
 Composants clés :
