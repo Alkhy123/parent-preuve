@@ -859,6 +859,9 @@ PageHeader.tsx
 EncartPliable.tsx
 .carte
 ConsentementIA.tsx
+components/ui/FormMessage.tsx
+components/ui/EmptyState.tsx
+components/ui/OptionsAvancees.tsx
 ```
 
 `EncartPliable.tsx` utilise notamment :
@@ -866,6 +869,14 @@ ConsentementIA.tsx
 ```text
 idPersistance
 signalFermeture
+```
+
+Composants UI partagés (formulaires) :
+
+```text
+FormMessage      message succès / erreur unifié
+EmptyState       état vide sobre, action suivante facultative
+OptionsAvancees  repli des champs avancés (saisie progressive)
 ```
 
 ## 8.4. Tokens
@@ -879,7 +890,8 @@ app/globals.css
 Tokens à privilégier :
 
 * `bg-navy`
-* `text-or`
+* `text-or` (or vif : réservé aux fonds navy, traits, accents)
+* `text-or-fonce` (or foncé `#7A6326`, lisible AA : texte doré sur fond clair)
 * `bg-surface`
 * `text-texte-doux`
 * `text-vert`
@@ -888,11 +900,22 @@ Tokens à privilégier :
 
 La migration des hex en dur vers les tokens est progressive, page par page.
 
+Classes UI communes (adoption progressive page par page) :
+
+```text
+.btn + .btn-primaire / .btn-secondaire / .btn-discret / .btn-danger
+.badge + .badge-succes / .badge-attention / .badge-erreur / .badge-info / .badge-neutre
+```
+
+`.carte` : ombre à 3 couches (contact net + ombre portée profonde teintée navy),
+relief marqué pour détacher la carte du fond crème.
+
 ## 8.5. Règles design
 
 * Jamais de double séparation : soit ombre `.carte`, soit bordure dure, pas les deux.
 * Bannir progressivement les gris Tailwind par défaut quand un gris palette existe.
-* L'or reste rare : un seul accent fort par écran.
+* L'or vif reste rare et ne sert jamais de texte sur fond clair (contraste insuffisant) : utiliser `text-or-fonce`. Un seul accent fort par écran.
+* Boutons : une seule action principale par écran (`.btn-primaire`) ; secondaires moins visibles ; actions dangereuses séparées (`.btn-danger`).
 * Une seule action principale par écran.
 * Rester sur l'échelle d'espacement Tailwind.
 

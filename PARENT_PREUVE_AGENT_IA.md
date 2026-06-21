@@ -265,7 +265,17 @@ Types autorisés :
 ```text
 frais
 journal
+pension
 aucun
+```
+
+Type `pension` :
+
+```text
+champs : mois (AAAA-MM), montant_du, montant_paye, date_paiement (jamais d'enfant)
+consigne : "pension alimentaire" / "versement de pension" => pension, sinon frais
+consommé par app/pension/page.tsx (lecture unique sessionStorage, bandeau à vérifier)
+contrat inchangé : agent-pre-remplissage-v1
 ```
 
 Garde-fous obligatoires :
@@ -428,7 +438,7 @@ Composant :
 components/AssistantFlottant.tsx
 ```
 
-Routage attendu :
+Routage attendu (routes inchangées) :
 
 ```text
 M'orienter             -> /api/agent/analyser-demande
@@ -436,6 +446,13 @@ Pré-remplir une saisie -> /api/agent/pre-remplir
 Poser une question     -> /api/agent/question-dossier
 Mode avancé            -> /copilote
 ```
+
+Libellés UI dé-jargonisés (BLOC UX 4) : le parcours normal présente 3 actions
+utilisateur (« Je ne sais pas où aller », « Pré-remplir une saisie », « Poser une
+question sur mon dossier ») + une phrase de cadrage. Les termes techniques (Agent,
+dry-run, Mistral, « mode avancé ») sont retirés du parcours normal ; « Mistral »
+reste uniquement dans le texte de consentement (transparence RGPD). L'accès labo
+est renommé « Mode diagnostic ». Les routes ci-dessus sont inchangées.
 
 Interdictions :
 

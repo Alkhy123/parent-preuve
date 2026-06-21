@@ -358,7 +358,16 @@ Types autorisés :
 ```text
 frais
 journal
+pension
 aucun
+```
+
+Type `pension` (ajouté) :
+
+```text
+champs : mois (AAAA-MM), montant_du, montant_paye, date_paiement (aucun enfant)
+règle de désambiguïsation : "pension alimentaire" / "versement de pension" => pension, sinon frais
+consommé par app/pension/page.tsx (lecture unique sessionStorage, bandeau à vérifier)
 ```
 
 Garde-fous obligatoires :
@@ -744,14 +753,19 @@ Fichiers :
 004_indexes.sql
 005_implication_parentale.sql
 006_verification_hash_serveur.sql
+007_frais_sans_justificatif.sql
 ```
 
 Rappel :
 
 ```text
 001 à 003 : non idempotentes, base vierge, dans l'ordre
-004 à 006 : idempotentes
+004 à 007 : idempotentes
 ```
+
+Historique de migration distant aligné via `supabase migration repair --status applied 001 … 007`
+(la colonne 007 avait été appliquée à la main avant). Workflow désormais : créer le fichier,
+`supabase db push`. Les migrations restent une étape manuelle, hors déploiement Vercel.
 
 Tables principales :
 
@@ -926,7 +940,12 @@ date_frais
 rembourse
 document_id
 child_id
+sans_justificatif   -- bool, défaut false (migration 007)
 ```
+
+`sans_justificatif` mémorise le choix explicite « Non, pas de justificatif » à l'ajout/édition.
+Le widget d'accueil « Que faire maintenant ? » exclut ces frais du compteur « à rattacher »
+(`lib/etatDossier.ts` : `document_id IS NULL AND sans_justificatif = false`).
 
 ## 13.6. `pension_payments`
 
@@ -1122,6 +1141,23 @@ RegleDVH
 RegleDecision
 ```
 
+Composants UI partagés (design system léger) :
+
+```text
+components/ui/FormMessage.tsx     -- message succès / erreur unifié
+components/ui/EmptyState.tsx      -- état vide sobre, action suivante facultative
+components/ui/OptionsAvancees.tsx -- repli des champs avancés dans un formulaire
+```
+
+Vocabulaire CSS commun dans `app/globals.css` (adoption progressive) :
+
+```text
+.btn + .btn-primaire / .btn-secondaire / .btn-discret / .btn-danger
+.badge + .badge-succes / .badge-attention / .badge-erreur / .badge-info / .badge-neutre
+token --or-fonce (#7A6326) : or lisible (AA) pour texte doré sur fond clair
+.carte : ombre à 3 couches, relief marqué sur fond crème
+```
+
 Libs clés :
 
 ```text
@@ -1173,6 +1209,10 @@ pas de qualification juridique
 app/frais/page.tsx
 table expenses
 montant, date, catégorie, part autre parent, justificatif, enfant
+champs essentiels visibles, avancés repliés (OptionsAvancees)
+édition d'un frais existant (bouton Modifier : insert ou update)
+parcours justificatif guidé : oui/non, puis téléverser (Storage + documents) ou sélectionner
+choix "sans justificatif" mémorisé (expenses.sans_justificatif)
 pré-remplissage possible via sessionStorage
 ```
 
@@ -1182,6 +1222,8 @@ pré-remplissage possible via sessionStorage
 app/pension/page.tsx
 table pension_payments
 montant dû / payé / reste / date / notes
+champs obligatoires marqués, statut (payé/partiel/en retard) calculé
+pré-remplissage possible via sessionStorage (type pension, sans enfant)
 ```
 
 ## Documents
@@ -1402,7 +1444,7 @@ Résolu :
 
 ```text
 HORODATAGE_SECRET remplace HMAC_SECRET
-migrations Supabase 001 à 006 versionnées
+migrations Supabase 001 à 007 versionnées (historique distant aligné par migration repair)
 quota IA fail-closed
 suppression RGPD complète
 hash preuve recalculé serveur

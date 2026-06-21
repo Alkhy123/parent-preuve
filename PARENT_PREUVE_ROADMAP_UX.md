@@ -45,6 +45,20 @@ Formulations à éviter :
 
 ---
 
+## 0.1. État livré (mise à jour — corrections UX par blocs)
+
+Réalisé et en production (le code fait foi) :
+
+- **Saisie progressive des formulaires** (Journal, Frais, Pension, Documents) : champs essentiels visibles, champs avancés repliés (`OptionsAvancees`), champs obligatoires marqués, messages succès/erreur unifiés (`FormMessage`), états vides (`EmptyState`), confirmation après enregistrement.
+- **Frais** : édition d'un frais existant (bouton Modifier) ; parcours justificatif guidé (oui/non, puis téléverser une pièce ou en sélectionner une existante) ; choix « sans justificatif » mémorisé (`expenses.sans_justificatif`) et exclu du widget « Que faire maintenant ? ».
+- **Copilote / bouton flottant** : 3 actions en langage clair (« Je ne sais pas où aller », « Pré-remplir une saisie », « Poser une question sur mon dossier »), phrase de cadrage, retrait du jargon (Agent, dry-run, Mistral, « mode avancé ») du parcours normal — labo accessible en « Mode diagnostic ».
+- **Pré-remplissage Agent** : nouveau type `pension` (contrat `agent-pre-remplissage-v1` inchangé), désambiguïsation pension vs frais.
+- **Design system léger** : `.carte` à relief marqué, token `--or-fonce` lisible (contraste AA) pour le texte doré sur fond clair, classes communes `.btn-*` / `.badge-*` (adoption progressive ; accueil déjà harmonisé).
+
+Reste à faire (progressif) : adoption des classes `.btn-*` / `.badge-*` sur les pages formulaires.
+
+---
+
 # 1. Vision produit
 
 ## 1.1. Boussole
