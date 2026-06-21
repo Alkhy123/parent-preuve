@@ -153,7 +153,7 @@ export default function WidgetActionsPrioritaires() {
   if (erreur || actions === null) {
     return (
       <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="font-display text-lg text-[#15233F]">Actions prioritaires</h2>
+        <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
         <p className="mt-2 text-sm text-slate-500">
           Liste indisponible pour le moment. Vous pouvez réessayer plus tard.
         </p>
@@ -163,11 +163,12 @@ export default function WidgetActionsPrioritaires() {
 
   return (
     <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="font-display text-lg text-[#15233F]">Actions prioritaires</h2>
+      <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
 
       {actions.length === 0 ? (
         <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✓ Aucune action prioritaire pour le moment.
+          ✓ Votre dossier ne présente pas d&apos;action urgente. Vous pouvez
+          continuer à noter les faits au fil de l&apos;eau.
         </div>
       ) : (
         <>

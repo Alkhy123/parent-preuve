@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import ProchainesEcheances from "@/components/ProchainesEcheances";
 import TableauDeBord from "@/components/TableauDeBord";
 import PageHeader from "@/components/PageHeader";
@@ -40,38 +41,56 @@ export default function Home() {
       <PageHeader
         eyebrow="Accueil"
         title="Parent Preuve"
-        subtitle="Centralisez frais, pension, justificatifs et événements pour préparer un dossier clair, daté et factuel."
+        subtitle="Votre tableau de bord pour organiser un dossier clair, daté et factuel."
       />
       <div className="bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-3xl px-6 py-16">
-          <div className="mt-10">
-            <WidgetCopiloteDossier />
-          </div>
-          <div className="mt-10">
-            <WidgetActionsPrioritaires />
-          </div>
+        <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
+          {/* 1. Plan d'action central : "Que faire maintenant ?" */}
+          <WidgetActionsPrioritaires />
 
-          <div className="mt-10">
-            <WidgetSituationMois />
-          </div>
+          {/* 2. Saisie rapide : les trois gestes du quotidien, visibles d'emblée. */}
+          <section aria-label="Saisie rapide">
+            <h2 className="font-display text-lg text-[#15233F]">Saisie rapide</h2>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {ACTIONS_RAPIDES.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="flex items-center justify-center rounded-xl bg-[#15233F] px-4 py-3 text-center text-sm font-medium text-[#F8F6F1] transition hover:bg-[#0F1A2E]"
+                >
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          </section>
 
-          <div className="mt-10">
-            <TableauDeBord />
-          </div>
+          {/* 3. Situation du mois (pension). */}
+          <WidgetSituationMois />
 
-          <div className="mt-10">
-            <WidgetDossierPret />
-          </div>
+          {/* 4. Dossier prêt à l'export (bloquants / avertissements). */}
+          <WidgetDossierPret />
 
-          <div className="mt-10">
-            <ProchainesEcheances />
-          </div>
+          {/* 5. Échéances de garde à venir. */}
+          <ProchainesEcheances />
 
-          <div className="mt-10">
-            <ConfigurationDossier />
-          </div>
+          {/* 6. Résumé chiffré global. */}
+          <TableauDeBord />
+
+          {/* 7. Aide à l'organisation (copilote), discrète. */}
+          <WidgetCopiloteDossier />
+
+          {/* 8. Configuration du dossier. */}
+          <ConfigurationDossier />
         </div>
       </div>
     </>
   );
 }
+
+// Trois gestes du quotidien, accessibles dès l'accueil (en plus du bouton
+// flottant de capture rapide monté globalement dans le layout).
+const ACTIONS_RAPIDES = [
+  { href: "/journal", label: "Noter un fait" },
+  { href: "/frais", label: "Ajouter une dépense" },
+  { href: "/preuves", label: "Ajouter une preuve" },
+];
