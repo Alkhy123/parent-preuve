@@ -152,6 +152,58 @@ export async function enregistrerAutreParent(
   return { erreur: error ? error.message : null };
 }
 
+// ── Jugement (champs de reference sur la procedure) ──────────────────────────
+
+export type ChampsJugement = {
+  jugement_juridiction: string;
+  jugement_date: string;
+  jugement_numero_rg: string;
+  jugement_intitule: string;
+};
+
+export const JUGEMENT_VIDE: ChampsJugement = {
+  jugement_juridiction: "",
+  jugement_date: "",
+  jugement_numero_rg: "",
+  jugement_intitule: "",
+};
+
+/** Lit la reference du jugement d'une procedure. */
+export async function chargerJugement(
+  procedureId: string
+): Promise<ChampsJugement> {
+  const { data } = await supabase
+    .from("procedures")
+    .select(
+      "jugement_juridiction, jugement_date, jugement_numero_rg, jugement_intitule"
+    )
+    .eq("id", procedureId)
+    .maybeSingle();
+  const rempli = { ...JUGEMENT_VIDE };
+  if (data) {
+    (Object.keys(JUGEMENT_VIDE) as (keyof ChampsJugement)[]).forEach((c) => {
+      rempli[c] = (data as Record<string, string | null>)[c] ?? "";
+    });
+  }
+  return rempli;
+}
+
+/** Enregistre la reference du jugement sur une procedure existante. */
+export async function enregistrerJugement(
+  procedureId: string,
+  champs: ChampsJugement
+): Promise<{ erreur: string | null }> {
+  const payload: Record<string, string | null> = {};
+  (Object.keys(champs) as (keyof ChampsJugement)[]).forEach((c) => {
+    payload[c] = champs[c].trim() === "" ? null : champs[c];
+  });
+  const { error } = await supabase
+    .from("procedures")
+    .update(payload)
+    .eq("id", procedureId);
+  return { erreur: error ? error.message : null };
+}
+
 // ── Enfants (children) ───────────────────────────────────────────────────────
 
 export type EnfantLigne = {
