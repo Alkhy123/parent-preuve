@@ -293,18 +293,11 @@ Règle actuelle :
 components/AssistantFlottant.tsx doit appeler /api/agent/pre-remplir pour le pré-remplissage.
 ```
 
-Ancienne route dépréciée :
+Ancienne route :
 
 ```text
-app/api/assistant/pre-remplir/route.ts supprimé
-```
-
-Règle :
-
-```text
-Elle reste présente temporairement.
-Elle ne doit plus être appelée par le bouton flottant.
-Elle pourra être supprimée après stabilisation.
+app/api/assistant/pre-remplir/route.ts : supprimée, remplacée par /api/agent/pre-remplir
+absence vérifiée par scripts/check-agent-boundaries.mjs
 ```
 
 ---
@@ -650,22 +643,13 @@ garder le contrat agent-pre-remplissage-v1 strict
 ne pas réintroduire l'ancien pré-remplissage assistant dans le bouton flottant
 ```
 
-## 11.2. Retirer l'ancienne route pré-remplissage assistant
+## 11.2. Retrait de l'ancienne route pré-remplissage assistant
 
-Route dépréciée :
-
-```text
-app/api/assistant/pre-remplir/route.ts supprimé
-```
-
-Condition avant retrait :
+Terminé.
 
 ```text
-plus aucun appel depuis le bouton flottant
-plus aucun besoin de comparaison dans /copilote
-tests Agent validés
-script anti-régression mis à jour
-Vercel vert
+app/api/assistant/pre-remplir/route.ts : supprimée, remplacée par /api/agent/pre-remplir
+absence vérifiée par scripts/check-agent-boundaries.mjs
 ```
 
 ## 11.3. Migrer la question dossier vers Agent
