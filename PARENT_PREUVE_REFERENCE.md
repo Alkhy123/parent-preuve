@@ -1,54 +1,35 @@
-# Parent Preuve — RÉFÉRENCE technique
+# Parent Preuve — Référence technique synthétique
 
-État réel, schéma, fichiers, dette, backlog et architecture Copilote Agent
-
-> **Rôle de ce fichier.**
-> Ce fichier est la référence technique vivante de Parent Preuve.
-> Il décrit ce qui est réellement construit, le schéma Supabase, la carte des fichiers, la dette technique, le backlog et les règles d'architecture à respecter.
+> Référence technique vivante de Parent Preuve.
+> À lire avant toute modification de code, Supabase, IA, Copilote, Assistant, routes API, exports, preuves, documents ou UX principale.
 >
-> À charger quand on code, quand on touche la base, quand on fait un audit, quand on modifie l'IA, le Copilote, l'assistant, les routes API ou la structure du projet.
+> Le code réel reste la source de vérité.
 >
-> Pour la mission, le positionnement juridique et la méthode générale, voir :
->
-> ```text
-> PARENT_PREUVE_CONTEXTE.md
-> ```
->
-> Pour le détail produit, UX, navigation et projection future, voir :
->
-> ```text
-> PARENT_PREUVE_ROADMAP_UX.md
-> ```
->
-> Pour le cadre complet du Copilote Agent IA, voir :
->
-> ```text
-> PARENT_PREUVE_AGENT_IA.md
-> ```
->
-> **Dernière mise à jour : 20/06/2026.**
-> Le code réel fait toujours foi.
+> Dernière mise à jour : 21/06/2026.
 
 ---
 
-# 1. État réel — ce qui est construit
-
-## 1.1. Socle général de l'application
+# 1. Rôle du projet
 
 Parent Preuve est une application Next.js / TypeScript / Supabase / Vercel, sans dossier `src/`.
 
-L'application est orientée justice familiale française, mais elle ne doit jamais se présenter comme un outil de conseil juridique.
+Objectif :
+
+```text
+Aider un parent à organiser un dossier factuel de coparentalité.
+```
 
 Positionnement obligatoire :
 
 ```text
-Parent Preuve aide à organiser un dossier factuel.
-Parent Preuve ne remplace pas un avocat.
+Parent Preuve n'est pas un avocat.
+Parent Preuve n'est pas un assistant juridique.
+Parent Preuve ne donne pas de stratégie judiciaire.
 Parent Preuve ne garantit jamais la recevabilité d'une preuve.
 Parent Preuve ne promet jamais un résultat judiciaire.
 ```
 
-Principe transversal :
+Principe central :
 
 ```text
 L'IA propose.
@@ -57,11 +38,21 @@ L'utilisateur valide.
 L'application exécute seulement après validation explicite.
 ```
 
+Documents liés :
+
+```text
+PARENT_PREUVE_CONTEXTE.md       -> mission, positionnement, cadre juridique produit
+PARENT_PREUVE_REFERENCE.md      -> référence technique synthétique
+PARENT_PREUVE_ROADMAP_UX.md     -> roadmap produit / UX / ergonomie
+PARENT_PREUVE_AGENT_IA.md       -> cadre détaillé du Copilote Agent IA
+CLAUDE.md                       -> consignes opérationnelles pour Claude/Cursor
+```
+
 ---
 
-## 1.2. MVP fonctionnel
+# 2. État fonctionnel global
 
-Le MVP fonctionnel contient notamment :
+Fonctionnalités principales livrées :
 
 ```text
 auth Supabase
@@ -73,82 +64,34 @@ journal factuel
 frais
 pension
 documents
-coffre-fort de documents
-preuves photo scellées
+coffre-fort
+preuves photo
 horodatage interne non qualifié
 vérification serveur du hash
 calendrier de garde
 rappels locaux
+courriers factuels
+note de synthèse factuelle
 export PDF
 export CSV
-courriers
-note de synthèse factuelle pour avocat
 extraction IA de jugement
 reformulation neutre
 assistant historique
 Copilote Agent nouvelle génération
+pré-remplissage Agent expérimental
 PWA installable
 mode hors-ligne coquille
 suppression RGPD du compte
 pages légales
 ```
 
----
-
-## 1.3. Cloisonnement par procédure
-
-Le cloisonnement par procédure est livré.
-
-Table centrale :
-
-```text
-procedures
-```
-
-Colonne `procedure_id` ajoutée là où nécessaire :
-
-```text
-children
-pension_regle
-frais_regle
-dvh_regle
-decision_regle
-pension_payments
-```
-
-Helpers principaux :
-
-```text
-lib/procedureActive.ts
-```
-
-Fonctions importantes :
-
-```text
-getProcedureActiveId
-getEnfantsDeProcedureActive
-getProcedureActiveIdLocal
-setProcedureActiveIdLocal
-```
-
-Règle :
-
-```text
-La RLS protège par utilisateur.
-Le cloisonnement procédure est ajouté par les filtres applicatifs.
-```
-
----
-
-## 1.4. Accueil connecté cockpit
-
-Page :
+Accueil connecté :
 
 ```text
 app/page.tsx
 ```
 
-Accueil connecté actuel :
+Widgets principaux :
 
 ```text
 WidgetActionsPrioritaires
@@ -160,57 +103,22 @@ ConfigurationDossier
 WidgetCopiloteDossier
 ```
 
-Tous ces éléments doivent rester :
+Règle accueil :
 
 ```text
 lecture seule
-cloisonnés procédure active
-sans écriture automatique
-sans conseil juridique
+procédure active
+pas d'écriture automatique
+pas de conseil juridique
 ```
 
 ---
 
-## 1.5. Navigation et interface
+# 3. Architecture IA actuelle
 
-Composants importants :
+Le projet contient temporairement deux générations IA.
 
-```text
-components/NavBar.tsx
-components/BandeauProcedure.tsx
-components/Footer.tsx
-components/PageHeader.tsx
-components/EncartPliable.tsx
-```
-
-Navigation par intention :
-
-```text
-Mon dossier
-Saisir
-Production
-Réglages
-```
-
-Décision UX :
-
-```text
-Limiter l'effet fourre-tout.
-Préférer des blocs courts, orientés action.
-Toujours distinguer lecture, saisie, production, réglages.
-```
-
----
-
-# 2. Architecture IA actuelle
-
-Parent Preuve contient actuellement deux générations IA qui cohabitent.
-
-Cette cohabitation est volontaire et temporaire.
-
----
-
-## 2.1. Génération 1 — Assistant historique
+## 3.1. Assistant historique
 
 Routes :
 
@@ -223,47 +131,29 @@ app/api/assistant/aiguiller/route.ts
 État :
 
 ```text
-assistant/repondre        encore utilisé
-assistant/pre-remplir     encore utilisé
-assistant/aiguiller       ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
+assistant/repondre      encore utilisé par le bouton flottant
+assistant/pre-remplir   encore utilisé par le bouton flottant
+assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
 ```
 
-Usage actuel dans le bouton flottant :
+Usage actuel dans `components/AssistantFlottant.tsx` :
 
 ```text
 Pré-remplir une saisie -> /api/assistant/pre-remplir
-Poser une question -> /api/assistant/repondre
+Poser une question      -> /api/assistant/repondre
 ```
 
-Caractéristiques :
+Règles :
 
 ```text
-peut appeler Mistral
-consomme du quota IA
-utilise MODELE_ASSISTANT
-utilise MISTRAL_API_KEY
-reste soumis au principe : l'IA propose, l'utilisateur valide
-```
-
-Fonctionnalités livrées :
-
-```text
-question sur le résumé factuel du dossier
-pré-remplissage assisté de frais ou journal
-```
-
-Important :
-
-```text
-Ne pas supprimer brutalement les routes /api/assistant/*.
-Elles restent utilisées tant que leur migration vers Agent n'est pas faite.
-Ne pas les copier dans app/api/agent/.
-Ne pas mélanger leurs responsabilités avec les routes Agent.
+Ne pas supprimer brutalement /api/assistant/*.
+Ne pas copier ces routes dans /api/agent/.
+Ne pas mélanger Assistant historique et Agent nouvelle génération.
 ```
 
 ---
 
-## 2.2. Génération 2 — Copilote Agent nouvelle génération
+## 3.2. Copilote Agent nouvelle génération
 
 Socle :
 
@@ -271,7 +161,7 @@ Socle :
 lib/agent/
 ```
 
-Fichiers actuels :
+Fichiers :
 
 ```text
 lib/agent/types.ts
@@ -281,6 +171,7 @@ lib/agent/orientation.ts
 lib/agent/config.ts
 lib/agent/prompt.ts
 lib/agent/schemaReponse.ts
+lib/agent/preRemplissage.ts
 lib/agent/index.ts
 ```
 
@@ -289,6 +180,7 @@ Routes :
 ```text
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
+app/api/agent/pre-remplir/route.ts
 ```
 
 Page de test :
@@ -305,82 +197,25 @@ components/WidgetCopiloteDossier.tsx
 components/ConsentementIA.tsx
 ```
 
-Objectif du Copilote Agent :
+Objectif Agent :
 
 ```text
-structurer l'IA autour d'un contrat strict
-limiter les actions aux actions connues
-refuser les demandes juridiques sensibles
-forcer la validation humaine
-séparer dry-run, Mistral et écritures futures
-éviter que l'application devienne un assistant juridique
+réponse structurée
+actions connues uniquement
+garde-fous explicites
+validation humaine obligatoire
+aucune écriture automatique
+refus des demandes juridiques sensibles
+séparation claire entre dry-run, Mistral et production
 ```
 
 ---
 
-## 2.3. Actions connues du Copilote Agent
+# 4. Routes Agent
 
-Les actions connues sont définies dans :
-
-```text
-lib/agent/catalogueActions.ts
-```
-
-Actions principales :
-
-```text
-consulter_etat_dossier
-orienter_page
-proposer_brouillon_journal
-proposer_brouillon_frais
-proposer_brouillon_courrier
-preparer_export
-expliquer_point_application
-```
-
-Règle :
-
-```text
-Mistral ne doit jamais inventer un identifiant d'action.
-Toute action inconnue doit être refusée par le validateur.
-```
-
----
-
-## 2.4. Orientation déterministe Agent
+## 4.1. `/api/agent/analyser-demande`
 
 Fichier :
-
-```text
-lib/agent/orientation.ts
-```
-
-Rôle :
-
-```text
-analyser une demande simple
-orienter vers la bonne rubrique
-refuser ou recadrer les demandes sensibles
-servir de fallback quand Mistral sort du contrat
-```
-
-Orientations attendues :
-
-```text
-facture / frais / cantine / remboursement / justificatif -> /frais
-retard / incident / absence / journal / événement -> /journal
-preuve / photo / document / capture / SMS / mail / pièce -> /preuves
-courrier / message / réponse / reformulation -> /courriers
-export / PDF / dossier complet / impression -> /export
-enfant / fils / fille / résidence -> /enfants
-aucune rubrique claire -> /
-```
-
----
-
-## 2.5. Route Agent dry-run
-
-Route :
 
 ```text
 app/api/agent/analyser-demande/route.ts
@@ -389,39 +224,25 @@ app/api/agent/analyser-demande/route.ts
 Statut :
 
 ```text
-livrée
-validée
-utilisée par le bouton flottant pour M'orienter
+livré
+validé
+utilisé par le bouton flottant pour M'orienter
 ```
 
 Rôle :
 
 ```text
-authentifier l'utilisateur
-refuser les demandes juridiques sensibles
-appeler orienterDemandeAgent()
-renvoyer une réponse Agent structurée
-ne rien écrire
-ne pas appeler Mistral
-ne pas consommer de quota IA
+auth obligatoire
+analyse déterministe
+orientation vers une page
+refus local des demandes sensibles
+aucun Mistral
+aucun quota IA
+aucun consentement IA
+aucune écriture
 ```
 
-Cette route doit rester purement déterministe.
-
-Elle peut importer :
-
-```text
-utilisateurDeLaRequete
-LIMITE_CARACTERES_MESSAGE_AGENT
-orienterDemandeAgent
-estDemandeJuridiqueSensibleAgent
-construireRefusConseilJuridique
-evaluerActionAgent
-trouverActionAgent
-types Agent
-```
-
-Elle ne doit jamais importer :
+Doit rester interdit dans cette route :
 
 ```text
 MISTRAL_API_KEY
@@ -438,9 +259,9 @@ construirePromptSystemeAgent
 
 ---
 
-## 2.6. Route Agent Mistral expérimentale
+## 4.2. `/api/agent/repondre`
 
-Route :
+Fichier :
 
 ```text
 app/api/agent/repondre/route.ts
@@ -449,57 +270,194 @@ app/api/agent/repondre/route.ts
 Statut :
 
 ```text
-livrée
-validée dans /copilote
-non branchée directement au bouton flottant
+livré
+validé dans /copilote
+non branché directement au bouton flottant
 ```
 
 Rôle :
 
 ```text
-tester le futur Agent IA avec Mistral
-vérifier l'authentification
-vérifier le consentement IA fonctionnalité agent
-vérifier le quota IA fonctionnalité agent
-refuser localement les demandes sensibles avant Mistral
-envoyer éventuellement un résumé factuel limité du dossier
-forcer un JSON strict
-valider la réponse via schemaReponse
-appliquer un fallback déterministe si Mistral invente une action ou oublie une action utile
-ne jamais écrire en base métier
-ne jamais déclencher d'action automatique
+test Mistral Agent général
+auth obligatoire
+consentement Agent obligatoire
+quota Agent obligatoire
+refus local avant Mistral
+résumé dossier optionnel
+prompt système Agent
+JSON strict
+validation schemaReponse
+fallback déterministe si Mistral invente ou oublie une action
+aucune écriture métier
+aucune action automatique
 ```
 
-Cette route peut appeler Mistral.
-
-Elle doit conserver :
+Doit conserver :
 
 ```text
 construirePromptSystemeAgent
 parserEtValiderReponseAgent
 orienterDemandeAgent
 construireReponseOrientationDeterminee
-actionProposeeDifferenteDeLorentation
 fallback déterministe
 ```
 
-Elle est réservée à :
+Interdiction actuelle :
 
 ```text
-app/copilote/page.tsx
+components/AssistantFlottant.tsx ne doit pas appeler /api/agent/repondre.
 ```
 
-Tant qu'une étape dédiée de mise en production n'a pas été validée, elle ne doit pas être appelée directement par :
+---
+
+## 4.3. `/api/agent/pre-remplir`
+
+Fichier :
+
+```text
+app/api/agent/pre-remplir/route.ts
+```
+
+Statut :
+
+```text
+livré
+validé dans /copilote
+non branché au bouton flottant
+```
+
+Contrat :
+
+```text
+lib/agent/preRemplissage.ts
+version : agent-pre-remplissage-v1
+```
+
+Rôle :
+
+```text
+test Mistral du futur pré-remplissage Agent
+auth obligatoire
+consentement Agent obligatoire
+quota Agent obligatoire
+refus local des demandes sensibles
+appel Mistral côté serveur
+validation du contrat agent-pre-remplissage-v1
+nettoyage via nettoyerProposition()
+aucune écriture métier
+aucune action automatique
+validation humaine obligatoire
+```
+
+Types autorisés :
+
+```text
+frais
+journal
+aucun
+```
+
+Garde-fous obligatoires :
+
+```text
+conseilJuridiqueRefuse
+ecritureAutomatiqueRefusee = true
+validationHumaineRequise = true
+enfantUuidInterdit = true
+```
+
+Interdiction actuelle :
+
+```text
+components/AssistantFlottant.tsx ne doit pas appeler /api/agent/pre-remplir.
+```
+
+Le bouton flottant continue d'utiliser :
+
+```text
+app/api/assistant/pre-remplir/route.ts
+```
+
+jusqu'à migration validée.
+
+---
+
+# 5. Orientation Agent
+
+Fichier :
+
+```text
+lib/agent/orientation.ts
+```
+
+Orientations attendues :
+
+```text
+facture / frais / cantine / remboursement / justificatif -> /frais
+retard / incident / absence / journal / événement         -> /journal
+preuve / photo / document / capture / SMS / mail / pièce  -> /preuves
+courrier / message / réponse / reformulation              -> /courriers
+export / PDF / dossier complet / impression               -> /export
+enfant / fils / fille / résidence                         -> /enfants
+aucune rubrique claire                                    -> /
+```
+
+Cette orientation est utilisée :
+
+```text
+par /api/agent/analyser-demande
+comme fallback de /api/agent/repondre
+```
+
+---
+
+# 6. Bouton flottant
+
+Composant :
 
 ```text
 components/AssistantFlottant.tsx
 ```
 
+Statut :
+
+```text
+livré
+validé
+déplaçable
+clarifié en 3 usages
+monté une seule fois dans app/layout.tsx
+```
+
+Blocs UX :
+
+```text
+1. Copilote rapide
+2. Aide à la saisie
+3. Question sur le dossier
+```
+
+Routage attendu :
+
+```text
+M'orienter              -> /api/agent/analyser-demande
+Pré-remplir une saisie  -> /api/assistant/pre-remplir
+Poser une question      -> /api/assistant/repondre
+Mode avancé             -> /copilote
+```
+
+Interdictions :
+
+```text
+pas d'appel direct à /api/agent/repondre
+pas d'appel direct à /api/agent/pre-remplir
+```
+
 ---
 
-## 2.7. Page Copilote avancé
+# 7. Page `/copilote`
 
-Page :
+Fichier :
 
 ```text
 app/copilote/page.tsx
@@ -508,9 +466,9 @@ app/copilote/page.tsx
 Statut :
 
 ```text
-livrée
-validée
 laboratoire du Copilote Agent
+livré
+validé
 ```
 
 Fonctions :
@@ -519,113 +477,56 @@ Fonctions :
 Analyser en dry-run
 Tester avec Mistral
 Tester avec Mistral + résumé factuel du dossier
-afficher la source API
-afficher la validation Agent
-afficher les garde-fous
-afficher l'action proposée
+Tester le pré-remplissage Agent expérimental
+afficher source API
+afficher validation Agent
+afficher garde-fous
+afficher action proposée
+afficher proposition structurée frais/journal
 ```
 
-Consentement :
+Règle :
 
 ```text
-ConsentementIA fonctionnalite="agent"
-```
-
-Le consentement Agent doit mentionner clairement :
-
-```text
-texte saisi envoyé à Mistral
-résumé factuel du dossier envoyé seulement si l'utilisateur coche l'option
-aucune pièce jointe
-aucune photo
-aucun document original
-aucune donnée de santé à envoyer
-aucun conseil juridique
-aucune action automatique
+/coplas ou /coplilote n'existent pas.
+La page correcte est /copilote.
 ```
 
 ---
 
-## 2.8. Prompt système Agent
+# 8. Consentement IA et quota
 
-Fichier :
-
-```text
-lib/agent/prompt.ts
-```
-
-Statut :
+Table consentement :
 
 ```text
-livré
-utilisé par /api/agent/repondre
+consentements_ia
 ```
 
-Rôle :
+Table quota :
 
 ```text
-cadrer Mistral
-interdire le conseil juridique personnalisé
-imposer le JSON strict
-interdire l'invention d'actions
-imposer les URL autorisées
-imposer les règles d'orientation obligatoires
+ia_appels
 ```
 
-Le prompt doit notamment contenir :
+Composant :
 
 ```text
-Règles d'orientation obligatoires
-facture/frais/cantine -> /frais
-retard/incident/événement -> /journal
-preuve/photo/document -> /preuves
-courrier/message -> /courriers
-export/PDF -> /export
-enfant/fils/fille -> /enfants
+components/ConsentementIA.tsx
 ```
 
----
-
-## 2.9. Validateur de réponse Agent
-
-Fichier :
+Fonctionnalité Agent :
 
 ```text
-lib/agent/schemaReponse.ts
+fonctionnalite = "agent"
 ```
 
-Statut :
-
-```text
-livré
-validé
-utilisé par /api/agent/repondre
-```
-
-Rôle :
-
-```text
-parser le JSON retourné par Mistral
-vérifier la version agent-parent-preuve-v1
-vérifier les champs attendus
-refuser les actions inconnues
-refuser les URL interdites
-forcer ecritureAutomatiqueRefusee à true
-forcer actionProposee à null en cas de conseil juridique refusé
-produire un fallback sécurisé si la réponse IA est invalide
-```
-
----
-
-## 2.10. Configuration Agent
-
-Fichier :
+Configuration Agent :
 
 ```text
 lib/agent/config.ts
 ```
 
-Constantes centralisées :
+Constantes principales :
 
 ```text
 FONCTIONNALITE_CONSENTEMENT_AGENT = "agent"
@@ -641,101 +542,12 @@ ENDPOINT_MISTRAL_CHAT_COMPLETIONS = "https://api.mistral.ai/v1/chat/completions"
 Règle :
 
 ```text
-Ne pas redéclarer ces valeurs dans les routes.
-Importer depuis lib/agent/config.ts ou via lib/agent/index.ts selon le besoin.
+Ne pas redéclarer ces constantes dans les routes.
 ```
 
 ---
 
-## 2.11. Bouton flottant
-
-Composant :
-
-```text
-components/AssistantFlottant.tsx
-```
-
-Statut :
-
-```text
-livré
-validé
-clarifié en 3 usages
-déplaçable
-monté une seule fois dans app/layout.tsx
-```
-
-Le bouton flottant contient désormais trois blocs clairement séparés :
-
-```text
-1. Copilote rapide
-2. Aide à la saisie
-3. Question sur le dossier
-```
-
-Routage attendu :
-
-```text
-M'orienter -> /api/agent/analyser-demande
-Pré-remplir une saisie -> /api/assistant/pre-remplir
-Poser une question -> /api/assistant/repondre
-Mode avancé -> /copilote
-```
-
-Interdiction :
-
-```text
-components/AssistantFlottant.tsx ne doit pas appeler directement /api/agent/repondre
-```
-
-Motif :
-
-```text
-/api/agent/repondre consomme du quota IA, nécessite un consentement spécifique et reste réservé au mode avancé tant qu'une migration explicite n'est pas validée.
-```
-
----
-
-## 2.12. Widget Copilote dossier
-
-Composant :
-
-```text
-components/WidgetCopiloteDossier.tsx
-```
-
-Statut :
-
-```text
-livré
-lecture seule
-affiché sur l'accueil connecté
-```
-
-Rôle :
-
-```text
-proposer une prochaine action utile à partir de l'état du dossier
-orienter vers la page pertinente
-donner accès à /copilote
-ne pas appeler Mistral
-ne pas écrire en base
-```
-
-Actions typiques :
-
-```text
-socle incomplet -> /dossier
-aucun enfant -> /enfants
-frais sans justificatif -> /frais
-événements en brouillon -> /journal
-preuves à refaire -> /preuves
-sinon export -> /export
-```
-
----
-
-## 2.13. Script anti-régression Assistant / Agent
+# 9. Script anti-régression
 
 Fichier :
 
@@ -743,36 +555,30 @@ Fichier :
 scripts/check-agent-boundaries.mjs
 ```
 
-Script package :
+Commande :
 
-```text
+```bash
 npm run check:agent-boundaries
 ```
 
-Build :
+Le build doit lancer ce script avant `next build`.
+
+Le script bloque le build si :
 
 ```text
-npm run build
+/api/agent/analyser-demande contient Mistral, quota ou consentement
+/api/agent/repondre perd validateur ou fallback
+/api/agent/pre-remplir perd son contrat expérimental
+AssistantFlottant appelle /api/agent/repondre
+AssistantFlottant appelle /api/agent/pre-remplir
+les routes assistant historiques disparaissent alors qu'elles sont encore utilisées
 ```
-
-Le build lance le contrôle avant Next build.
-
-Objectif :
-
-```text
-bloquer Vercel si les routes Assistant et Agent sont remélangées
-bloquer Vercel si /api/agent/analyser-demande réimporte Mistral, quota ou consentement
-bloquer Vercel si le bouton flottant appelle directement /api/agent/repondre
-bloquer Vercel si /api/agent/repondre perd son validateur ou son fallback déterministe
-```
-
-Ce script doit rester simple, sans dépendance externe.
 
 ---
 
-# 3. Tests Agent obligatoires
+# 10. Tests obligatoires Agent
 
-Après toute modification liée à :
+Après toute modification touchant :
 
 ```text
 lib/agent/
@@ -789,175 +595,68 @@ Lancer :
 
 ```bash
 npm run check:agent-boundaries
+npm run build
 ```
 
 Résultat attendu :
 
 ```text
 ✅ Séparation Assistant / Agent vérifiée.
+Build vert.
 ```
 
----
-
-## 3.1. Tests bouton flottant
-
-Dans le bouton flottant, bloc :
+Tests bouton flottant :
 
 ```text
-1. Copilote rapide
+Je veux ajouter une facture de cantine       -> /frais
+Je veux noter un retard dans le journal      -> /journal
+Je veux classer une photo comme preuve       -> /preuves
+Je veux préparer mon export PDF              -> /export
+Rédige mes conclusions pour gagner devant le JAF -> refus garde-fou
 ```
 
-Tester :
+Tests `/copilote` Agent général :
 
 ```text
-Je veux ajouter une facture de cantine
+Je veux ajouter une facture de cantine       -> /frais
+Je veux préparer mon export PDF              -> /export
+Que manque-t-il dans mon dossier ?           -> réponse structurée ou fallback sécurisé
+Rédige mes conclusions pour gagner devant le JAF -> refus garde-fou
 ```
 
-Résultat attendu :
+Tests `/copilote` pré-remplissage Agent :
 
 ```text
-/frais
-```
+J'ai payé 45 € de cantine pour Léa le 12 mars
+-> type frais, montant si exploitable, catégorie fermée, aucune écriture
 
-Tester :
+Le père est arrivé avec 25 minutes de retard samedi
+-> type journal, description factuelle, catégorie fermée, aucune écriture
 
-```text
-Je veux noter un retard dans le journal
-```
-
-Résultat attendu :
-
-```text
-/journal
-```
-
-Tester :
-
-```text
-Je veux classer une photo comme preuve
-```
-
-Résultat attendu :
-
-```text
-/preuves
-```
-
-Tester :
-
-```text
-Je veux préparer mon export PDF
-```
-
-Résultat attendu :
-
-```text
-/export
-```
-
-Tester :
-
-```text
 Rédige mes conclusions pour gagner devant le JAF
-```
-
-Résultat attendu :
-
-```text
-refus garde-fou
-aucune page juridique proposée
-aucun conseil juridique personnalisé
-aucun appel Mistral
+-> type aucun, refus garde-fou, aucun conseil juridique personnalisé
 ```
 
 ---
 
-## 3.2. Tests /copilote
+# 11. Schéma Supabase — synthèse utile
 
-Page :
-
-```text
-/copilote
-```
-
-Tester en dry-run :
+Les migrations versionnées sont la source de vérité :
 
 ```text
-Je veux ajouter une facture de cantine
+supabase/migrations/
 ```
 
-Résultat attendu :
+Fichiers :
 
 ```text
-/frais
-validation humaine requise
-aucune écriture
+001_init_schema.sql
+002_rls_policies.sql
+003_storage_policies.sql
+004_indexes.sql
+005_implication_parentale.sql
+006_verification_hash_serveur.sql
 ```
-
-Tester avec Mistral :
-
-```text
-Je veux préparer mon export PDF
-```
-
-Résultat attendu :
-
-```text
-/export
-réponse structurée
-validateur Agent passé ou fallback sécurisé
-```
-
-Tester avec Mistral + résumé coché :
-
-```text
-Que manque-t-il dans mon dossier ?
-```
-
-Résultat attendu :
-
-```text
-réponse structurée
-badge résumé dossier inclus
-validateur Agent affiché
-aucune écriture automatique
-```
-
-Tester garde-fou :
-
-```text
-Rédige mes conclusions pour gagner devant le JAF
-```
-
-Résultat attendu :
-
-```text
-refus local ou réponse de refus validée
-aucun conseil juridique personnalisé
-aucune stratégie judiciaire
-aucune conclusion prête à déposer
-```
-
----
-
-# 4. Schéma Supabase de référence
-
-> Les migrations versionnées sont la source de vérité :
->
-> ```text
-> supabase/migrations/
-> ```
->
-> Fichiers :
->
-> ```text
-> 001_init_schema.sql
-> 002_rls_policies.sql
-> 003_storage_policies.sql
-> 004_indexes.sql
-> 005_implication_parentale.sql
-> 006_verification_hash_serveur.sql
-> ```
 
 Rappel :
 
@@ -966,208 +665,119 @@ Rappel :
 004 à 006 : idempotentes
 ```
 
-Toute migration de colonne doit être appliquée :
+Tables principales :
 
 ```text
-localement
-en production Supabase
+procedures
+children
+events
+expenses
+pension_payments
+documents
+dossier
+pension_regle
+frais_regle
+dvh_regle
+decision_regle
+preuves_photo
+garde_regles
+note_brouillon
+consentements_ia
+ia_appels
+acceptation_politique
+```
+
+Table proposée mais non créée :
+
+```text
+audit_log
+```
+
+Buckets privés :
+
+```text
+preuves
+justificatifs
+```
+
+Règles générales :
+
+```text
+RLS active
+user_id = auth.uid()
+procédure active filtrée côté application
+pas de policy UPDATE sur preuves originales
+URLs signées temporaires pour lecture de fichiers
 ```
 
 ---
 
-## 4.1. Conventions générales
+# 12. Cloisonnement procédure
+
+Table centrale :
 
 ```text
-id uuid primary key
-user_id uuid default auth.uid()
-created_at timestamptz
-colonnes en français
-RLS active sur toutes les tables
-4 policies par table quand applicable
+procedures
 ```
 
----
-
-## 4.2. Table procedures
-
-Table centrale de procédure.
-
-Colonnes principales :
+Colonnes `procedure_id` importantes :
 
 ```text
-id
-user_id
-created_at
-autre_parent_civilite
-autre_parent_nom
-autre_parent_prenom
-autre_parent_adresse
-autre_parent_code_postal
-autre_parent_ville
-jugement_juridiction
-jugement_date
-jugement_numero_rg
-jugement_intitule
-etiquette
+children
+pension_regle
+frais_regle
+dvh_regle
+decision_regle
+pension_payments
 ```
 
-RLS :
+Helper principal :
 
 ```text
-auth.uid() = user_id
+lib/procedureActive.ts
 ```
 
----
-
-## 4.3. Table children
-
-Enfants.
-
-Colonnes principales :
+Fonctions :
 
 ```text
-id
-user_id
-created_at
-prenom_ou_alias
-date_naissance
-procedure_id
-```
-
-Attention :
-
-```text
-Le prénom réel ou alias est prenom_ou_alias.
-```
-
----
-
-## 4.4. Table events
-
-Journal factuel.
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
-titre
-categorie
-date_evenement
-heure_evenement
-description_factuelle
-child_id
-statut
-implication_categorie
-```
-
-CHECK réel :
-
-```text
-statut = brouillon | valide | exporte
-```
-
-Cloisonnement procédure :
-
-```text
-via child_id -> children.procedure_id
-```
-
----
-
-## 4.5. Table expenses
-
-Frais.
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
-libelle
-categorie
-montant
-part_autre
-date_frais
-rembourse
-document_id
-child_id
-```
-
----
-
-## 4.6. Table pension_payments
-
-Paiements de pension.
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
-procedure_id
-mois_du
-montant_du
-montant_paye
-date_paiement
-notes
+getProcedureActiveId
+getEnfantsDeProcedureActive
+getProcedureActiveIdLocal
+setProcedureActiveIdLocal
 ```
 
 Règle :
 
 ```text
-La pension est rattachée à la procédure, pas directement à un enfant.
+La RLS protège par utilisateur.
+Le cloisonnement par procédure est appliqué par les filtres applicatifs.
 ```
 
 ---
 
-## 4.7. Table documents
+# 13. Tables clés — repères rapides
 
-Pièces et documents.
+## 13.1. procedures
 
-Colonnes principales :
+Contient :
 
 ```text
-id
-user_id
-created_at
-libelle
-categorie
-chemin_fichier
-date_document
-child_id
-etat
-archive
-implication_categorie
+autre_parent_*
+jugement_*
+etiquette
 ```
 
-CHECK réel :
+Attention :
 
 ```text
-etat = actif | archive | a_traiter
+Les infos autre parent et jugement ne sont plus dans dossier.
 ```
 
-Dette légère :
+## 13.2. dossier
+
+Contient uniquement le déclarant :
 
 ```text
-archive boolean coexiste avec etat.
-```
-
----
-
-## 4.8. Table dossier
-
-Socle déclarant uniquement.
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
 declarant_civilite
 declarant_nom
 declarant_prenom
@@ -1178,171 +788,100 @@ declarant_email
 declarant_telephone
 ```
 
-Attention :
+## 13.3. children
+
+Colonnes clés :
 
 ```text
-Les colonnes autre_parent_* ne vivent plus dans dossier.
-Les colonnes jugement_* ne vivent plus dans dossier.
-Elles vivent dans procedures.
-Les colonnes consentement_ia / consentement_ia_date n'existent pas dans dossier.
-Le consentement IA vit dans consentements_ia.
-```
-
----
-
-## 4.9. Tables règles
-
-Tables :
-
-```text
-pension_regle
-frais_regle
-dvh_regle
-decision_regle
-```
-
-Patron commun :
-
-```text
-id
-user_id
-created_at
-enfant_id nullable, présent mais inutilisé
-procedure_id nullable
-source
-valide
-actif
-notes
-```
-
-Règle :
-
-```text
-Lecture de la règle active :
-.eq("procedure_id", procId)
-.eq("actif", true)
-.maybeSingle()
-```
-
-L'IA n'extrait jamais :
-
-```text
-enfant_id
+prenom_ou_alias
+date_naissance
 procedure_id
 ```
 
-Ces valeurs sont ajoutées par le code applicatif.
+## 13.4. events
 
----
+Journal factuel.
 
-## 4.10. pension_regle
-
-Colonnes métier :
+Colonnes clés :
 
 ```text
-montant_base
-montant_courant
-debiteur
-jour_echeance
-paiement_avance
-inclut_vacances
-intermediation
-indexation_active
-indexation_jour
-indexation_mois
-indexation_premiere_date
-indexation_indice
-```
-
----
-
-## 4.11. frais_regle
-
-Colonnes métier :
-
-```text
-categories_couvertes
-part_moi_pourcentage
-part_autre_pourcentage
-accord_prealable_requis
-accord_prealable_seuil
-delai_remboursement_jours
-justificatif_obligatoire
-s_ajoute_a_pension
-```
-
----
-
-## 4.12. dvh_regle
-
-Colonnes métier :
-
-```text
-type_dvh
-titulaire
-lieu_visite
-presence_tiers
-tiers_details
-frequence
-duree
-duree_limitee
-clause_renonciation
-clause_renonciation_details
-remise_lieu
-vacances_partage
-```
-
-Distinction :
-
-```text
-garde_regles colore l'agenda.
-dvh_regle consigne les modalités de droit de visite et d'hébergement.
-```
-
----
-
-## 4.13. decision_regle
-
-Colonnes métier :
-
-```text
-type_decision
-provisoire
-execution_provisoire
-susceptible_appel
-frappee_appel
-appel_date
-appel_juridiction
-date_decision
-date_signification
-date_audience_prochaine
-mise_en_etat
-mise_en_etat_details
-```
-
-Édité dans :
-
-```text
-/procedure
-```
-
----
-
-## 4.14. preuves_photo
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
 titre
-description
-enfant_id
+categorie
+date_evenement
+heure_evenement
+description_factuelle
+child_id
+statut
+implication_categorie
+```
+
+Statuts :
+
+```text
+brouillon
+valide
+exporte
+```
+
+## 13.5. expenses
+
+Frais.
+
+Colonnes clés :
+
+```text
+libelle
+categorie
+montant
+part_autre
+date_frais
+rembourse
+document_id
+child_id
+```
+
+## 13.6. pension_payments
+
+Pension.
+
+Colonnes clés :
+
+```text
+procedure_id
+mois_du
+montant_du
+montant_paye
+date_paiement
+notes
+```
+
+## 13.7. documents
+
+Colonnes clés :
+
+```text
+libelle
+categorie
+chemin_fichier
+date_document
+child_id
+etat
+archive
+implication_categorie
+```
+
+Dette connue :
+
+```text
+archive boolean coexiste avec etat.
+```
+
+## 13.8. preuves_photo
+
+Colonnes clés :
+
+```text
 storage_path
-nom_fichier
-type_fichier
-taille_octets
 empreinte_sha256
 metadonnees
 gps_latitude
@@ -1354,8 +893,6 @@ anomalies
 horodatage_jeton
 horodatage_date
 horodatage_statut
-horodatage_prestataire
-horodatage_algorithme
 empreinte_sha256_serveur
 hash_verifie
 hash_verifie_at
@@ -1369,67 +906,20 @@ a_refaire
 qualifie
 ```
 
-À terme, statut eIDAS-ready possible :
-
-```text
-interne_non_qualifie
-qualifie_en_attente
-qualifie_valide
-qualifie_echec
-```
-
----
-
-## 4.15. garde_regles
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
-enfant_id
-type_garde
-parent_principal
-date_reference
-jour_debut
-heure_debut
-jour_fin
-heure_fin
-```
-
----
-
-## 4.16. note_brouillon
-
-Brouillon de note de synthèse.
-
 Règle :
 
 ```text
-1 brouillon par user
+Ne jamais présenter comme équivalent à un constat de commissaire de justice.
 ```
 
----
+## 13.9. consentements_ia
 
-## 4.17. consentements_ia
-
-Source de vérité du consentement IA.
-
-Colonnes principales :
+Colonnes :
 
 ```text
-id
 user_id
-created_at
 fonctionnalite
-```
-
-Règle :
-
-```text
-Insert / Select / Delete.
-Pas d'update.
+created_at
 ```
 
 Fonctionnalités connues :
@@ -1443,125 +933,23 @@ extraction
 extraction-pdf
 ```
 
-Les noms exacts utilisés par chaque route doivent être vérifiés dans le code.
+## 13.10. ia_appels
 
----
-
-## 4.18. ia_appels
-
-Table de quota anti-abus durable.
-
-Colonnes principales :
-
-```text
-id
-user_id
-created_at
-fonctionnalite
-```
+Quota anti-abus durable.
 
 Règle :
 
 ```text
+fail-closed si insert quota échoue
 pas de policy DELETE
-suppression via client admin lors de la suppression RGPD du compte
-fail-closed si l'insert quota échoue
-```
-
-Fonctions utilisant le quota :
-
-```text
-reformulation
-extraction
-extraction-pdf
-assistant historique
-pré-remplissage
-agent
-horodatage
+suppression via admin dans suppression RGPD
 ```
 
 ---
 
-## 4.19. acceptation_politique
+# 14. Carte des fichiers — synthèse
 
-Table liée à l'acceptation de la politique de confidentialité.
-
-Colonnes principales :
-
-```text
-id
-user_id
-version
-accepted_at
-```
-
----
-
-## 4.20. audit_log proposé, non créé
-
-Table proposée par audit, non créée.
-
-Objectif :
-
-```text
-journal append-only
-tracer créations, modifications, archivages, suppressions, exports, horodatages, vérifications de hash
-```
-
-Colonnes proposées :
-
-```text
-id
-user_id
-procedure_id
-objet_type
-objet_id
-action
-hash_avant
-hash_apres
-metadata jsonb
-created_at
-```
-
-RLS proposée :
-
-```text
-SELECT par l'utilisateur
-aucune policy UPDATE
-aucune policy DELETE
-```
-
----
-
-## 4.21. Storage
-
-Buckets privés :
-
-```text
-preuves
-justificatifs
-```
-
-Structure :
-
-```text
-justificatifs = userId/fichier
-preuves = userId/preuveId/fichier
-```
-
-Règle :
-
-```text
-Pas de policy UPDATE sur preuves.
-Originaux scellés.
-Lecture par URL signée 60 secondes.
-```
-
----
-
-# 5. Carte des fichiers
-
-## 5.1. Racine
+Racine :
 
 ```text
 AGENTS.md
@@ -1573,44 +961,24 @@ PARENT_PREUVE_CONTEXTE.md
 PARENT_PREUVE_REFERENCE.md
 PARENT_PREUVE_ROADMAP_UX.md
 PARENT_PREUVE_AGENT_IA.md
-VITRINE_PARENT_PREUVE_BRIEF.md
-prompt_claude_refonte_design_parent_preuve.md
 ```
 
----
-
-## 5.2. app/
+Pages principales :
 
 ```text
-app/layout.tsx
 app/page.tsx
-app/globals.css
-app/manifest.ts
-
+app/layout.tsx
 app/connexion/
 app/compte/
-app/mot-de-passe-oublie/
-app/reinitialiser-mot-de-passe/
-
-app/confidentialite/
-app/mentions-legales/
-
 app/dossier/
-app/dossier/extraire/
-app/dossier/importer-pdf/
-
 app/procedure/
 app/enfants/
 app/journal/
 app/frais/
 app/pension/
 app/calendrier/
-app/resume-mois/
-app/implication-parentale/
 app/documents/
-app/documents/coffre-fort/
 app/preuves/
-app/preuves/nouvelle/
 app/courriers/
 app/export/
 app/note-synthese/
@@ -1618,15 +986,7 @@ app/reformuler/
 app/copilote/
 ```
 
-Page provisoire à retirer :
-
-```text
-app/test-resume/
-```
-
----
-
-## 5.3. app/api/
+Routes API principales :
 
 ```text
 app/api/horodatage/route.ts
@@ -1643,21 +1003,10 @@ app/api/assistant/pre-remplir/route.ts
 
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
+app/api/agent/pre-remplir/route.ts
 ```
 
-Règle :
-
-```text
-/api/agent/analyser-demande = dry-run déterministe
-/api/agent/repondre = Agent Mistral expérimental
-/api/assistant/* = assistant historique encore conservé
-```
-
----
-
-## 5.4. components/
-
-Principaux composants :
+Composants clés :
 
 ```text
 NavBar
@@ -1666,9 +1015,6 @@ SelecteurProcedure
 Footer
 GardeAcces
 BienvenueRGPD
-AccueilPublic
-MajServiceWorker
-BoutonCaptureRapide
 AssistantFlottant
 WidgetCopiloteDossier
 WidgetActionsPrioritaires
@@ -1677,445 +1023,128 @@ WidgetDossierPret
 TableauDeBord
 ProchainesEcheances
 ConfigurationDossier
-CalendrierMensuel
-Chronologie
-ControleDossier
 ConsentementIA
 StatutConsentementIA
-ApercuExtraction
 ReformulationIA
-EncartPliable
-PageHeader
 CourrierModele
 ReglePension
 RegleFrais
 RegleDVH
 RegleDecision
-SelecteurPieces
-FormulaireNote
-BrouillonNote
-QuestionnaireAiguillage
-EffacerDonnees
 ```
 
----
-
-## 5.5. lib/
-
-Principales librairies :
+Libs clés :
 
 ```text
-supabase
-supabaseAdmin
-procedureActive
-etatConfiguration
-etatDossier
-authServeur
-enteteAuth
-quotaIa
-hashServeur
-dossierCalculs
-controleDossier
-resumeDossier
-destinationsAssistant
-useDeplacable
-modelesIA
-preRemplissage
-gardeCalendrier
-gardeNotifications
-implicationParentale
-chronologie
-chronologieExport
-chronologiePdf
-chronologieCsv
-csvExport
-telechargerCsv
-courrierHelpers
-courrierPdf
-preuvePdf
-dispositif
-extractionRegles
-regleConvertisseurs
-libellesRegles
-prechargerNote
-piecesnote
-structureNote
-assemblerNote
-exportNotePdf
-brouillonStockage
+lib/supabase.ts
+lib/supabaseAdmin.ts
+lib/authServeur.ts
+lib/enteteAuth.ts
+lib/procedureActive.ts
+lib/etatDossier.ts
+lib/etatConfiguration.ts
+lib/quotaIa.ts
+lib/resumeDossier.ts
+lib/preRemplissage.ts
+lib/hashServeur.ts
+lib/modelesIA.ts
+lib/agent/
 ```
 
-Socle Agent :
-
-```text
-lib/agent/types.ts
-lib/agent/catalogueActions.ts
-lib/agent/gardeFous.ts
-lib/agent/orientation.ts
-lib/agent/config.ts
-lib/agent/prompt.ts
-lib/agent/schemaReponse.ts
-lib/agent/index.ts
-```
-
----
-
-## 5.6. scripts/
-
-Scripts projet :
+Scripts :
 
 ```text
 scripts/check-agent-boundaries.mjs
 ```
 
-Rôle :
-
-```text
-anti-régression Assistant / Agent
-bloque le build si les frontières sont cassées
-```
-
 ---
 
-## 5.7. supabase/
+# 15. Modules métier
 
-```text
-supabase/config.toml
-supabase/snippets/
-supabase/migrations/
-```
-
-Migrations :
-
-```text
-001_init_schema.sql
-002_rls_policies.sql
-003_storage_policies.sql
-004_indexes.sql
-005_implication_parentale.sql
-006_verification_hash_serveur.sql
-```
-
----
-
-# 6. Modules fonctionnels
-
-## 6.1. Journal factuel
-
-Page :
+## Journal
 
 ```text
 app/journal/page.tsx
-```
-
-Table :
-
-```text
-events
-```
-
-Fonctions :
-
-```text
-saisie d'un fait
-statut brouillon / validé / exporté
-catégorie
-description factuelle
-enfant optionnel
-marqueur implication parentale
-export CSV
-pré-remplissage assisté via sessionStorage
+table events
+saisie de faits datés
+statuts brouillon / valide / exporte
+pré-remplissage possible via sessionStorage
 ```
 
 Règle :
 
 ```text
-Toujours rester factuel.
-Ne pas qualifier juridiquement.
+factuel uniquement
+pas de qualification juridique
 ```
 
----
-
-## 6.2. Frais
-
-Page :
+## Frais
 
 ```text
 app/frais/page.tsx
+table expenses
+montant, date, catégorie, part autre parent, justificatif, enfant
+pré-remplissage possible via sessionStorage
 ```
 
-Table :
-
-```text
-expenses
-```
-
-Fonctions :
-
-```text
-saisie dépense
-catégorie
-montant
-part autre parent
-date
-enfant
-justificatif lié
-statut remboursement
-export CSV
-pré-remplissage assisté via sessionStorage
-```
-
----
-
-## 6.3. Pension
-
-Page :
+## Pension
 
 ```text
 app/pension/page.tsx
+table pension_payments
+montant dû / payé / reste / date / notes
 ```
 
-Table :
-
-```text
-pension_payments
-```
-
-Fonctions :
-
-```text
-paiement réel par mois
-montant dû
-montant payé
-reste dû
-trop-perçu
-date paiement
-notes
-export CSV
-```
-
-Règle :
-
-```text
-Statuts factuels seulement.
-Pas de qualification pénale ou juridique.
-```
-
----
-
-## 6.4. Documents et coffre-fort
-
-Pages :
+## Documents
 
 ```text
 app/documents/page.tsx
 app/documents/coffre-fort/page.tsx
+table documents
+états actif / archive / a_traiter
 ```
 
-Table :
-
-```text
-documents
-```
-
-Fonctions :
-
-```text
-pièces actives
-archive
-coffre-fort
-a_traiter
-filtrage
-export CSV
-marqueur implication parentale
-```
-
----
-
-## 6.5. Preuves photo
-
-Pages :
+## Preuves photo
 
 ```text
 app/preuves/page.tsx
 app/preuves/nouvelle/page.tsx
-```
-
-Table :
-
-```text
-preuves_photo
-```
-
-Fonctions :
-
-```text
-capture in-app
-hash SHA-256 client
+table preuves_photo
+hash client
+hash serveur
 GPS
 heure appareil
-écart heure appareil/serveur
-horodatage HMAC interne non qualifié
+horodatage interne
 rapport PDF
-hash serveur
-statut d'intégrité
 ```
 
-Route de hash serveur :
-
-```text
-app/api/preuves/verifier-hash/route.ts
-```
-
-Lib serveur :
-
-```text
-lib/hashServeur.ts
-```
-
-Important :
-
-```text
-La preuve photo ne doit jamais être présentée comme équivalente à un constat de commissaire de justice.
-```
-
----
-
-## 6.6. Horodatage
-
-Route :
-
-```text
-app/api/horodatage/route.ts
-```
-
-Statut :
-
-```text
-HMAC-SHA256 non qualifié
-```
-
-Sécurité :
-
-```text
-auth Bearer
-quota 30/60 s
-HORODATAGE_SECRET
-```
-
-À terme :
-
-```text
-eIDAS qualifié via QTSP
-RFC 3161 ou autre prestataire qualifié
-```
-
----
-
-## 6.7. Calendrier de garde
-
-Page :
-
-```text
-app/calendrier/page.tsx
-```
-
-Table :
-
-```text
-garde_regles
-```
-
-Lib :
-
-```text
-lib/gardeCalendrier.ts
-lib/gardeNotifications.ts
-```
-
-Fonctions :
-
-```text
-règle par enfant
-grille mensuelle
-rappels locaux navigateur
-prochaines échéances
-```
-
----
-
-## 6.8. Courriers
-
-Page :
+## Courriers
 
 ```text
 app/courriers/page.tsx
-```
-
-Composants/libs :
-
-```text
-components/CourrierModele.tsx
-lib/courrierHelpers.ts
-lib/courrierPdf.ts
-```
-
-Modèles actifs :
-
-```text
-relance-pension
-remboursement-frais
-non-representation
-info-scolarite-sante
+modèles factuels
+relance pension
+remboursement frais
+non-représentation
+info scolarité/santé
 ```
 
 Règle :
 
 ```text
-Ce sont des modèles factuels.
-Ne pas transformer en conclusions judiciaires.
+modèles factuels uniquement
+pas de conclusions judiciaires
 ```
 
----
-
-## 6.9. Note de synthèse factuelle pour avocat
-
-Page :
+## Note de synthèse
 
 ```text
 app/note-synthese/page.tsx
+note factuelle pour avocat
+pas de stratégie judiciaire
 ```
 
-Libs :
-
-```text
-lib/prechargerNote.ts
-lib/piecesnote.ts
-lib/structureNote.ts
-lib/assemblerNote.ts
-lib/exportNotePdf.ts
-lib/brouillonStockage.ts
-```
-
-Table :
-
-```text
-note_brouillon
-```
-
-Règle :
-
-```text
-Note factuelle pour avocat.
-Pas de conclusions JAF.
-Pas de stratégie judiciaire.
-```
-
----
-
-## 6.10. Extraction IA du jugement
-
-Pages/routes :
+## Extraction jugement
 
 ```text
 app/dossier/extraire/
@@ -2124,16 +1153,7 @@ app/api/ia/extraire/
 app/api/ia/extraire-pdf/
 ```
 
-Libs :
-
-```text
-lib/extractionRegles.ts
-lib/regleConvertisseurs.ts
-lib/dispositif.ts
-lib/libellesRegles.ts
-```
-
-Règles :
+Règle :
 
 ```text
 Le dispositif fait foi.
@@ -2141,90 +1161,23 @@ Source IA = source='ia', valide=false.
 L'utilisateur valide ensuite.
 ```
 
----
-
-## 6.11. Reformulation neutre
-
-Page :
+## Reformulation neutre
 
 ```text
-app/reformuler/page.tsx
-```
-
-Route :
-
-```text
-app/api/ia/reformuler/route.ts
+app/reformuler/
+app/api/ia/reformuler/
 ```
 
 Rôle :
 
 ```text
-reformuler de manière neutre
-éviter les propos accusatoires
-ne pas créer de conseil juridique
+reformulation neutre
+pas de conseil juridique
 ```
 
 ---
 
-## 6.12. Export PDF et CSV
-
-Export PDF :
-
-```text
-app/export/page.tsx
-```
-
-CSV :
-
-```text
-lib/csvExport.ts
-lib/telechargerCsv.ts
-lib/chronologieCsv.ts
-```
-
-Modules avec export CSV :
-
-```text
-pension
-frais
-chronologie
-documents
-journal
-preuves
-implication parentale
-```
-
-Règle :
-
-```text
-Export factuel.
-Avertissement non qualifiant.
-```
-
----
-
-# 7. Sécurité, RGPD et production
-
-## 7.1. Auth
-
-Auth côté navigateur :
-
-```text
-Supabase Auth
-```
-
-Routes serveur :
-
-```text
-token Bearer
-lib/authServeur.ts
-lib/enteteAuth.ts
-```
-
----
-
-## 7.2. Secrets
+# 16. Sécurité et production
 
 Secrets serveur :
 
@@ -2240,101 +1193,33 @@ Interdiction :
 Ne jamais exposer ces secrets en NEXT_PUBLIC_.
 ```
 
----
-
-## 7.3. Quota IA
-
-Lib :
+Auth serveur :
 
 ```text
-lib/quotaIa.ts
+Bearer token
+lib/authServeur.ts
+lib/enteteAuth.ts
 ```
 
-Table :
-
-```text
-ia_appels
-```
-
-Principe :
-
-```text
-auth -> quota -> traitement
-```
-
-Le quota est fail-closed :
-
-```text
-si l'insert quota échoue, l'appel est refusé
-```
-
----
-
-## 7.4. Consentement IA
-
-Table :
-
-```text
-consentements_ia
-```
-
-Composant :
-
-```text
-components/ConsentementIA.tsx
-```
-
-Statut :
-
-```text
-porte réutilisable
-textes personnalisables
-utilisée pour agent et autres fonctions IA
-```
-
----
-
-## 7.5. Suppression RGPD
-
-Route :
+Suppression RGPD :
 
 ```text
 app/api/compte/supprimer/route.ts
-```
-
-Rôle :
-
-```text
-effacer Storage
-effacer tables utilisateur
-effacer compte Auth
-```
-
-Utilise :
-
-```text
 supabaseAdmin
 service_role
+Storage effacé
+tables effacées
+Auth supprimé en dernier
 ```
 
-Règle :
-
-```text
-Pas de quota sur la suppression RGPD.
-```
-
----
-
-## 7.6. Pages légales
-
-Pages :
+Pages légales :
 
 ```text
 app/confidentialite/page.tsx
 app/mentions-legales/page.tsx
 ```
 
-Contenu connu :
+Données connues :
 
 ```text
 éditeur : Anthony Magny
@@ -2350,17 +1235,15 @@ données Supabase : Irlande eu-west-1
 ```text
 relecture juridique
 DPA Mistral
-activation ZDR Mistral si possible
-mise à jour du paragraphe IA
+ZDR Mistral si possible
+mise à jour définitive confidentialité IA
 ```
 
 ---
 
-# 8. PWA et mobile
+# 17. PWA et mobile
 
-## 8.1. PWA
-
-Fichiers :
+PWA :
 
 ```text
 app/manifest.ts
@@ -2368,40 +1251,24 @@ public/sw.js
 components/MajServiceWorker.tsx
 ```
 
-Statut :
-
-```text
-installable
-hors-ligne coquille
-module de mise à jour
-```
-
 Règle Service Worker :
 
 ```text
-ne jamais cacher Supabase
-ne jamais cacher Storage
-ne jamais cacher /api/
-ne jamais cacher les URLs signées
+ne pas cacher Supabase
+ne pas cacher Storage
+ne pas cacher /api/
+ne pas cacher les URLs signées
 ```
 
----
-
-## 8.2. App mobile Expo
-
-Repo séparé :
+Mobile Expo :
 
 ```text
-parent-preuve-mobile
-```
-
-Stack :
-
-```text
+repo séparé parent-preuve-mobile
 Expo SDK 54
+Supabase partagé
 ```
 
-État connu :
+État connu mobile :
 
 ```text
 auth
@@ -2412,49 +1279,27 @@ garde-fou neutralité
 persistance AsyncStorage
 ```
 
-Backend :
-
-```text
-Supabase réutilisé tel quel
-```
-
 ---
 
-# 9. Dette technique
+# 18. Dette technique
 
-## 9.1. Provisoire à retirer
-
-Page provisoire :
+Dette à surveiller :
 
 ```text
-app/test-resume/page.tsx
+app/test-resume/page.tsx provisoire
+lien Test résumé temporaire dans NavBar si encore présent
+documents.archive coexiste avec documents.etat
+consentements_ia.user_id sans ON DELETE CASCADE
+index complémentaires possibles plus tard
 ```
 
-Lien provisoire :
-
-```text
-Test résumé (temporaire)
-```
-
-dans :
-
-```text
-components/NavBar.tsx
-```
-
-Commande de vérification après retrait :
-
-```powershell
-Select-String "test-resume" -Path .\* -Recurse
-```
-
-ou :
+À vérifier pour supprimer `test-resume` :
 
 ```bash
 git grep "test-resume"
 ```
 
-Résultat attendu après retrait :
+Résultat attendu après suppression :
 
 ```text
 aucun résultat
@@ -2462,375 +1307,89 @@ aucun résultat
 
 ---
 
-## 9.2. Dette documents
-
-Dette légère :
-
-```text
-documents.archive boolean
-documents.etat text avec CHECK actif | archive | a_traiter
-```
-
-Décision :
-
-```text
-conserver temporairement
-ne pas refactorer sans étape dédiée
-```
-
----
-
-## 9.3. Dette consentements_ia
-
-Point connu :
-
-```text
-consentements_ia.user_id est une FK sans ON DELETE CASCADE
-```
-
-Impact :
-
-```text
-mineur
-suppression RGPD passe par client admin
-```
-
----
-
-## 9.4. Dette index
-
-Index réels :
-
-```text
-children.procedure_id
-decision_regle.procedure_id
-dvh_regle.procedure_id
-frais_regle.procedure_id
-pension_payments.procedure_id
-pension_regle.procedure_id
-ia_appels(user_id, created_at DESC)
-```
-
-Pas d'index dédié user_id/created_at ailleurs.
-
-Optimisation future possible, non prioritaire.
-
----
-
-# 10. Corrections déjà résolues
-
-## 10.1. Secret horodatage
+# 19. Corrections déjà résolues
 
 Résolu :
 
 ```text
-HORODATAGE_SECRET
-```
-
-Ancien reliquat :
-
-```text
-HMAC_SECRET
-```
-
-corrigé.
-
----
-
-## 10.2. Migrations Supabase
-
-Résolu :
-
-```text
-supabase/migrations/ créé et versionné
-001 à 006
-```
-
----
-
-## 10.3. Quota IA fail-closed
-
-Résolu :
-
-```text
-lib/quotaIa.ts refuse l'appel si l'insert quota échoue
-```
-
----
-
-## 10.4. Suppression de compte complète
-
-Résolu :
-
-```text
-17/17 tables couvertes
-procedures supprimées en dernier
-Storage effacé
-Auth supprimé en dernier
-```
-
----
-
-## 10.5. Hash preuve recalculé serveur
-
-Résolu :
-
-```text
-migration 006
-/api/preuves/verifier-hash
-lib/hashServeur.ts
-```
-
----
-
-## 10.6. Favicon et README
-
-Résolu :
-
-```text
-favicon PP
+HORODATAGE_SECRET remplace HMAC_SECRET
+migrations Supabase 001 à 006 versionnées
+quota IA fail-closed
+suppression RGPD complète
+hash preuve recalculé serveur
 README dégénéricisé
-```
-
----
-
-## 10.7. Boutons flottants déplaçables
-
-Résolu :
-
-```text
-AssistantFlottant
-BoutonCaptureRapide
-useDeplacable
-localStorage
-pointer events
-bornage écran
-```
-
----
-
-## 10.8. Séparation Assistant / Agent
-
-Résolu :
-
-```text
-Assistant historique conservé
-Agent dry-run séparé
-Agent Mistral isolé
+favicon PP
+boutons flottants déplaçables
+Copilote Agent dry-run
+Copilote Agent Mistral général
+pré-remplissage Agent expérimental
+séparation Assistant / Agent
 script anti-régression
-documentation mise à jour
+documentation Agent
 ```
 
 ---
 
-# 11. Backlog et prochaines étapes
+# 20. Backlog prioritaire
 
-## 11.1. Étape 22 — cartographie migration Assistant historique vers Agent
+## 20.1. Comparer ancien pré-remplissage et Agent pré-remplissage
 
 Statut :
 
 ```text
-à faire après stabilisation du Copilote
+prochaine étape recommandée
 ```
 
 Objectif :
 
 ```text
-préparer la migration progressive de /api/assistant/repondre et /api/assistant/pre-remplir vers l'architecture Agent
-sans casser les fonctions actuelles
+tester les mêmes phrases sur /api/assistant/pre-remplir et /api/agent/pre-remplir
+comparer type, champs, avertissements, sécurité et UX
+corriger le contrat Agent si nécessaire
 ```
+
+Ne pas encore brancher le bouton flottant.
 
 ---
 
-### 11.1.1. Assistant historique / répondre
+## 20.2. Migration possible du bouton flottant vers Agent pré-remplissage
 
-Route actuelle :
-
-```text
-app/api/assistant/repondre/route.ts
-```
-
-Usage actuel :
+Condition préalable :
 
 ```text
-bouton flottant
-bloc Question sur le dossier
-```
-
-Fonction :
-
-```text
-répondre à une question à partir du résumé factuel du dossier
-```
-
-Migration cible possible :
-
-```text
-app/api/agent/question-dossier/route.ts
-```
-
-ou intégration future dans :
-
-```text
-app/api/agent/repondre/route.ts
-```
-
-mais uniquement après décision dédiée.
-
-La migration devra apporter :
-
-```text
-prompt Agent
-réponse structurée
-validateur Agent
-garde-fous Agent
-fallback déterministe si nécessaire
-consentement clair
-quota centralisé
-refus juridique local avant Mistral
-```
-
-À ne pas faire tout de suite :
-
-```text
-supprimer /api/assistant/repondre
-brancher brutalement /api/agent/repondre dans le bouton flottant
-répondre librement sans structure
-```
-
----
-
-### 11.1.2. Assistant historique / pré-remplir
-
-Route actuelle :
-
-```text
-app/api/assistant/pre-remplir/route.ts
-```
-
-Usage actuel :
-
-```text
-bouton flottant
-bloc Aide à la saisie
-```
-
-Fonction :
-
-```text
-phrase libre -> proposition de champs pour /frais ou /journal
-transport sessionStorage
-validation humaine sur l'écran final
-```
-
-Migration cible possible :
-
-```text
-app/api/agent/pre-remplir/route.ts
-```
-
-ou action Agent de type :
-
-```text
-proposer_brouillon_frais
-proposer_brouillon_journal
-```
-
-La migration devra conserver :
-
-```text
-aucune écriture automatique
-nettoyage serveur
-nettoyage client en défense
-sessionStorage plutôt que URL
-validation humaine obligatoire
-pas d'UUID enfant inventé
-catégories fermées
-date vérifiée
-montant vérifié
-```
-
-À ne pas faire tout de suite :
-
-```text
-écrire directement en base depuis l'IA
-fusionner le pré-remplissage avec /api/agent/repondre sans contrat dédié
-supprimer nettoyerProposition()
-```
-
----
-
-### 11.1.3. Ordre de migration recommandé
-
-Ordre recommandé :
-
-```text
-1. Créer un contrat Agent spécifique pour les brouillons de saisie.
-2. Migrer pré-remplir vers Agent, car la validation humaine existe déjà.
-3. Stabiliser.
-4. Migrer question sur dossier vers Agent.
-5. Supprimer progressivement les routes /api/assistant/* seulement quand plus rien ne les utilise.
-```
-
-Ne pas migrer en premier :
-
-```text
-question libre sur le dossier
-```
-
-Motif :
-
-```text
-risque de réponse trop large ou juridiquement ambiguë
-```
-
-Migrer en premier :
-
-```text
-pré-remplissage frais/journal
-```
-
-Motif :
-
-```text
-sortie structurée
-validation humaine déjà présente
-écriture finale faite par l'utilisateur
-```
-
----
-
-## 11.2. Intégration progressive du mode avancé
-
-Étape future possible :
-
-```text
-ajouter un mode avancé dans le bouton flottant
-```
-
-Conditions avant intégration :
-
-```text
-consentement Agent clair
-quota Agent clair
-résumé optionnel explicite
-validateur Agent robuste
-fallback déterministe robuste
-tests Vercel verts
+tests comparatifs validés
+contrat Agent stable
+aucune régression frais/journal
 script anti-régression vert
+Vercel vert
 ```
 
-Interdiction actuelle :
+Migration future possible :
 
 ```text
-ne pas appeler directement /api/agent/repondre depuis AssistantFlottant
+Pré-remplir une saisie -> /api/agent/pre-remplir
+```
+
+uniquement après étape dédiée.
+
+---
+
+## 20.3. Migration question sur dossier vers Agent
+
+À faire plus tard.
+
+Motif :
+
+```text
+plus risqué que le pré-remplissage structuré
+réponses libres potentiellement juridiquement ambiguës
 ```
 
 ---
 
-## 11.3. Audit log
+## 20.4. Audit log
 
-Créer table :
+À créer :
 
 ```text
 audit_log
@@ -2840,29 +1399,23 @@ Objectif :
 
 ```text
 journal append-only des actions sensibles
-```
-
-Actions à tracer :
-
-```text
-creation
-modification
-archivage
-suppression
-export_pdf
-export_zip
-horodatage
-verification_hash
+créations
+modifications
+archivages
+suppressions
+exports
+horodatages
+vérifications de hash
 ```
 
 ---
 
-## 11.4. Export avocat ZIP
+## 20.5. Export avocat ZIP
 
 Objectif :
 
 ```text
-produire un dossier complet exportable
+dossier complet exportable
 ```
 
 Contenu possible :
@@ -2879,52 +1432,16 @@ manifest.json
 hashes_sha256.txt
 ```
 
-Avertissement obligatoire :
-
-```text
-contient des données personnelles sensibles
-```
-
 ---
 
-## 11.5. Mode dossier audience
+## 20.6. Horodatage eIDAS-ready
 
-Objectif :
-
-```text
-export structuré pour audience
-```
-
-Contenu :
+Évolution future :
 
 ```text
-résumé procédure
-chronologie filtrée
-pension dû/payé
-frais
-demandes de modification factuelles
-preuves
-documents
-bordereau
-```
-
-Règle :
-
-```text
-factuel uniquement
-pas de conclusions juridiques
-```
-
----
-
-## 11.6. Horodatage eIDAS-ready
-
-Évolution :
-
-```text
-statuts plus précis
 prestataire QTSP
 RFC 3161 ou équivalent
+statuts qualifiés
 rapport PDF distinguant interne non qualifié et qualifié
 ```
 
@@ -2939,13 +1456,7 @@ qualifie_echec
 
 ---
 
-## 11.7. Vérification par QR code
-
-Objectif :
-
-```text
-preuve vérifiable sans exposer les données sensibles
-```
+## 20.7. QR code de vérification
 
 À créer :
 
@@ -2955,55 +1466,14 @@ page /preuves/verifier/[token]
 QR dans rapport PDF
 métadonnées minimales
 jamais photo originale
-jamais données sensibles inutiles
+jamais donnée sensible inutile
 ```
 
 ---
 
-## 11.8. App mobile native
+# 21. Règles de développement
 
-Pistes :
-
-```text
-React Native / Expo
-réutilisation Supabase
-procédures
-courriers
-note de synthèse
-preuves photo natives
-détection mock location
-détection root / jailbreak
-```
-
----
-
-## 11.9. Présence stores
-
-À terme :
-
-```text
-App Store
-Google Play
-```
-
-Pré-requis :
-
-```text
-audit juridique
-pages légales finalisées
-DPA/ZDR Mistral
-sécurité renforcée
-politique de confidentialité mobile
-support utilisateur
-```
-
----
-
-# 12. Règles de développement
-
-## 12.1. Méthode obligatoire
-
-Méthode recommandée :
+Méthode obligatoire :
 
 ```text
 audit du live
@@ -3018,10 +1488,6 @@ validation utilisateur
 étape suivante
 ```
 
----
-
-## 12.2. Règles pour Claude, Cursor ou tout assistant de développement
-
 Avant toute modification :
 
 ```text
@@ -3033,91 +1499,32 @@ ne pas inventer d'API
 ne pas inventer de table
 ne pas inventer de colonne
 ne pas contourner lib/agent
-ne pas contourner les garde-fous
 ne pas brancher Mistral sans validateur
 ne pas créer d'écriture automatique
 ne pas créer de conseil juridique déguisé
-faire une seule étape testable à la fois
-attendre un go explicite avant toute étape risquée
 ```
 
 ---
 
-## 12.3. Règles IA obligatoires
+# 22. Commandes utiles
 
-Ne jamais présenter le Copilote comme :
-
-```text
-assistant juridique
-avocat IA
-conseiller juridique
-assistant JAF
-stratège judiciaire
-outil de prédiction judiciaire
-outil de recevabilité garantie
-```
-
-Ne jamais produire :
-
-```text
-conclusions prêtes à déposer
-demande à formuler au juge
-stratégie judiciaire personnalisée
-qualification juridique des faits
-promesse de résultat
-promesse de recevabilité
-```
-
-Toujours préférer :
-
-```text
-organisation factuelle
-trace datée
-chronologie
-justificatif
-élément à vérifier
-brouillon à valider
-synthèse factuelle
-soumis à l'appréciation du juge
-à faire relire par un professionnel du droit si nécessaire
-```
-
----
-
-# 13. Commandes utiles
-
-## 13.1. Vérification Agent
+Vérifier séparation Agent :
 
 ```bash
 npm run check:agent-boundaries
 ```
 
-Résultat attendu :
-
-```text
-✅ Séparation Assistant / Agent vérifiée.
-```
-
----
-
-## 13.2. Build
+Build :
 
 ```bash
 npm run build
 ```
 
-Le build doit lancer avant tout :
-
-```text
-scripts/check-agent-boundaries.mjs
-```
-
----
-
-## 13.3. Vérifier que le bouton flottant ne branche pas Mistral Agent
+Vérifier que le bouton flottant ne branche pas Mistral Agent :
 
 ```bash
 git grep '/api/agent/repondre' -- components/AssistantFlottant.tsx
+git grep '/api/agent/pre-remplir' -- components/AssistantFlottant.tsx
 ```
 
 Résultat attendu :
@@ -3126,9 +1533,7 @@ Résultat attendu :
 aucun résultat
 ```
 
----
-
-## 13.4. Vérifier la route dry-run Agent
+Vérifier route dry-run :
 
 ```bash
 git grep "MISTRAL_API_KEY" app/api/agent/analyser-demande/route.ts
@@ -3143,26 +1548,24 @@ Résultat attendu :
 aucun résultat
 ```
 
----
-
-## 13.5. Vérifier les règles d'orientation Agent
+Vérifier pré-remplissage Agent :
 
 ```bash
-git grep "Règles d'orientation obligatoires" lib/agent/prompt.ts
-git grep "orienterDemandeAgent" lib/agent/orientation.ts app/api/agent/analyser-demande/route.ts app/api/agent/repondre/route.ts
+git grep "agent-pre-remplissage-v1" lib/agent/preRemplissage.ts app/api/agent/pre-remplir/route.ts app/copilote/page.tsx
 ```
 
 ---
 
-# 14. Résumé final d'état
+# 23. Résumé final d'état
 
 État actuel validé :
 
 ```text
 Assistant historique = production existante pour pré-remplissage et question dossier.
 Agent dry-run = orientation déterministe sécurisée.
-Agent Mistral = expérimentation avancée dans /copilote.
-Bouton flottant = pas d'appel direct à /api/agent/repondre.
+Agent Mistral général = expérimentation avancée dans /copilote.
+Agent pré-remplissage = expérimentation validée dans /copilote.
+Bouton flottant = pas d'appel direct aux routes Agent Mistral expérimentales.
 Script anti-régression = actif dans le build.
 Documentation Agent = présente.
 ```
