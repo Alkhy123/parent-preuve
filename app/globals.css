@@ -51,8 +51,10 @@ h1, h2 {
 }
 
 .carte {
-  box-shadow: 0 3px 10px rgba(21, 35, 63, 0.24),
-              0 10px 40px -2px rgba(21, 35, 63, 0.48);
+  /* Ombre légère : une seule élévation douce, pour calmer la densité visuelle
+     (avant : double ombre lourde). */
+  box-shadow: 0 1px 3px rgba(21, 35, 63, 0.08),
+              0 6px 16px -6px rgba(21, 35, 63, 0.16);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -65,4 +67,111 @@ h1, h2 {
 }
 .lien-pied:hover {
   color: var(--or);
+}
+
+/* ------------------------------------------------------------------ */
+/* Boutons — vocabulaire commun, adoption progressive page par page.  */
+/* L'or reste réservé à l'accent fort d'un écran : aucun bouton n'est  */
+/* en or par défaut.                                                   */
+/* ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  min-height: 2.5rem; /* confort tap mobile */
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--or);
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Action principale : une seule par écran. */
+.btn-primaire {
+  background-color: var(--navy);
+  color: var(--surface);
+}
+.btn-primaire:hover:not(:disabled) {
+  background-color: #0f1a2e;
+}
+
+/* Action secondaire : présente mais moins forte. */
+.btn-secondaire {
+  background-color: #fff;
+  color: var(--navy);
+  border-color: rgba(21, 35, 63, 0.25);
+}
+.btn-secondaire:hover:not(:disabled) {
+  background-color: var(--surface);
+}
+
+/* Action discrète : la moins visible. */
+.btn-discret {
+  background-color: transparent;
+  color: var(--texte-doux);
+}
+.btn-discret:hover:not(:disabled) {
+  color: var(--navy);
+  background-color: rgba(21, 35, 63, 0.05);
+}
+
+/* Action dangereuse : séparée visuellement, jamais en accent or. */
+.btn-danger {
+  background-color: var(--rouge);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: #822525;
+}
+
+/* ------------------------------------------------------------------ */
+/* Badges — statuts harmonisés (couleurs sémantiques de la palette).  */
+/* ------------------------------------------------------------------ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+.badge-succes {
+  border-color: rgba(46, 106, 77, 0.3);
+  background-color: rgba(46, 106, 77, 0.08);
+  color: var(--vert);
+}
+.badge-attention {
+  border-color: rgba(138, 90, 18, 0.3);
+  background-color: rgba(138, 90, 18, 0.08);
+  color: var(--amber);
+}
+.badge-erreur {
+  border-color: rgba(155, 44, 44, 0.3);
+  background-color: rgba(155, 44, 44, 0.08);
+  color: var(--rouge);
+}
+.badge-info {
+  border-color: rgba(21, 35, 63, 0.2);
+  background-color: rgba(21, 35, 63, 0.05);
+  color: var(--navy);
+}
+.badge-neutre {
+  border-color: rgba(90, 100, 115, 0.25);
+  background-color: rgba(90, 100, 115, 0.08);
+  color: var(--texte-doux);
 }
