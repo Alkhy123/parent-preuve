@@ -35,6 +35,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import ConsentementIA from "@/components/ConsentementIA";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { chargerResumeDossier, formaterResumeTexte } from "@/lib/resumeDossier";
@@ -592,35 +593,44 @@ export default function AssistantFlottant() {
               Cette aide utilise le pré-remplissage Agent pour proposer des champs structurés à vérifier. Rien n’est ajouté au dossier tant que vous ne validez pas vous-même sur l’écran concerné.
               </p>
 
-              <textarea
-                value={saisie}
-                onChange={(event) => setSaisie(event.target.value)}
-                placeholder="Ex. : payé 45 € de cantine pour Léa le 12 mars"
-                rows={2}
-                maxLength={500}
-                className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm leading-5 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
-              />
-
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={preRemplir}
-                  disabled={enCoursPre || saisie.trim() === ""}
-                  className="rounded-lg bg-[#15233F] px-3 py-2 text-sm font-medium text-[#F8F6F1] transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+              <div className="mt-3">
+                <ConsentementIA
+                  fonctionnalite="agent"
+                  titre="Avant de pré-remplir une saisie avec l’IA"
+                  descriptionTransmission="Le pré-remplissage peut envoyer à Mistral la phrase que vous saisissez. Aucune pièce jointe, photo ou document original n’est envoyé."
+                  descriptionResponsabilite="Le pré-remplissage ne crée aucune donnée dans votre dossier. Il propose uniquement des champs à vérifier. La validation humaine reste obligatoire."
                 >
-                  {enCoursPre ? "Préparation…" : "Pré-remplir"}
-                </button>
+                  <textarea
+                    value={saisie}
+                    onChange={(event) => setSaisie(event.target.value)}
+                    placeholder="Ex. : payé 45 € de cantine pour Léa le 12 mars"
+                    rows={2}
+                    maxLength={500}
+                    className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm leading-5 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+                  />
 
-                <span className="text-[11px] text-slate-500">
-                  Validation obligatoire
-                </span>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={preRemplir}
+                      disabled={enCoursPre || saisie.trim() === ""}
+                      className="rounded-lg bg-[#15233F] px-3 py-2 text-sm font-medium text-[#F8F6F1] transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {enCoursPre ? "Préparation…" : "Pré-remplir"}
+                    </button>
+
+                    <span className="text-[11px] text-slate-500">
+                      Validation obligatoire
+                    </span>
+                  </div>
+
+                  {erreurPre && (
+                    <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-[#9B2C2C]">
+                      {erreurPre}
+                    </p>
+                  )}
+                </ConsentementIA>
               </div>
-
-              {erreurPre && (
-                <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-[#9B2C2C]">
-                  {erreurPre}
-                </p>
-              )}
             </section>
 
             <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
@@ -643,69 +653,82 @@ export default function AssistantFlottant() {
                 juridique. Le copilote propose, vous vérifiez, vous validez.
               </p>
 
-              <textarea
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="Ex. : où en est ma pension ?"
-                rows={2}
-                className="mt-3 w-full rounded-lg border border-slate-300 p-2 text-sm leading-5 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
-              />
+              <div className="mt-3">
+                <ConsentementIA
+                  fonctionnalite="agent"
+                  titre="Avant de poser une question sur le dossier"
+                  descriptionTransmission="La question peut envoyer à Mistral votre question et un résumé factuel limité de votre dossier. Aucune pièce jointe, photo, document original ou donnée de santé n’est envoyé."
+                  descriptionResponsabilite="La question dossier répond uniquement à partir du résumé factuel. Elle ne fournit aucun conseil juridique et ne déclenche aucune action automatique."
+                >
+                  <textarea
+                    value={question}
+                    onChange={(event) => setQuestion(event.target.value)}
+                    placeholder="Ex. : où en est ma pension ?"
+                    rows={2}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm leading-5 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+                  />
 
-              <button
-                type="button"
-                onClick={poser}
-                disabled={enCours || question.trim() === "" || !resumePret}
-                className="mt-2 rounded-lg bg-[#15233F] px-3 py-2 text-sm font-medium text-[#F8F6F1] transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {enCours ? "Recherche…" : resumePret ? "Demander" : "Chargement…"}
-              </button>
+                  <button
+                    type="button"
+                    onClick={poser}
+                    disabled={enCours || question.trim() === "" || !resumePret}
+                    className="mt-2 rounded-lg bg-[#15233F] px-3 py-2 text-sm font-medium text-[#F8F6F1] transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {enCours
+                      ? "Recherche…"
+                      : resumePret
+                        ? "Demander"
+                        : "Chargement…"}
+                  </button>
 
-              {erreurQuestion && (
-                <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-[#9B2C2C]">
-                  {erreurQuestion}
-                </p>
-              )}
-
-              {reponseQuestion && (
-                <div className="mt-2 space-y-3 rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-3 text-sm leading-5 text-[#5A6473]">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
-                      Réponse du copilote
+                  {erreurQuestion && (
+                    <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-[#9B2C2C]">
+                      {erreurQuestion}
                     </p>
-                    <p className="mt-1 whitespace-pre-wrap">
-                      {reponseQuestion.reponse}
-                    </p>
-                  </div>
+                  )}
 
-                  {reponseQuestion.pointsAppui &&
-                    reponseQuestion.pointsAppui.length > 0 && (
+                  {reponseQuestion && (
+                    <div className="mt-2 space-y-3 rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-3 text-sm leading-5 text-[#5A6473]">
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
-                          Points d’appui factuels
+                          Réponse du copilote
                         </p>
-                        <ul className="mt-1 list-disc space-y-1 pl-5">
-                          {reponseQuestion.pointsAppui.map((item, index) => (
-                            <li key={`appui-${index}`}>{item}</li>
-                          ))}
-                        </ul>
+                        <p className="mt-1 whitespace-pre-wrap">
+                          {reponseQuestion.reponse}
+                        </p>
                       </div>
-                    )}
 
-                  {reponseQuestion.limites &&
-                    reponseQuestion.limites.length > 0 && (
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
-                          Limites
-                        </p>
-                        <ul className="mt-1 list-disc space-y-1 pl-5">
-                          {reponseQuestion.limites.map((item, index) => (
-                            <li key={`limite-${index}`}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                </div>
-              )}
+                      {reponseQuestion.pointsAppui &&
+                        reponseQuestion.pointsAppui.length > 0 && (
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                              Points d’appui factuels
+                            </p>
+                            <ul className="mt-1 list-disc space-y-1 pl-5">
+                              {reponseQuestion.pointsAppui.map((item, index) => (
+                                <li key={`appui-${index}`}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {reponseQuestion.limites &&
+                        reponseQuestion.limites.length > 0 && (
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                              Limites
+                            </p>
+                            <ul className="mt-1 list-disc space-y-1 pl-5">
+                              {reponseQuestion.limites.map((item, index) => (
+                                <li key={`limite-${index}`}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </ConsentementIA>
+              </div>
             </section>
 
             <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
