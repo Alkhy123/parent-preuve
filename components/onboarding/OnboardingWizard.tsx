@@ -24,7 +24,7 @@ import {
   terminerProgression,
   type Progression,
 } from "@/lib/onboarding/progression";
-import PiedEtape, { type EtapeProps } from "@/components/onboarding/PiedEtape";
+import { type EtapeProps } from "@/components/onboarding/PiedEtape";
 import EtapeVosInformations from "@/components/onboarding/EtapeVosInformations";
 import EtapeProcedure from "@/components/onboarding/EtapeProcedure";
 import EtapeAutreParent from "@/components/onboarding/EtapeAutreParent";
@@ -32,31 +32,7 @@ import EtapeEnfants from "@/components/onboarding/EtapeEnfants";
 import EtapeJugement from "@/components/onboarding/EtapeJugement";
 import EtapeValidationRegles from "@/components/onboarding/EtapeValidationRegles";
 import EtapeCalendrier from "@/components/onboarding/EtapeCalendrier";
-
-// Placeholder pour les etapes pas encore implementees (sous-blocs 3b/3c).
-function EtapeAVenir({
-  onContinuer,
-  onPrecedent,
-  estPremiere,
-  estDerniere,
-}: EtapeProps) {
-  return (
-    <div>
-      <div className="rounded-md border border-[#C2A24C]/40 bg-[#F8F6F1] px-4 py-3 text-sm text-texte">
-        Cette étape sera disponible très prochainement. Vous pouvez continuer : vos
-        informations déjà saisies sont enregistrées.
-      </div>
-      <PiedEtape
-        onPrecedent={onPrecedent}
-        estPremiere={estPremiere}
-        onContinuer={onContinuer}
-        libelleContinuer={
-          estDerniere ? "Accéder à mon tableau de bord" : "Continuer"
-        }
-      />
-    </div>
-  );
-}
+import EtapeResumeFinal from "@/components/onboarding/EtapeResumeFinal";
 
 export default function OnboardingWizard() {
   const router = useRouter();
@@ -112,8 +88,10 @@ export default function OnboardingWizard() {
         return <EtapeValidationRegles {...propsEtape} />;
       case "calendrier":
         return <EtapeCalendrier {...propsEtape} />;
+      case "resume":
+        return <EtapeResumeFinal {...propsEtape} />;
       default:
-        return <EtapeAVenir {...propsEtape} />;
+        return null;
     }
   }
 
