@@ -282,12 +282,29 @@ export default function AssistantFlottant() {
         setErreurPre(data.erreur ?? "Erreur inconnue.");
         return;
       }
-
+      const reponseAgent = data.reponse;
       const proposition = data.reponse?.proposition;
 
-      if (!proposition || proposition.type === "aucun") {
+      if (reponseAgent?.gardeFous?.conseilJuridiqueRefuse) {
         setErreurPre(
-          "Aucune saisie reconnue. Reformulez en précisant une dépense avec un montant, ou un fait à noter."
+          reponseAgent.messages?.join(" ") ||
+            "Le copilote ne peut pas traiter une demande de conseil juridique personnalisé ou de stratégie judiciaire."
+        );
+        return;
+      }
+
+      if (!proposition || proposition.type === "aucun") {
+        const messageAgent =
+          reponseAgent?.messages?.find(
+            (message: string) => message.trim() !== ""
+          ) ||
+          proposition?.avertissements?.find(
+            (avertissement: string) => avertissement.trim() !== ""
+          );
+
+        setErreurPre(
+          messageAgent ||
+            "Aucune saisie reconnue. Reformulez en précisant une dépense avec un montant, ou un fait à noter."
         );
         return;
       }
@@ -295,7 +312,9 @@ export default function AssistantFlottant() {
       const dest = DESTINATIONS.find((d) => d.cle === proposition.type);
 
       if (!dest) {
-        setErreurPre("Type de saisie non pris en charge.");
+        setErreurPre(
+          "Aucune page ne correspond à cette proposition. Reformulez votre saisie."
+        );
         return;
       }
 
