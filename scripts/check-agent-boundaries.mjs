@@ -18,6 +18,7 @@ const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fichiers = {
   agentDryRun: "app/api/agent/analyser-demande/route.ts",
   agentMistral: "app/api/agent/repondre/route.ts",
+  agentPreRemplir: "app/api/agent/pre-remplir/route.ts",
   assistantRepondre: "app/api/assistant/repondre/route.ts",
   assistantPreRemplir: "app/api/assistant/pre-remplir/route.ts",
   assistantFlottant: "components/AssistantFlottant.tsx",
@@ -106,6 +107,20 @@ verifierPresences(
 );
 
 verifierPresences(
+  fichiers.agentPreRemplir,
+  [
+    "Agent Parent Preuve — pré-remplissage expérimental",
+    "ENDPOINT_MISTRAL_CHAT_COMPLETIONS",
+    "verifierQuotaIa",
+    "MISTRAL_API_KEY",
+    "construireConsignePreRemplissageAgent",
+    "parserEtValiderReponsePreRemplissageAgent",
+    "aucune écriture métier en base",
+  ],
+  "la route /api/agent/pre-remplir doit rester une route expérimentale structurée et non branchée"
+);
+
+verifierPresences(
   fichiers.assistantRepondre,
   ["app/api/assistant/repondre/route.ts", "verifierQuotaIa", "MISTRAL_API_KEY"],
   "l'assistant historique de question/réponse reste séparé"
@@ -134,8 +149,8 @@ verifierPresences(
 
 verifierAbsences(
   fichiers.assistantFlottant,
-  ['fetch("/api/agent/repondre"'],
-  "le bouton flottant ne doit pas appeler directement la route Mistral Agent"
+  ['fetch("/api/agent/repondre"', 'fetch("/api/agent/pre-remplir"'],
+  "le bouton flottant ne doit pas appeler directement les routes Mistral Agent expérimentales"
 );
 
 if (erreurs.length > 0) {
@@ -146,7 +161,7 @@ if (erreurs.length > 0) {
   }
 
   console.error(
-    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, /api/agent/repondre doit rester la seule route Agent Mistral, et /api/assistant/* doit rester l'ancienne génération tant qu'elle est utilisée.\n"
+    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, les routes Agent Mistral doivent rester isolées, et /api/assistant/* doit rester l'ancienne génération tant qu'elle est utilisée.\n"
   );
 
   process.exit(1);
