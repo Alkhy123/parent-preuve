@@ -132,12 +132,16 @@ verifierPresences(
 verifierPresences(
   fichiers.assistantPreRemplir,
   [
+    "DEPRECIEE — ancienne route Assistant de pré-remplissage",
     "app/api/assistant/pre-remplir/route.ts",
+    "app/api/agent/pre-remplir/route.ts",
+    "X-Parent-Preuve-Deprecated",
+    "X-Parent-Preuve-Replaced-By",
     "verifierQuotaIa",
     "nettoyerProposition",
     "MISTRAL_API_KEY",
   ],
-  "l'ancienne route assistant de pré-remplissage reste présente temporairement"
+  "l'ancienne route assistant de pré-remplissage reste présente temporairement mais doit être explicitement dépréciée"
 );
 
 verifierPresences(
