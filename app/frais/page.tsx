@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
+import FormMessage from "@/components/ui/FormMessage";
+import EmptyState from "@/components/ui/EmptyState";
+import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { euros } from "@/lib/dossierCalculs";
 import RegleFrais from '@/components/RegleFrais';
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
@@ -52,6 +55,7 @@ export default function FraisPage() {
   const [childId, setChildId] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
@@ -149,6 +153,7 @@ export default function FraisPage() {
 
   async function ajouterFrais() {
     setMessage("");
+    setConfirmation("");
     if (!libelle.trim()) return setMessage("Le libellé est obligatoire.");
     if (!dateFrais) return setMessage("La date est obligatoire.");
     const montantNum = parseFloat(montant.replace(",", "."));
@@ -176,6 +181,9 @@ export default function FraisPage() {
       setPartAutre(""); setDateFrais(""); setChildId(""); setDocumentId("");
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+      setConfirmation(
+        "Frais ajouté. Vous pouvez lui lier un justificatif depuis la liste ci-dessous si besoin."
+      );
       setSignalAjout((n) => n + 1);
       chargerFrais();
     }
@@ -339,7 +347,9 @@ export default function FraisPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Libellé</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Libellé <span className="text-[#9B2C2C]">*</span>
+            </label>
             <input
               type="text" placeholder="Ex : Consultation orthodontiste"
               value={libelle} onChange={(e) => setLibelle(e.target.value)}
@@ -349,31 +359,9 @@ export default function FraisPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-              <select
-                value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
-              <select
-                value={childId} onChange={(e) => setChildId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Aucun —</option>
-                {enfants.map((e) => (
-                  <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Montant total (€)</label>
+              <label className="block text-sm font-medium text-slate-700">
+                Montant total (€) <span className="text-[#9B2C2C]">*</span>
+              </label>
               <input
                 type="text" inputMode="decimal" placeholder="80"
                 value={montant} onChange={(e) => setMontant(e.target.value)}
@@ -381,15 +369,9 @@ export default function FraisPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Part de l&apos;autre (€)</label>
-              <input
-                type="text" inputMode="decimal" placeholder="auto : moitié"
-                value={partAutre} onChange={(e) => setPartAutre(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Date</label>
+              <label className="block text-sm font-medium text-slate-700">
+                Date <span className="text-[#9B2C2C]">*</span>
+              </label>
               <input
                 type="date" value={dateFrais}
                 onChange={(e) => setDateFrais(e.target.value)}
@@ -399,22 +381,63 @@ export default function FraisPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700">Justificatif (facultatif)</label>
+            <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
             <select
-              value={documentId} onChange={(e) => setDocumentId(e.target.value)}
+              value={childId} onChange={(e) => setChildId(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="">— Aucun —</option>
-              {documentsProcedure.map((d) => (
-                <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+              {enfants.map((e) => (
+                <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
               ))}
             </select>
-            {documentsProcedure.length === 0 && (
-              <p className="mt-1 text-xs text-slate-500">
-                Aucun justificatif disponible. Ajoutez vos pièces dans « Documents » pour pouvoir les lier ici.
-              </p>
-            )}
           </div>
+
+          {/* Détails non indispensables au premier enregistrement.
+              S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
+          <OptionsAvancees ouvertParDefaut={preRempli}>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+              <select
+                value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Part de l&apos;autre (€)</label>
+              <input
+                type="text" inputMode="decimal" placeholder="Laisser vide pour la moitié"
+                value={partAutre} onChange={(e) => setPartAutre(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Si vous laissez ce champ vide, la part de l&apos;autre parent est
+                estimée à la moitié du montant. Vous pouvez saisir un autre montant
+                selon la règle de partage de votre dossier.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Justificatif (facultatif)</label>
+              <select
+                value={documentId} onChange={(e) => setDocumentId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                <option value="">— Aucun —</option>
+                {documentsProcedure.map((d) => (
+                  <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500">
+                {documentsProcedure.length === 0
+                  ? "Aucune pièce disponible. Ajoutez vos pièces dans « Documents » pour pouvoir les lier ici."
+                  : "Reliez la facture ou le reçu correspondant. Vous pourrez aussi le faire plus tard depuis la liste."}
+              </p>
+            </div>
+          </OptionsAvancees>
 
           <button
             onClick={ajouterFrais}
@@ -422,15 +445,24 @@ export default function FraisPage() {
           >
             Ajouter le frais
           </button>
-          {message && <p className="text-sm text-slate-600">{message}</p>}
+          <FormMessage message={message} type="erreur" />
             </div>
           </EncartPliable>
         </div>
 
+        {confirmation && (
+          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+            <FormMessage message={confirmation} type="succes" />
+          </div>
+        )}
+
         {/* Liste */}
         <div className="mt-8 space-y-3">
           {fraisProcedure.length === 0 && (
-            <p className="text-slate-500">Aucun frais enregistré pour cette procédure.</p>
+            <EmptyState
+              titre="Aucun frais pour cette procédure"
+              message="Ajoutez un premier frais avec « Ajouter un frais » ci-dessus."
+            />
           )}
           {fraisProcedure.map((f) => (
             <div

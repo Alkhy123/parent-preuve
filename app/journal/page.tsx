@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
+import FormMessage from "@/components/ui/FormMessage";
+import EmptyState from "@/components/ui/EmptyState";
+import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
@@ -61,6 +64,7 @@ export default function JournalPage() {
 
   const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
   const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
@@ -141,6 +145,7 @@ export default function JournalPage() {
 
   async function ajouterEvenement() {
     setMessage("");
+    setConfirmation("");
     if (!titre.trim()) return setMessage("Le titre est obligatoire.");
     if (!dateEvenement) return setMessage("La date est obligatoire.");
 
@@ -165,6 +170,9 @@ export default function JournalPage() {
       setImplicationCategorie("");
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+      setConfirmation(
+        "Fait ajouté au journal. Il apparaît en brouillon dans la liste ci-dessous : vous pouvez le valider ou en ajouter un autre."
+      );
       setSignalAjout((n) => n + 1);
       chargerEvenements();
     }
@@ -280,7 +288,9 @@ export default function JournalPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Titre</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Titre <span className="text-[#9B2C2C]">*</span>
+            </label>
             <input
               type="text" placeholder="Ex : Remise de l'enfant en retard"
               value={titre} onChange={(e) => setTitre(e.target.value)}
@@ -290,13 +300,14 @@ export default function JournalPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-              <select
-                value={categorie} onChange={(e) => setCategorie(e.target.value)}
+              <label className="block text-sm font-medium text-slate-700">
+                Date <span className="text-[#9B2C2C]">*</span>
+              </label>
+              <input
+                type="date" value={dateEvenement}
+                onChange={(e) => setDateEvenement(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
@@ -310,45 +321,6 @@ export default function JournalPage() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Date</label>
-              <input
-                type="date" value={dateEvenement}
-                onChange={(e) => setDateEvenement(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Heure (facultatif)</label>
-              <input
-                type="time" value={heureEvenement}
-                onChange={(e) => setHeureEvenement(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Implication parentale (facultatif)
-            </label>
-            <select
-              value={implicationCategorie}
-              onChange={(e) => setImplicationCategorie(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            >
-              <option value="">— Non concerné —</option>
-              {CATEGORIES_IMPLICATION.map((c) => (
-                <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              À renseigner si ce fait illustre une démarche concrète envers
-              l&apos;enfant (rendez-vous honoré, présence à un événement…).
-            </p>
           </div>
 
           <div>
@@ -368,6 +340,50 @@ export default function JournalPage() {
             </div>
           )}
 
+          {/* Détails non indispensables au premier enregistrement.
+              S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
+          <OptionsAvancees ouvertParDefaut={preRempli}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                <select
+                  value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                >
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Heure (facultatif)</label>
+                <input
+                  type="time" value={heureEvenement}
+                  onChange={(e) => setHeureEvenement(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Implication parentale (facultatif)
+              </label>
+              <select
+                value={implicationCategorie}
+                onChange={(e) => setImplicationCategorie(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                <option value="">— Non concerné —</option>
+                {CATEGORIES_IMPLICATION.map((c) => (
+                  <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500">
+                À renseigner si ce fait illustre une démarche concrète envers
+                l&apos;enfant (rendez-vous honoré, présence à un événement…).
+              </p>
+            </div>
+          </OptionsAvancees>
+
           <button
             onClick={ajouterEvenement}
             className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
@@ -375,10 +391,16 @@ export default function JournalPage() {
             Ajouter au journal
           </button>
 
-          {message && <p className="text-sm text-slate-600">{message}</p>}
+          <FormMessage message={message} type="erreur" />
             </div>
           </EncartPliable>
         </div>
+
+        {confirmation && (
+          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+            <FormMessage message={confirmation} type="succes" />
+          </div>
+        )}
 
         {/* Filtre */}
         <div className="mt-8 flex items-center gap-3">
@@ -403,7 +425,14 @@ export default function JournalPage() {
         {/* Liste */}
         <div className="mt-4 space-y-3">
           {evenementsFiltres.length === 0 && (
-            <p className="text-slate-500">Aucun événement pour cette sélection.</p>
+            <EmptyState
+              titre="Aucun fait pour cette sélection"
+              message={
+                filtreCategorie === "Toutes"
+                  ? "Ajoutez un premier fait avec « Ajouter un fait » ci-dessus."
+                  : "Aucun fait dans cette catégorie. Changez de filtre ou ajoutez un fait."
+              }
+            />
           )}
           {evenementsFiltres.map((ev) => {
             const badge = badgeStatut(ev.statut);
