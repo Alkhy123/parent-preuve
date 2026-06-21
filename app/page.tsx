@@ -10,6 +10,7 @@ import ConfigurationDossier from "@/components/ConfigurationDossier";
 import WidgetDossierPret from "@/components/WidgetDossierPret";
 import WidgetActionsPrioritaires from "@/components/WidgetActionsPrioritaires";
 import WidgetProchaineAction from "@/components/WidgetProchaineAction";
+import WidgetOnboardingPrioritaire from "@/components/WidgetOnboardingPrioritaire";
 import WidgetCopiloteDossier from "@/components/WidgetCopiloteDossier";
 import WidgetSituationMois from "@/components/WidgetSituationMois";
 import { supabase } from "@/lib/supabase";
@@ -46,7 +47,10 @@ export default function Home() {
       />
       <div className="bg-[#ECE7DC] text-[#1F2733]">
         <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
-          {/* 0. Prochaine etape recommandee : LA seule action utile, en tete. */}
+          {/* 0a. Invitation a l'assistant de demarrage, tant qu'il n'est pas termine. */}
+          <WidgetOnboardingPrioritaire />
+
+          {/* 0b. Prochaine etape recommandee : LA seule action utile, en tete. */}
           <WidgetProchaineAction />
 
           {/* 1. Plan d'action central : "Que faire maintenant ?" */}
