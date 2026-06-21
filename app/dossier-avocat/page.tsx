@@ -12,6 +12,7 @@ import AvertissementDocumentPreparatoire from "@/components/avocat/Avertissement
 import PreviewDossierAvocat from "@/components/avocat/PreviewDossierAvocat";
 import { collecterDossierAvocat } from "@/lib/avocat/collecterDossierAvocat";
 import { rendreDossierAvocat } from "@/lib/avocat/rendreDossierAvocat";
+import { genererPdfDossierAvocat } from "@/lib/avocat/exportDossierAvocatPdf";
 import type { RenduDossierAvocat } from "@/lib/avocat/types";
 
 export default function DossierAvocatPage() {
@@ -42,6 +43,18 @@ export default function DossierAvocatPage() {
 
       <div className="mx-auto max-w-3xl space-y-4 px-6 py-10">
         <AvertissementDocumentPreparatoire />
+
+        {rendu !== null && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => genererPdfDossierAvocat(rendu)}
+              className="btn btn-primaire"
+            >
+              Exporter en PDF
+            </button>
+          </div>
+        )}
 
         {erreur ? (
           <div className="carte rounded-xl bg-white p-5 text-sm text-texte-doux">
