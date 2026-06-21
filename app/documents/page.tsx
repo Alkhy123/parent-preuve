@@ -226,6 +226,15 @@ export default function DocumentsPage() {
       <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
 
         <p className="text-sm text-slate-600">
+          Rangez ici vos justificatifs et pièces utiles (factures, certificats,
+          captures, courriers). Pour une photo à horodater, utilisez plutôt{" "}
+          <Link href="/preuves" className="text-[#15233F] underline">
+            Preuves photo
+          </Link>
+          .
+        </p>
+
+        <p className="mt-2 text-sm text-slate-600">
           Cette page affiche vos pièces actives.{" "}
           <Link href="/documents/coffre-fort" className="text-[#15233F] underline">
             Voir toutes les pièces au coffre-fort

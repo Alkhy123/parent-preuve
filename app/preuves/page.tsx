@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
@@ -263,10 +264,20 @@ export default function PreuvesPage() {
       <PageHeader
         eyebrow="Preuve photo"
         title="Mes preuves"
-        subtitle="Vos preuves scellées, regroupées par enfant."
+        subtitle="Vos preuves photo horodatées, regroupées par enfant."
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
+        <p className="text-sm text-[#1F2733]/70">
+          Une preuve photo, c&apos;est une image accompagnée de ses informations
+          techniques (empreinte, horodatage), pour mieux l&apos;organiser dans votre
+          dossier. Pour ranger une facture ou un document déjà reçu, utilisez plutôt{" "}
+          <Link href="/documents" className="font-medium text-[#15233F] underline">
+            Documents et justificatifs
+          </Link>
+          .
+        </p>
+
         <div className="flex justify-end gap-2">
           <button
             onClick={exporterPreuvePhotoCsv}
@@ -356,39 +367,41 @@ export default function PreuvesPage() {
                     </p>
                   )}
 
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <dt className="text-[#1F2733]/60">Fichier</dt>
-                    <dd className="text-[#1F2733] break-all">
-                      {p.nom_fichier || "—"} ({formaterTaille(p.taille_octets)})
-                    </dd>
+                  <OptionsAvancees titre="Détails techniques">
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <dt className="text-[#1F2733]/60">Fichier</dt>
+                      <dd className="text-[#1F2733] break-all">
+                        {p.nom_fichier || "—"} ({formaterTaille(p.taille_octets)})
+                      </dd>
 
-                    <dt className="text-[#1F2733]/60">Position</dt>
-                    <dd className="text-[#1F2733]">
-                      {p.gps_latitude != null && p.gps_longitude != null
-                        ? `${p.gps_latitude.toFixed(5)}, ${p.gps_longitude.toFixed(
-                            5
-                          )} (±${Math.round(p.gps_precision_metres ?? 0)} m)`
-                        : "non disponible"}
-                    </dd>
+                      <dt className="text-[#1F2733]/60">Position</dt>
+                      <dd className="text-[#1F2733]">
+                        {p.gps_latitude != null && p.gps_longitude != null
+                          ? `${p.gps_latitude.toFixed(5)}, ${p.gps_longitude.toFixed(
+                              5
+                            )} (±${Math.round(p.gps_precision_metres ?? 0)} m)`
+                          : "non disponible"}
+                      </dd>
 
-                    <dt className="text-[#1F2733]/60">Écart d'heure</dt>
-                    <dd className="text-[#1F2733]">
-                      {p.ecart_heure_secondes != null
-                        ? `${p.ecart_heure_secondes} s`
-                        : "—"}
-                    </dd>
-                  </dl>
+                      <dt className="text-[#1F2733]/60">Écart d'heure</dt>
+                      <dd className="text-[#1F2733]">
+                        {p.ecart_heure_secondes != null
+                          ? `${p.ecart_heure_secondes} s`
+                          : "—"}
+                      </dd>
+                    </dl>
 
-                  {p.empreinte_sha256 && (
-                    <div>
-                      <p className="text-xs text-[#1F2733]/60 mb-1">
-                        Empreinte SHA-256
-                      </p>
-                      <p className="rounded-md bg-[#F8F6F1] px-3 py-2 font-mono text-[10px] text-[#15233F] break-all border border-[#C2A24C]/30">
-                        {p.empreinte_sha256}
-                      </p>
-                    </div>
-                  )}
+                    {p.empreinte_sha256 && (
+                      <div>
+                        <p className="text-xs text-[#1F2733]/60 mb-1">
+                          Empreinte SHA-256
+                        </p>
+                        <p className="rounded-md bg-[#F8F6F1] px-3 py-2 font-mono text-[10px] text-[#15233F] break-all border border-[#C2A24C]/30">
+                          {p.empreinte_sha256}
+                        </p>
+                      </div>
+                    )}
+                  </OptionsAvancees>
                 </div>
               ))}
             </section>

@@ -102,7 +102,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
 
       {!resume.peutExporter && (
         <p className="mt-3 text-xs text-slate-500">
-          Tant qu'un point bloquant subsiste, l'export reste désactivé.
+          Vous pourrez générer l'export une fois ces points complétés.
         </p>
       )}
     </div>

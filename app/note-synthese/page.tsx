@@ -64,7 +64,7 @@ export default function PageNoteSynthese() {
       <PageHeader
         eyebrow="Synthèses & exports"
         title="Note de synthèse factuelle"
-        subtitle="Remplissez les sections, choisissez les pièces, générez un brouillon, sauvegardez-le, puis exportez en PDF."
+        subtitle="Générez un résumé factuel de votre dossier, à relire et corriger avant de l'exporter."
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">

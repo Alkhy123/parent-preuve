@@ -194,7 +194,7 @@ export default function CoffreFortPage() {
               >
                 <option value="toutes">Toutes</option>
                 <option value="document">Justificatifs</option>
-                <option value="preuve">Preuves scellées</option>
+                <option value="preuve">Preuves photo horodatées</option>
               </select>
             </div>
             <div>

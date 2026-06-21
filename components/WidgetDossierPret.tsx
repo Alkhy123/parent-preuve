@@ -94,8 +94,8 @@ export default function WidgetDossierPret() {
         </div>
       ) : (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {resume.bloquants.length} point{resume.bloquants.length > 1 ? "s" : ""} bloquant
-          {resume.bloquants.length > 1 ? "s" : ""} avant l'export.
+          Votre dossier peut être complété avant l'export : {resume.bloquants.length} point
+          {resume.bloquants.length > 1 ? "s" : ""} à finaliser.
         </div>
       )}
 

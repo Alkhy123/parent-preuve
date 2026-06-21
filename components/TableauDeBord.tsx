@@ -165,7 +165,7 @@ export default function TableauDeBord() {
         {/* Carte Preuves */}
         <div className="carte rounded-xl bg-white p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-            Preuves scellées
+            Preuves photo horodatées
           </h2>
           {preuves === null ? (
             <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>

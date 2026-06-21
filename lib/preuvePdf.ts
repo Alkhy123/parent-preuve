@@ -215,7 +215,7 @@ export function exporterPreuvePdf(p: PreuvePourPdf, image: ImagePdf) {
     "Ce rapport est généré automatiquement à partir des données saisies et collectées " +
     "par l'application. La photographie et ce rapport constituent une preuve numérique " +
     "renforcée, scellée et horodatée. Ils ne constituent pas un constat de commissaire " +
-    "de justice et doivent être vérifiés par l'utilisateur.";
+    "de justice ni un avis juridique, et doivent être vérifiés par l'utilisateur.";
   doc.setFont("times", "italic");
   doc.setFontSize(8);
   doc.setTextColor(110);

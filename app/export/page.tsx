@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PageHeader from "@/components/PageHeader";
 import ControleDossier from "@/components/ControleDossier";
+import FormMessage from "@/components/ui/FormMessage";
 import { totauxFrais, totauxPension, resteDuGlobal, euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
 
@@ -234,18 +235,19 @@ export default function ExportPage() {
       <PageHeader
         eyebrow="Synthèses & exports"
         title="Export du dossier"
-        subtitle="Générez un PDF du dossier, avec tous vos justificatifs."
+        subtitle="Préparez un PDF à relire avant de le transmettre."
       />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
+      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12 space-y-6">
 
-      <div className="mt-8">
-          <ControleDossier du={du} au={au} onChange={setPeutExporter} />
-        </div>
-
-        <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-          <p className="text-sm text-slate-600">
-            Choisissez une période (facultatif). Laissez vide pour tout inclure.
-          </p>
+        {/* Étape 1 : période */}
+        <section className="carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 1</p>
+            <h2 className="font-display text-lg text-[#15233F]">Choisir la période</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Facultatif. Laissez vide pour inclure toutes les données.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">Du</label>
@@ -261,16 +263,36 @@ export default function ExportPage() {
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               />
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={toutesLesPieces}
-              onChange={(e) => setToutesLesPieces(e.target.checked)}
-            />
-            Bordereau : inclure toutes les pièces (sinon, seules celles de la période)
-          </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={toutesLesPieces}
+                onChange={(e) => setToutesLesPieces(e.target.checked)}
+              />
+              Bordereau : inclure toutes les pièces (sinon, seules celles de la période)
+            </label>
           </div>
+        </section>
 
+        {/* Étape 2 : contrôle avant export */}
+        <section className="space-y-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 2</p>
+            <h2 className="font-display text-lg text-[#15233F]">Vérifier les points à compléter</h2>
+          </div>
+          <ControleDossier du={du} au={au} onChange={setPeutExporter} />
+        </section>
+
+        {/* Étape 3 : génération */}
+        <section className="carte rounded-xl border border-slate-200 bg-white p-5 space-y-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 3</p>
+            <h2 className="font-display text-lg text-[#15233F]">Générer l&apos;export PDF</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Le PDF est une organisation factuelle de vos données, à relire avant
+              toute transmission. Il ne constitue pas un avis juridique.
+            </p>
+          </div>
           <button
             onClick={genererDossier}
             disabled={enCours || !peutExporter}
@@ -278,8 +300,8 @@ export default function ExportPage() {
           >
             {enCours ? "Génération…" : "Générer le PDF"}
           </button>
-          {message && <p className="text-sm text-slate-600">{message}</p>}
-        </div>
+          <FormMessage message={message} type="erreur" />
+        </section>
       </div>
     </main>
   );
