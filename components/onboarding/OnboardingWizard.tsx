@@ -29,6 +29,9 @@ import EtapeVosInformations from "@/components/onboarding/EtapeVosInformations";
 import EtapeProcedure from "@/components/onboarding/EtapeProcedure";
 import EtapeAutreParent from "@/components/onboarding/EtapeAutreParent";
 import EtapeEnfants from "@/components/onboarding/EtapeEnfants";
+import EtapeJugement from "@/components/onboarding/EtapeJugement";
+import EtapeValidationRegles from "@/components/onboarding/EtapeValidationRegles";
+import EtapeCalendrier from "@/components/onboarding/EtapeCalendrier";
 
 // Placeholder pour les etapes pas encore implementees (sous-blocs 3b/3c).
 function EtapeAVenir({
@@ -103,6 +106,12 @@ export default function OnboardingWizard() {
         return <EtapeAutreParent {...propsEtape} />;
       case "enfants":
         return <EtapeEnfants {...propsEtape} />;
+      case "jugement":
+        return <EtapeJugement {...propsEtape} />;
+      case "validation-regles":
+        return <EtapeValidationRegles {...propsEtape} />;
+      case "calendrier":
+        return <EtapeCalendrier {...propsEtape} />;
       default:
         return <EtapeAVenir {...propsEtape} />;
     }
