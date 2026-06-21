@@ -235,6 +235,7 @@ export default function ImporterPdfPage() {
             </div>
           )}
         </ConsentementIA>
+        <RetourAssistant variante="pied" />
       </div>
     </main>
   );

@@ -184,7 +184,7 @@ export default function ExtrairePage() {
 
               <div className="mt-3">
                 <LigneAvert couleur="#A32D2D" icone={IconeBouclier}>
-                  N'indiquez jamais de données de santé.
+                  N&apos;indiquez jamais de données de santé.
                 </LigneAvert>
               </div>
 
@@ -206,17 +206,17 @@ export default function ExtrairePage() {
               {/* Bandeau d'avertissements, hiérarchisé */}
               <div className="carte rounded-xl border border-[#C2A24C]/40 bg-white p-4">
                 <p className="mb-3 text-sm font-medium text-[#15233F]">
-                  Propositions de l'assistant — à vérifier
+                  Propositions de l&apos;assistant — à vérifier
                 </p>
                 <div className="space-y-2">
                   <LigneAvert couleur="#0F6E56" icone={IconeCheck}>
-                    Rien n'est enregistré tant que vous ne validez pas chaque règle.
+                    Rien n&apos;est enregistré tant que vous ne validez pas chaque règle.
                   </LigneAvert>
                   <LigneAvert couleur="#854F0B" icone={IconeCrayon}>
-                    Relisez et corrigez chaque valeur : l'assistant ne fait que proposer.
+                    Relisez et corrigez chaque valeur : l&apos;assistant ne fait que proposer.
                   </LigneAvert>
                   <LigneAvert couleur="#A32D2D" icone={IconeBouclier}>
-                    N'indiquez jamais de données de santé.
+                    N&apos;indiquez jamais de données de santé.
                   </LigneAvert>
                 </div>
 
@@ -277,6 +277,7 @@ export default function ExtrairePage() {
             </div>
           )}
         </ConsentementIA>
+        <RetourAssistant variante="pied" />
       </div>
     </main>
   );
