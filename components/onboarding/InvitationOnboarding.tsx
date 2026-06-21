@@ -8,10 +8,6 @@
 
 import { useRouter } from "next/navigation";
 
-// Destination du demarrage. La premiere etape concrete existe deja (/dossier).
-// Le wizard complet repointe cette constante dans un bloc ulterieur.
-const DEMARRAGE_HREF = "/dossier";
-
 // Etapes presentees a l'utilisateur (informatif, pas de promesse juridique).
 const ETAPES = [
   "Vos informations de déclarant",
@@ -21,7 +17,12 @@ const ETAPES = [
   "Le calendrier de garde",
 ];
 
-export default function InvitationOnboarding() {
+export default function InvitationOnboarding({
+  onDemarrer,
+}: {
+  // Demarre le wizard. Si absent, on retombe sur la premiere etape concrete.
+  onDemarrer?: () => void;
+} = {}) {
   const router = useRouter();
 
   return (
@@ -51,7 +52,7 @@ export default function InvitationOnboarding() {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
-          onClick={() => router.push(DEMARRAGE_HREF)}
+          onClick={() => (onDemarrer ? onDemarrer() : router.push("/dossier"))}
           className="btn btn-primaire justify-center"
         >
           Démarrer l&apos;assistant
