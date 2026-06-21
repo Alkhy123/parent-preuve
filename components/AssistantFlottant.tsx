@@ -582,7 +582,7 @@ export default function AssistantFlottant() {
                   </p>
 
                   <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
-                    Pré-remplir un frais ou un événement
+                    Pré-remplir un frais, une pension ou un événement
                   </h3>
                 </div>
 

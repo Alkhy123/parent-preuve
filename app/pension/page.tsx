@@ -11,6 +11,10 @@ import { euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import {
+  nettoyerProposition,
+  CLE_SESSION_PREREMPLISSAGE,
+} from "@/lib/preRemplissage";
 
 type Paiement = {
   id: string;
@@ -56,6 +60,12 @@ export default function PensionPage() {
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
 
+  // Pré-remplissage proposé par le copilote (lecture seule, à VÉRIFIER avant ajout).
+  // preRempli ouvre le formulaire ; avertissements sont des notes neutres
+  // signalant une incertitude (mois supposé, montant attendu manquant, etc.).
+  const [preRempli, setPreRempli] = useState(false);
+  const [avertissements, setAvertissements] = useState<string[]>([]);
+
   async function chargerPaiements() {
     const procId = await getProcedureActiveId();
     setProcedureId(procId);
@@ -76,6 +86,39 @@ export default function PensionPage() {
 
   useEffect(() => {
     chargerPaiements();
+  }, []);
+
+  // Au montage : lit UNE FOIS un éventuel pré-remplissage déposé par le copilote,
+  // puis efface la clé (usage unique). Le serveur a déjà verrouillé la sortie ;
+  // on la repasse quand même par nettoyerProposition() par sécurité.
+  // On n'agit que sur une proposition de type "pension".
+  useEffect(() => {
+    let brut: string | null = null;
+    try {
+      brut = sessionStorage.getItem(CLE_SESSION_PREREMPLISSAGE);
+      if (brut) sessionStorage.removeItem(CLE_SESSION_PREREMPLISSAGE);
+    } catch {
+      return; // sessionStorage indisponible : on ignore le pré-remplissage.
+    }
+    if (!brut) return;
+
+    let objet: unknown = null;
+    try {
+      objet = JSON.parse(brut);
+    } catch {
+      return;
+    }
+
+    const proposition = nettoyerProposition(objet);
+    if (proposition.type !== "pension") return;
+
+    const c = proposition.champs;
+    if (c.mois !== null) setMois(c.mois);
+    if (c.montant_du !== null) setMontantDu(String(c.montant_du));
+    if (c.montant_paye !== null) setMontantPaye(String(c.montant_paye));
+    if (c.date_paiement !== null) setDatePaiement(c.date_paiement);
+    setAvertissements(proposition.avertissements);
+    setPreRempli(true);
   }, []);
 
   async function ajouterPaiement() {
@@ -102,6 +145,8 @@ export default function PensionPage() {
       setMessage("Erreur : " + error.message);
     } else {
       setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement("");
+      // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
+      setPreRempli(false); setAvertissements([]);
       setConfirmation(
         "Mois enregistré. Le statut (payé, partiel, en retard) est calculé automatiquement et visible dans la liste."
       );
@@ -187,14 +232,33 @@ export default function PensionPage() {
             </button>
           </div>
 
-          {/* Formulaire */}
+          {/* Formulaire. La clé force l'ouverture de l'encart quand un
+              pré-remplissage arrive (sans modifier le composant partagé). */}
           <div className="mt-8">
             <EncartPliable
+              key={preRempli ? "pension-prerempli" : "pension-standard"}
               titre="Ajouter un paiement"
-              replieParDefaut
+              replieParDefaut={!preRempli}
               signalFermeture={signalAjout}
             >
               <div className="space-y-4">
+            {preRempli && (
+              <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
+                <p className="font-medium text-[#15233F]">
+                  Proposition pré-remplie à partir de votre saisie.
+                </p>
+                <p className="mt-1 text-[#1F2733]/70">
+                  Vérifiez chaque champ, complétez le montant attendu si besoin, puis cliquez sur « Enregistrer le mois » pour valider vous-même l&apos;enregistrement.
+                </p>
+                {avertissements.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-[#1F2733]/70">
+                    {avertissements.map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">

@@ -64,6 +64,17 @@ type PropositionJournal = {
   avertissements: string[];
 };
 
+type PropositionPension = {
+  type: "pension";
+  champs: {
+    mois: string | null;
+    montant_du: number | null;
+    montant_paye: number | null;
+    date_paiement: string | null;
+  };
+  avertissements: string[];
+};
+
 type PropositionAucun = {
   type: "aucun";
   champs: null;
@@ -73,6 +84,7 @@ type PropositionAucun = {
 type PropositionPreRemplissage =
   | PropositionFrais
   | PropositionJournal
+  | PropositionPension
   | PropositionAucun;
 
 type ReponsePreRemplissageAgent = {
@@ -169,6 +181,7 @@ function valeurLisible(valeur: string | number | null | undefined) {
 function libelleTypeProposition(type: PropositionPreRemplissage["type"]) {
   if (type === "frais") return "Frais";
   if (type === "journal") return "Journal";
+  if (type === "pension") return "Pension";
   return "Aucun pré-remplissage";
 }
 
@@ -302,6 +315,38 @@ function BlocProposition({
             <dt className="text-xs text-slate-500">Description</dt>
             <dd className="mt-1 whitespace-pre-wrap font-medium text-[#15233F]">
               {valeurLisible(proposition.champs.description)}
+            </dd>
+          </div>
+        </dl>
+      )}
+
+      {proposition.type === "pension" && (
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Mois</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.mois)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Montant dû</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.montant_du)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Montant payé</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.montant_paye)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Date de réception</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.date_paiement)}
             </dd>
           </div>
         </dl>

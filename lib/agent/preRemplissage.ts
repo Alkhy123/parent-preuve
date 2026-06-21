@@ -25,6 +25,7 @@ import {
   export const TYPES_PREREMPLISSAGE_AGENT = [
     "frais",
     "journal",
+    "pension",
     "aucun",
   ] as const satisfies readonly TypeProposition[];
   
@@ -273,12 +274,14 @@ import {
   ${VERSION_CONTRAT_PREREMPLISSAGE_AGENT}
   
   Types autorisés :
-  - "frais" si la phrase décrit une dépense, un paiement, un montant, un achat ou un remboursement.
+  - "pension" si la phrase décrit un versement de pension alimentaire (montant attendu, montant reçu, mois concerné).
+  - "frais" si la phrase décrit une autre dépense partagée, un paiement, une facture, un achat ou un remboursement.
   - "journal" si la phrase décrit un fait daté à noter : retard, absence, incident, échange, événement.
   - "aucun" si rien ne correspond clairement.
-  
+
   Priorité :
-  - Si un montant, un paiement, une facture, une cantine ou un remboursement apparaît, choisir "frais".
+  - Si la phrase parle de "pension alimentaire" ou d'un "versement de pension", choisir "pension", même si un montant apparaît.
+  - Sinon, si un montant, un paiement, une facture, une cantine ou un remboursement apparaît, choisir "frais".
   - Si aucun montant n'apparaît et que la phrase décrit un fait, choisir "journal".
   - Si la phrase demande une stratégie judiciaire, des conclusions ou un conseil juridique, choisir "aucun".
   
@@ -344,8 +347,35 @@ import {
     }
   }
   
+  Pour une pension :
+
+  {
+    "version": "${VERSION_CONTRAT_PREREMPLISSAGE_AGENT}",
+    "resume": "Résumé court du pré-remplissage proposé.",
+    "messages": [
+      "Message factuel utile."
+    ],
+    "proposition": {
+      "type": "pension",
+      "champs": {
+        "mois": "AAAA-MM ou null",
+        "montant_du": 300,
+        "montant_paye": 180,
+        "date_paiement": "AAAA-MM-JJ ou null"
+      },
+      "avertissements": []
+    }
+  }
+
+  Règles pension :
+  - "mois" est le mois concerné au format AAAA-MM. Si la phrase dit "ce mois-ci", utiliser le mois de la date du jour serveur.
+  - "montant_du" est le montant attendu de la pension. Le mettre à null s'il n'est pas indiqué explicitement (il vient en principe du jugement).
+  - "montant_paye" est le montant réellement versé. Le mettre à null s'il n'est pas indiqué.
+  - "date_paiement" est la date de réception au format AAAA-MM-JJ, sinon null.
+  - Ne jamais inclure d'enfant dans une proposition de pension.
+
   Pour aucun résultat :
-  
+
   {
     "version": "${VERSION_CONTRAT_PREREMPLISSAGE_AGENT}",
     "resume": "Aucun pré-remplissage fiable n'a été identifié.",
