@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
+import FormMessage from "@/components/ui/FormMessage";
+import EmptyState from "@/components/ui/EmptyState";
 import ReglePension from "@/components/ReglePension";
 import { euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
@@ -51,6 +53,7 @@ export default function PensionPage() {
   const [montantPaye, setMontantPaye] = useState("");
   const [datePaiement, setDatePaiement] = useState("");
   const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
 
   async function chargerPaiements() {
@@ -77,6 +80,7 @@ export default function PensionPage() {
 
   async function ajouterPaiement() {
     setMessage("");
+    setConfirmation("");
     if (!mois) return setMessage("Le mois est obligatoire.");
     const duNum = parseFloat(montantDu.replace(",", "."));
     if (isNaN(duNum)) return setMessage("Le montant dû doit être un nombre.");
@@ -98,6 +102,9 @@ export default function PensionPage() {
       setMessage("Erreur : " + error.message);
     } else {
       setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement("");
+      setConfirmation(
+        "Mois enregistré. Le statut (payé, partiel, en retard) est calculé automatiquement et visible dans la liste."
+      );
       setSignalAjout((n) => n + 1);
       chargerPaiements();
     }
@@ -190,7 +197,9 @@ export default function PensionPage() {
               <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#15233F]">Mois concerné</label>
+                <label className="block text-sm font-medium text-[#15233F]">
+                  Mois concerné <span className="text-[#9B2C2C]">*</span>
+                </label>
                 <input
                   type="month" value={mois}
                   onChange={(e) => setMois(e.target.value)}
@@ -198,7 +207,9 @@ export default function PensionPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#15233F]">Montant dû (€)</label>
+                <label className="block text-sm font-medium text-[#15233F]">
+                  Montant dû (€) <span className="text-[#9B2C2C]">*</span>
+                </label>
                 <input
                   type="text" inputMode="decimal" placeholder="300"
                   value={montantDu} onChange={(e) => setMontantDu(e.target.value)}
@@ -211,13 +222,17 @@ export default function PensionPage() {
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">Montant payé (€)</label>
                 <input
-                  type="text" inputMode="decimal" placeholder="0 si rien"
+                  type="text" inputMode="decimal" placeholder="0 si rien reçu"
                   value={montantPaye} onChange={(e) => setMontantPaye(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
                 />
+                <p className="mt-1 text-xs text-[#1F2733]/60">
+                  Indiquez ce qui a réellement été reçu. Un paiement partiel ou un
+                  retard est simplement constaté, sans interprétation.
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#15233F]">Date du paiement</label>
+                <label className="block text-sm font-medium text-[#15233F]">Date de réception (facultatif)</label>
                 <input
                   type="date" value={datePaiement}
                   onChange={(e) => setDatePaiement(e.target.value)}
@@ -232,15 +247,24 @@ export default function PensionPage() {
             >
               Enregistrer le mois
             </button>
-            {message && <p className="text-sm text-[#1F2733]/70">{message}</p>}
+            <FormMessage message={message} type="erreur" />
               </div>
             </EncartPliable>
           </div>
 
+          {confirmation && (
+            <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+              <FormMessage message={confirmation} type="succes" />
+            </div>
+          )}
+
           {/* Liste */}
           <div className="mt-8 space-y-3">
             {paiements.length === 0 && (
-              <p className="text-[#1F2733]/60">Aucun mois enregistré pour cette procédure.</p>
+              <EmptyState
+                titre="Aucun mois enregistré"
+                message="Enregistrez un premier mois avec « Ajouter un paiement » ci-dessus."
+              />
             )}
             {paiements.map((p) => {
               const s = statut(p);

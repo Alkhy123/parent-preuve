@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
+import FormMessage from "@/components/ui/FormMessage";
+import EmptyState from "@/components/ui/EmptyState";
+import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
@@ -39,6 +42,7 @@ export default function DocumentsPage() {
 
   const [enCours, setEnCours] = useState(false);
   const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [choixId, setChoixId] = useState<string | null>(null);
 
   async function chargerEnfants() {
@@ -103,6 +107,7 @@ export default function DocumentsPage() {
 
   async function envoyerDocument() {
     setMessage("");
+    setConfirmation("");
     if (!libelle.trim()) return setMessage("Le libellé est obligatoire.");
     if (!fichier) return setMessage("Veuillez choisir un fichier.");
 
@@ -143,6 +148,9 @@ export default function DocumentsPage() {
       setLibelle(""); setCategorie("Autre"); setDateDocument("");
       setChildId(""); setImplicationCategorie(""); setFichier(null);
       (document.getElementById("champ-fichier") as HTMLInputElement).value = "";
+      setConfirmation(
+        "Pièce ajoutée. Elle apparaît dans la liste ci-dessous et peut être liée à un frais."
+      );
       chargerDocuments();
     } finally {
       setEnCours(false);
@@ -238,8 +246,15 @@ export default function DocumentsPage() {
 
         {/* Formulaire d'envoi */}
         <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+          <p className="text-sm text-slate-500">
+            Ajoutez une pièce : justificatif (facture, certificat), capture d&apos;écran,
+            courrier ou document personnel. Vous pourrez la lier à un frais ensuite.
+          </p>
+
           <div>
-            <label className="block text-sm font-medium text-slate-700">Libellé</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Libellé <span className="text-[#9B2C2C]">*</span>
+            </label>
             <input
               type="text" placeholder="Ex : Facture orthodontiste mars"
               value={libelle} onChange={(e) => setLibelle(e.target.value)}
@@ -247,16 +262,42 @@ export default function DocumentsPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-              <select
-                value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Fichier <span className="text-[#9B2C2C]">*</span>
+            </label>
+            <input
+              id="champ-fichier"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
+              className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#15233F] file:px-4 file:py-2 file:text-white"
+            />
+            <p className="mt-1 text-xs text-slate-500">Image ou PDF.</p>
+          </div>
+
+          {/* Détails non indispensables au premier enregistrement. */}
+          <OptionsAvancees>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                <select
+                  value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                >
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Date du document</label>
+                <input
+                  type="date" value={dateDocument}
+                  onChange={(e) => setDateDocument(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </div>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
               <select
@@ -269,48 +310,27 @@ export default function DocumentsPage() {
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Date du document</label>
-              <input
-                type="date" value={dateDocument}
-                onChange={(e) => setDateDocument(e.target.value)}
+              <label className="block text-sm font-medium text-slate-700">
+                Implication parentale (facultatif)
+              </label>
+              <select
+                value={implicationCategorie}
+                onChange={(e) => setImplicationCategorie(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
+              >
+                <option value="">— Non concerné —</option>
+                {CATEGORIES_IMPLICATION.map((c) => (
+                  <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500">
+                À renseigner si cette pièce illustre une démarche concrète envers
+                l&apos;enfant (rendez-vous honoré, inscription, suivi…).
+              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Fichier</label>
-              <input
-                id="champ-fichier"
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#15233F] file:px-4 file:py-2 file:text-white"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Implication parentale (facultatif)
-            </label>
-            <select
-              value={implicationCategorie}
-              onChange={(e) => setImplicationCategorie(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            >
-              <option value="">— Non concerné —</option>
-              {CATEGORIES_IMPLICATION.map((c) => (
-                <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              À renseigner si cette pièce illustre une démarche concrète envers
-              l&apos;enfant (rendez-vous honoré, inscription, suivi…).
-            </p>
-          </div>
+          </OptionsAvancees>
 
           <button
             onClick={envoyerDocument}
@@ -319,13 +339,22 @@ export default function DocumentsPage() {
           >
             {enCours ? "Envoi en cours…" : "Envoyer le document"}
           </button>
-          {message && <p className="text-sm text-[#9B2C2C]">{message}</p>}
+          <FormMessage message={message} type="erreur" />
         </div>
+
+        {confirmation && (
+          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+            <FormMessage message={confirmation} type="succes" />
+          </div>
+        )}
 
         {/* Liste classée par enfant, puis par type, puis par date décroissante */}
         <div className="mt-8 space-y-8">
           {groupes.length === 0 && (
-            <p className="text-slate-500">Aucune pièce active pour cette procédure.</p>
+            <EmptyState
+              titre="Aucune pièce active pour cette procédure"
+              message="Ajoutez un justificatif ou une pièce avec le formulaire ci-dessus."
+            />
           )}
 
           {groupes.map((groupe) => (
