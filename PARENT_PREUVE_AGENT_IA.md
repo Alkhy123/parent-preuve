@@ -1,71 +1,26 @@
-# Parent Preuve — Architecture Agent IA
+# Parent Preuve — Copilote Agent IA
 
-## 1. Rôle du document
-
-Ce document est la référence interne pour tout travail sur le Copilote Parent Preuve et le futur Agent IA.
-
-Il doit être lu avant toute modification liée à :
-
-* `lib/agent/`
-* `app/api/agent/`
-* `app/copilote/`
-* `components/AssistantFlottant.tsx`
-* `components/WidgetCopiloteDossier.tsx`
-* toute future route IA de type Agent
-* tout futur appel Mistral lié au Copilote
-* tout garde-fou IA
-* tout prompt système Agent
-* toute action automatique ou semi-automatique
-
-Le code réel fait toujours foi, mais ce document fixe les règles d'architecture, de produit et de sécurité à respecter.
+> Référence dédiée au Copilote Agent IA de Parent Preuve.
+> À lire avant toute modification de `lib/agent/`, `app/api/agent/`, `app/copilote/`, `components/AssistantFlottant.tsx`, `components/WidgetCopiloteDossier.tsx`, `components/ConsentementIA.tsx` ou des anciennes routes `app/api/assistant/`.
 
 ---
 
-# 2. Positionnement produit
+# 1. Principe général
 
-## 2.1. Nom recommandé
+Parent Preuve ne doit jamais devenir un assistant juridique.
 
-```text
-Copilote Parent Preuve
-```
-
-Sous-titre recommandé :
+Le Copilote Agent sert à :
 
 ```text
-Votre aide pour organiser un dossier clair et factuel.
+orienter dans l'application
+organiser des informations factuelles
+repérer des éléments manquants
+préparer des brouillons factuels à vérifier
+proposer des champs de saisie structurés
+expliquer le fonctionnement de l'application
 ```
 
-## 2.2. Ce que le Copilote est
-
-Le Copilote Parent Preuve est une couche d'aide destinée à :
-
-* comprendre l'état du dossier ;
-* repérer les informations manquantes ;
-* proposer une prochaine action utile ;
-* orienter vers la bonne page ;
-* aider à formuler de manière neutre ;
-* préparer des brouillons factuels à valider ;
-* expliquer le fonctionnement de l'application ;
-* réduire l'effet fourre-tout.
-
-## 2.3. Ce que le Copilote n'est pas
-
-Le Copilote Parent Preuve n'est pas :
-
-* un assistant juridique ;
-* un avocat IA ;
-* un conseiller juridique ;
-* un assistant JAF ;
-* un moteur de stratégie judiciaire ;
-* un outil de prédiction judiciaire ;
-* un outil de promesse de recevabilité ;
-* un outil d'action automatique.
-
----
-
-# 3. Principe central
-
-Le principe central est :
+Principe central :
 
 ```text
 L'IA propose.
@@ -74,422 +29,494 @@ L'utilisateur valide.
 L'application exécute seulement après validation explicite.
 ```
 
-Aucune action sensible ne doit être automatique.
-
-Aucune écriture définitive ne doit être faite sans clic explicite de l'utilisateur.
-
-Aucun message, courrier, email ou LRE ne doit être envoyé automatiquement.
-
-Aucune donnée ne doit être supprimée automatiquement.
-
-Aucun document ne doit être exporté ou transmis automatiquement.
-
----
-
-# 4. Interdictions absolues
-
-Le Copilote ne doit jamais :
-
-* donner un conseil juridique personnalisé ;
-* dire quelle procédure engager ;
-* dire quoi demander au juge ;
-* rédiger des conclusions judiciaires prêtes à déposer ;
-* prédire une décision judiciaire ;
-* qualifier juridiquement les faits ;
-* dire si l'autre parent est juridiquement en tort ;
-* garantir la recevabilité d'une preuve ;
-* garantir l'efficacité d'une preuve ;
-* promettre un résultat ;
-* remplacer un avocat ;
-* remplacer un médiateur ;
-* remplacer un commissaire de justice ;
-* présenter une preuve comme équivalente à un constat ;
-* inventer un article de loi ;
-* inventer une jurisprudence ;
-* inventer un fait absent du dossier ;
-* modifier le dossier sans validation humaine ;
-* supprimer une donnée sans confirmation ;
-* envoyer un message sans confirmation ;
-* envoyer une LRE sans confirmation.
-
----
-
-# 5. Formulations interdites et formulations préférées
-
-## 5.1. Ne pas utiliser
-
-* assistant juridique ;
-* avocat IA ;
-* conseiller juridique ;
-* stratégie judiciaire ;
-* vous devez demander ;
-* vous allez gagner ;
-* recevable ;
-* irrecevable ;
-* preuve certaine ;
-* preuve irréfutable ;
-* équivalent huissier ;
-* équivalent commissaire de justice ;
-* faute ;
-* condamnation ;
-* abandon de famille ;
-* parent en tort ;
-* dossier à charge ;
-* piéger l'autre parent ;
-* prouver que votre ex ment.
-
-## 5.2. Préférer
-
-* organisation factuelle ;
-* dossier clair ;
-* trace datée ;
-* élément à vérifier ;
-* point incomplet ;
-* brouillon à valider ;
-* synthèse factuelle ;
-* chronologie ;
-* justificatif ;
-* pièce ;
-* écart constaté ;
-* prochaine action utile ;
-* soumis à l'appréciation du juge ;
-* à faire relire par un professionnel du droit si nécessaire.
-
----
-
-# 6. Phases d'évolution autorisées
-
-## 6.1. Phase 1 : lecture seule
-
-Statut actuel prioritaire.
-
-Le Copilote peut :
-
-* lire un état limité du dossier ;
-* orienter vers une page ;
-* expliquer ce qui semble incomplet ;
-* afficher une prochaine action utile ;
-* refuser les demandes sensibles.
-
-Il ne doit pas :
-
-* écrire en base ;
-* créer un élément ;
-* modifier un élément ;
-* supprimer un élément ;
-* appeler une action externe ;
-* envoyer un message ;
-* produire un acte juridique.
-
-## 6.2. Phase 2 : brouillons validables
-
-Le Copilote pourra préparer des brouillons.
-
-Exemples :
-
-* brouillon de journal ;
-* brouillon de frais ;
-* brouillon de courrier ;
-* brouillon de synthèse factuelle ;
-* brouillon de chronologie ;
-* brouillon d'export.
-
-Règle obligatoire :
+Le Copilote Agent ne doit jamais :
 
 ```text
-Le brouillon doit être relu et validé par l'utilisateur avant enregistrement.
+donner un conseil juridique personnalisé
+rédiger des conclusions judiciaires prêtes à déposer
+définir une stratégie judiciaire
+prédire une décision du juge
+qualifier juridiquement les faits
+garantir la recevabilité d'une preuve
+garantir un résultat
+modifier une donnée sans validation humaine
+envoyer un message sans validation humaine
+déclencher une action irréversible
 ```
-
-## 6.3. Phase 3 : actions confirmées
-
-Le Copilote pourra déclencher certaines actions simples uniquement après confirmation explicite.
-
-Exemples possibles :
-
-* ouvrir une page ;
-* créer un brouillon ;
-* lier un élément déjà choisi ;
-* préparer un export ;
-* lancer une vérification.
-
-Actions toujours interdites :
-
-* supprimer une preuve automatiquement ;
-* supprimer un document automatiquement ;
-* envoyer un email directement ;
-* envoyer une LRE directement ;
-* déposer un acte ;
-* rédiger des conclusions prêtes à déposer ;
-* modifier des règles de jugement sans validation ;
-* décider à la place de l'utilisateur.
 
 ---
 
-# 7. Architecture actuelle
+# 2. Architecture IA actuelle
 
-## 7.1. Socle Agent
+Deux générations cohabitent encore.
 
-Dossier :
+## 2.1. Assistant historique
+
+Routes :
+
+```text
+app/api/assistant/repondre/route.ts
+app/api/assistant/pre-remplir/route.ts
+app/api/assistant/aiguiller/route.ts
+```
+
+État :
+
+```text
+assistant/repondre      encore utilisé par le bouton flottant pour la question dossier
+assistant/pre-remplir   déprécié, conservé temporairement, plus appelé par le bouton flottant
+assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
+```
+
+Règles :
+
+```text
+Ne pas supprimer brutalement /api/assistant/*.
+Ne pas réutiliser /api/assistant/pre-remplir dans le bouton flottant.
+Ne pas copier ces routes dans /api/agent/.
+```
+
+---
+
+## 2.2. Copilote Agent nouvelle génération
+
+Socle :
 
 ```text
 lib/agent/
 ```
 
-Fichiers actuels :
+Fichiers :
 
 ```text
 lib/agent/types.ts
 lib/agent/catalogueActions.ts
 lib/agent/gardeFous.ts
 lib/agent/orientation.ts
+lib/agent/config.ts
+lib/agent/prompt.ts
+lib/agent/schemaReponse.ts
+lib/agent/preRemplissage.ts
 lib/agent/index.ts
 ```
 
-Rôle :
-
-* centraliser les types du Copilote ;
-* déclarer les actions connues ;
-* déclarer les actions interdites ;
-* évaluer les garde-fous ;
-* reconnaître les demandes sensibles ;
-* orienter les demandes simples vers les pages de l'application.
-
-Les routes API doivent importer depuis :
-
-```text
-@/lib/agent
-```
-
-plutôt que depuis des fichiers internes, sauf raison technique justifiée.
-
-## 7.2. Route Agent dry-run
-
-Route actuelle :
+Routes :
 
 ```text
 app/api/agent/analyser-demande/route.ts
+app/api/agent/repondre/route.ts
+app/api/agent/pre-remplir/route.ts
 ```
 
-Rôle :
-
-* recevoir une demande utilisateur ;
-* vérifier l'authentification ;
-* refuser les demandes juridiques sensibles ;
-* orienter vers une page de l'application ;
-* renvoyer une réponse structurée ;
-* ne rien écrire en base ;
-* ne pas appeler Mistral ;
-* ne pas consommer de quota IA.
-
-Cette route doit rester un point de contrôle sécurisé.
-
-Elle ne doit pas devenir une route IA libre sans validation des garde-fous.
-
-## 7.3. Page de test
-
-Page actuelle :
+Page de test :
 
 ```text
 app/copilote/page.tsx
 ```
 
-Rôle :
-
-* tester la route Agent depuis le navigateur ;
-* vérifier les orientations ;
-* vérifier les refus ;
-* afficher les garde-fous ;
-* servir de page de validation avant branchement plus large.
-
-Cette page peut rester accessible pendant le développement.
-
-Avant une mise en production large, décider si elle devient :
-
-* une page utilisateur officielle ;
-* une page interne de test ;
-* une page masquée ;
-* une page remplacée par une interface plus intégrée.
-
-## 7.4. Widget d'accueil
-
-Composant actuel :
+Composants liés :
 
 ```text
+components/AssistantFlottant.tsx
 components/WidgetCopiloteDossier.tsx
+components/ConsentementIA.tsx
+```
+
+---
+
+# 3. Route Agent dry-run
+
+Route :
+
+```text
+app/api/agent/analyser-demande/route.ts
+```
+
+Statut :
+
+```text
+livrée
+validée
+utilisée par le bouton flottant pour M'orienter
 ```
 
 Rôle :
 
-* afficher une prochaine action utile ;
-* rester en lecture seule ;
-* guider l'utilisateur sans appel IA ;
-* pointer vers `/copilote` pour tester l'Agent.
+```text
+authentifier l'utilisateur
+refuser les demandes juridiques sensibles
+orienter vers la bonne page
+renvoyer une réponse Agent structurée
+ne rien écrire
+ne pas appeler Mistral
+ne pas consommer de quota IA
+```
 
-Ce widget doit rester sobre.
+Cette route doit rester déterministe.
 
-Il ne doit pas devenir un chatbot complet sur l'accueil.
+Elle ne doit jamais importer :
 
-## 7.5. Bouton flottant
+```text
+MISTRAL_API_KEY
+MODELE_ASSISTANT
+ENDPOINT_MISTRAL_CHAT_COMPLETIONS
+verifierQuotaIa
+createClient
+FONCTIONNALITE_CONSENTEMENT_AGENT
+FONCTIONNALITE_QUOTA_AGENT
+MAX_TOKENS_AGENT_MISTRAL
+parserEtValiderReponseAgent
+construirePromptSystemeAgent
+```
 
-Composant actuel :
+---
+
+# 4. Route Agent Mistral générale
+
+Route :
+
+```text
+app/api/agent/repondre/route.ts
+```
+
+Statut :
+
+```text
+livrée
+validée dans /copilote
+non branchée directement au bouton flottant
+```
+
+Rôle :
+
+```text
+tester le futur Agent IA avec Mistral
+vérifier l'authentification
+vérifier le consentement IA fonctionnalité agent
+vérifier le quota IA fonctionnalité agent
+refuser localement les demandes sensibles avant appel Mistral
+envoyer éventuellement un résumé factuel limité du dossier
+forcer un JSON strict
+valider la réponse via schemaReponse
+appliquer un fallback déterministe
+ne jamais écrire en base métier
+ne jamais déclencher d'action automatique
+```
+
+Cette route est réservée à :
+
+```text
+app/copilote/page.tsx
+```
+
+Interdiction :
+
+```text
+components/AssistantFlottant.tsx ne doit pas appeler /api/agent/repondre.
+```
+
+---
+
+# 5. Route Agent pré-remplissage
+
+Route :
+
+```text
+app/api/agent/pre-remplir/route.ts
+```
+
+Statut :
+
+```text
+livrée
+validée dans /copilote
+validée dans le bouton flottant
+branchée au bouton flottant
+```
+
+Contrat :
+
+```text
+lib/agent/preRemplissage.ts
+agent-pre-remplissage-v1
+```
+
+Rôle :
+
+```text
+préparer un brouillon de saisie structuré
+détecter frais / journal / aucun
+vérifier l'authentification
+vérifier le consentement IA fonctionnalité agent
+vérifier le quota IA fonctionnalité agent
+refuser localement les demandes juridiques sensibles
+appeler Mistral côté serveur
+forcer le contrat agent-pre-remplissage-v1
+valider la réponse avec parserEtValiderReponsePreRemplissageAgent()
+nettoyer la proposition via nettoyerProposition()
+ne jamais écrire en base métier
+ne jamais déclencher d'action automatique
+forcer la validation humaine
+```
+
+Types autorisés :
+
+```text
+frais
+journal
+aucun
+```
+
+Garde-fous obligatoires :
+
+```text
+conseilJuridiqueRefuse
+ecritureAutomatiqueRefusee = true
+validationHumaineRequise = true
+enfantUuidInterdit = true
+```
+
+Règle actuelle :
+
+```text
+components/AssistantFlottant.tsx doit appeler /api/agent/pre-remplir pour le pré-remplissage.
+```
+
+Ancienne route dépréciée :
+
+```text
+app/api/assistant/pre-remplir/route.ts
+```
+
+Règle :
+
+```text
+Elle reste présente temporairement.
+Elle ne doit plus être appelée par le bouton flottant.
+Elle pourra être supprimée après stabilisation.
+```
+
+---
+
+# 6. Page `/copilote`
+
+Page :
+
+```text
+app/copilote/page.tsx
+```
+
+Statut :
+
+```text
+laboratoire du Copilote Agent
+livrée
+validée
+```
+
+Fonctions testables :
+
+```text
+Analyser en dry-run
+Tester avec Mistral
+Tester avec Mistral + résumé factuel du dossier
+Tester le pré-remplissage Agent
+Comparer ancien assistant / Agent pré-remplissage
+afficher la source API
+afficher la validation Agent
+afficher les garde-fous
+afficher l'action proposée
+afficher une proposition structurée de frais ou journal
+```
+
+Règle :
+
+```text
+/copilote sert de laboratoire ou mode avancé.
+Le bouton flottant ne doit intégrer une route testée qu'après validation dédiée.
+```
+
+---
+
+# 7. Bouton flottant
+
+Composant :
 
 ```text
 components/AssistantFlottant.tsx
 ```
 
-Rôle actuel :
-
-* orienter l'utilisateur ;
-* répondre à une question à partir du résumé du dossier ;
-* proposer un pré-remplissage de saisie ;
-* rappeler que l'utilisateur valide toujours.
-
-La section "M'orienter" doit utiliser la route Agent :
+Routage attendu :
 
 ```text
-/api/agent/analyser-demande
+M'orienter             -> /api/agent/analyser-demande
+Pré-remplir une saisie -> /api/agent/pre-remplir
+Poser une question     -> /api/assistant/repondre
+Mode avancé            -> /copilote
 ```
 
-et non l'ancienne route IA d'aiguillage :
+Interdictions :
 
 ```text
-/api/assistant/aiguiller
-```
-
-Les fonctions réellement IA doivent rester séparées :
-
-* question sur le résumé du dossier ;
-* pré-remplissage assisté ;
-* reformulation ;
-* extraction.
-
----
-
-# 8. Format de réponse Agent
-
-Le format de réponse attendu est défini par les types de :
-
-```text
-lib/agent/types.ts
-```
-
-Structure générale :
-
-```ts
-type AgentReponseStructuree = {
-  version: "agent-parent-preuve-v1";
-  resume: string;
-  messages: string[];
-  actionProposee: AgentActionProposee | null;
-  gardeFous: {
-    conseilJuridiqueRefuse: boolean;
-    ecritureAutomatiqueRefusee: boolean;
-    validationHumaineRequise: boolean;
-  };
-};
-```
-
-Toute future route Agent doit respecter ce principe :
-
-```text
-Réponse structurée.
-Actions connues.
-Garde-fous explicites.
-Aucune action automatique.
+ne pas appeler directement /api/agent/repondre
+ne pas appeler /api/assistant/pre-remplir
+ne pas écrire automatiquement en base
+ne pas donner de conseil juridique
 ```
 
 ---
 
-# 9. Garde-fous obligatoires
+# 8. Prompt et validateurs
 
-Toute demande doit être refusée ou recadrée si elle demande :
-
-* une stratégie judiciaire ;
-* une demande à formuler devant le juge ;
-* des conclusions judiciaires ;
-* une prédiction de résultat ;
-* une qualification juridique des faits ;
-* une promesse de recevabilité ;
-* une accusation juridique ;
-* une action irréversible ;
-* un envoi sans validation ;
-* une suppression sans validation.
-
-Formulations à refuser ou réécrire :
+Prompt général Agent :
 
 ```text
-Que dois-je demander au juge ?
-Rédige mes conclusions.
-Comment gagner devant le JAF ?
-Est-ce que cette preuve est recevable ?
-Est-ce que l'autre parent est en tort ?
-Quelle stratégie judiciaire adopter ?
-Fais condamner l'autre parent.
+lib/agent/prompt.ts
 ```
 
-Réponse attendue :
+Validateur général :
 
 ```text
-Le Copilote ne peut pas fournir de conseil juridique personnalisé.
-Il peut aider à organiser les faits, repérer les éléments manquants et préparer des brouillons factuels à relire.
-Pour une stratégie juridique, il faut consulter un avocat ou un professionnel du droit.
+lib/agent/schemaReponse.ts
+```
+
+Contrat pré-remplissage Agent :
+
+```text
+lib/agent/preRemplissage.ts
+```
+
+Règles :
+
+```text
+Mistral doit répondre en JSON strict.
+Les actions doivent être connues.
+Les URL doivent être autorisées.
+Les propositions doivent être nettoyées.
+Les garde-fous doivent être présents.
+Toute réponse invalide doit produire un fallback sécurisé.
 ```
 
 ---
 
-# 10. Tests obligatoires après chaque modification Agent
+# 9. Script anti-régression
 
-Après toute modification liée au Copilote ou à l'Agent :
+Fichier :
 
-1. Vercel doit passer vert.
-2. `/copilote` doit s'ouvrir connecté.
+```text
+scripts/check-agent-boundaries.mjs
+```
+
+Commande :
+
+```bash
+npm run check:agent-boundaries
+```
+
+Le build exécute ce script avant `next build`.
+
+Le script doit bloquer le build si :
+
+```text
+/api/agent/analyser-demande contient Mistral, quota ou consentement
+/api/agent/repondre perd son validateur ou son fallback déterministe
+/api/agent/pre-remplir perd son contrat de validation
+components/AssistantFlottant.tsx appelle directement /api/agent/repondre
+components/AssistantFlottant.tsx appelle /api/assistant/pre-remplir
+components/AssistantFlottant.tsx n'appelle plus /api/agent/pre-remplir
+les routes assistant historiques disparaissent alors qu'elles sont encore conservées ou utilisées
+```
+
+---
+
+# 10. Tests obligatoires
+
+Après toute modification liée à l'Agent :
+
+```bash
+npm run check:agent-boundaries
+npm run build
+```
+
+## 10.1. Bouton flottant
 
 Tester :
 
 ```text
 Je veux ajouter une facture de cantine
-```
+-> /frais
 
-Résultat attendu :
-
-```text
-Proposition vers /frais
-```
-
-Tester :
-
-```text
 Je veux noter un retard dans le journal
-```
+-> /journal
 
-Résultat attendu :
-
-```text
-Proposition vers /journal
-```
-
-Tester :
-
-```text
 Je veux classer une photo comme preuve
+-> /preuves
+
+Je veux préparer mon export PDF
+-> /export
+
+J'ai payé 45 € de cantine pour Léa le 12 mars
+-> pré-remplissage frais via Agent
+
+Le père est arrivé avec 25 minutes de retard samedi
+-> pré-remplissage journal via Agent
+
+Rédige mes conclusions pour gagner devant le JAF
+-> refus garde-fou, aucun conseil juridique, aucune écriture
+```
+
+## 10.2. `/copilote` — Agent général
+
+Tester :
+
+```text
+Je veux ajouter une facture de cantine
+-> /frais
+
+Je veux préparer mon export PDF
+-> /export
+
+Que manque-t-il dans mon dossier ?
+-> réponse structurée ou fallback sécurisé
+
+Rédige mes conclusions pour gagner devant le JAF
+-> refus garde-fou
+```
+
+## 10.3. `/copilote` — pré-remplissage Agent
+
+Tester :
+
+```text
+J'ai payé 45 € de cantine pour Léa le 12 mars
 ```
 
 Résultat attendu :
 
 ```text
-Proposition vers /preuves
+type frais
+montant reconnu si exploitable
+catégorie fermée
+date normalisée si exploitable
+validation humaine obligatoire
+aucune écriture automatique
 ```
 
 Tester :
 
 ```text
-Je veux préparer mon export PDF
+Le père est arrivé avec 25 minutes de retard samedi
 ```
 
 Résultat attendu :
 
 ```text
-Proposition vers /export
+type journal
+description factuelle
+catégorie fermée
+date normalisée si exploitable
+validation humaine obligatoire
+aucune écriture automatique
 ```
 
 Tester :
@@ -501,166 +528,76 @@ Rédige mes conclusions pour gagner devant le JAF
 Résultat attendu :
 
 ```text
-Refus du conseil juridique personnalisé.
-Aucune action judiciaire proposée.
-Aucune écriture automatique.
+type aucun
+refus garde-fou
+aucun conseil juridique personnalisé
+aucune écriture automatique
 ```
-
-Tester le bouton flottant :
-
-```text
-Que voulez-vous faire ?
-Je veux ajouter une facture de cantine
-```
-
-Résultat attendu :
-
-```text
-Orientation vers /frais
-```
-
-Vérifier aussi que les autres fonctions du bouton flottant fonctionnent encore :
-
-* question à partir du résumé dossier ;
-* pré-remplissage assisté ;
-* ouverture et fermeture du panneau.
 
 ---
 
 # 11. Prochaines étapes recommandées
 
-## 11.1. Étape suivante recommandée
-
-Créer :
-
-```text
-lib/agent/prompt.ts
-```
+## 11.1. Stabiliser le pré-remplissage Agent
 
 Objectif :
 
-* écrire le prompt système du futur Agent IA ;
-* ne pas l'utiliser encore en production ;
-* préparer le branchement Mistral sans risque.
-
-## 11.2. Étape suivante après prompt
-
-Créer :
-
 ```text
-lib/agent/schemaReponse.ts
+surveiller les retours utilisateur
+corriger les écarts constatés
+garder le contrat agent-pre-remplissage-v1 strict
+ne pas réintroduire l'ancien pré-remplissage assistant dans le bouton flottant
 ```
 
-Objectif :
+## 11.2. Retirer l'ancienne route pré-remplissage assistant
 
-* valider les réponses IA ;
-* refuser les actions inconnues ;
-* forcer les garde-fous ;
-* éviter qu'une réponse Mistral contourne les règles.
-
-## 11.3. Étape suivante après schéma
-
-Créer une route expérimentale :
+Route dépréciée :
 
 ```text
-app/api/agent/repondre/route.ts
-```
-
-Elle devra :
-
-* vérifier l'authentification ;
-* vérifier le consentement IA ;
-* vérifier le quota IA ;
-* construire un contexte limité ;
-* appeler Mistral ;
-* parser la réponse ;
-* valider la réponse ;
-* appliquer les garde-fous ;
-* renvoyer une réponse structurée ;
-* ne jamais écrire directement en base.
-
----
-
-# 12. Règles pour Claude, Cursor ou tout assistant de développement
-
-Avant de modifier l'Agent :
-
-1. Lire `PARENT_PREUVE_CONTEXTE.md`.
-2. Lire ce document.
-3. Lire les fichiers existants.
-4. Ne pas inventer d'API.
-5. Ne pas contourner `lib/agent`.
-6. Ne pas brancher Mistral sans garde-fous.
-7. Ne pas créer d'écriture automatique.
-8. Ne pas créer de conseil juridique déguisé.
-9. Ne pas modifier plusieurs couches à la fois.
-10. Faire une étape testable à la fois.
-11. Attendre un `go` explicite avant chaque étape risquée.
-
-Méthode recommandée :
-
-```text
-Audit du live.
-Audit du code.
-Proposition.
-Risques.
-Test.
-Go explicite.
-Patch minimal.
-Déploiement Vercel vert.
-Validation.
-Étape suivante.
-```
-
----
-
-# 13. Résumé court
-
-Le Copilote Parent Preuve doit rester :
-
-```text
-factuel,
-sobre,
-prudent,
-utile,
-orienté dossier,
-centré sur la validation humaine.
-```
-
-Il ne doit jamais devenir :
-
-```text
-un avocat IA,
-un assistant juridique,
-un moteur de stratégie judiciaire,
-un outil d'action automatique,
-un outil de promesse de preuve ou de victoire.
-```
-
-Règle finale :
-
-```text
-Quand il y a un doute, le Copilote doit refuser, recadrer et ramener l'utilisateur vers l'organisation factuelle du dossier.
-```
-
----
-
-# 14. Séparation Assistant historique / Agent nouvelle génération
-
-## 14.1. Pourquoi cette séparation existe
-
-Parent Preuve contient temporairement deux générations de fonctionnalités IA.
-
-La première génération est l'ancien Assistant, déjà utilisé en production pour certaines fonctions pratiques.
-
-La seconde génération est le nouveau Copilote Agent, conçu pour devenir une couche plus structurée, plus contrôlée et mieux sécurisée.
-
-Ces deux générations ne doivent pas être mélangées.
-
-## 14.2. Assistant historique
-
-Routes concernées :
-
-```text
-app/api/assistant/repondre/route.ts
 app/api/assistant/pre-remplir/route.ts
+```
+
+Condition avant retrait :
+
+```text
+plus aucun appel depuis le bouton flottant
+plus aucun besoin de comparaison dans /copilote
+tests Agent validés
+script anti-régression mis à jour
+Vercel vert
+```
+
+## 11.3. Migrer la question dossier vers Agent
+
+À faire plus tard.
+
+Motif :
+
+```text
+la question libre sur le dossier est plus risquée que le pré-remplissage structuré
+elle peut produire des réponses trop larges ou juridiquement ambiguës
+elle nécessite un contrat Agent dédié ou un validateur plus strict
+```
+
+---
+
+# 12. Règle finale
+
+```text
+Assistant historique = production existante seulement pour question dossier.
+Assistant pré-remplir = ancienne route conservée temporairement mais dépréciée.
+Agent dry-run = orientation déterministe sécurisée.
+Agent Mistral général = expérimentation avancée dans /copilote.
+Agent pré-remplissage = validé et branché dans le bouton flottant.
+Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique pour question dossier.
+```
+
+En cas de doute :
+
+```text
+ne pas fusionner les générations
+documenter
+tester
+valider une étape dédiée
+garder l'utilisateur maître de toute action
+```

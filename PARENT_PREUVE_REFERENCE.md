@@ -45,7 +45,7 @@ PARENT_PREUVE_CONTEXTE.md       -> mission, positionnement, cadre juridique prod
 PARENT_PREUVE_REFERENCE.md      -> référence technique synthétique
 PARENT_PREUVE_ROADMAP_UX.md     -> roadmap produit / UX / ergonomie
 PARENT_PREUVE_AGENT_IA.md       -> cadre détaillé du Copilote Agent IA
-CLAUDE.md                       -> consignes opérationnelles pour Claude/Cursor
+CLAUDE.md                       -> consignes opérationnelles Claude/Cursor
 ```
 
 ---
@@ -78,7 +78,7 @@ extraction IA de jugement
 reformulation neutre
 assistant historique
 Copilote Agent nouvelle génération
-pré-remplissage Agent expérimental
+pré-remplissage Agent branché au bouton flottant
 PWA installable
 mode hors-ligne coquille
 suppression RGPD du compte
@@ -116,7 +116,7 @@ pas de conseil juridique
 
 # 3. Architecture IA actuelle
 
-Le projet contient temporairement deux générations IA.
+Le projet contient encore deux générations IA.
 
 ## 3.1. Assistant historique
 
@@ -132,7 +132,7 @@ app/api/assistant/aiguiller/route.ts
 
 ```text
 assistant/repondre      encore utilisé par le bouton flottant pour la question dossier
-assistant/pre-remplir   conservé temporairement, mais plus appelé par le bouton flottant
+assistant/pre-remplir   déprécié, conservé temporairement, plus appelé par le bouton flottant
 assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
 ```
 
@@ -147,6 +147,7 @@ Règles :
 
 ```text
 Ne pas supprimer brutalement /api/assistant/*.
+Ne pas réutiliser /api/assistant/pre-remplir dans le bouton flottant.
 Ne pas copier ces routes dans /api/agent/.
 Ne pas mélanger Assistant historique et Agent nouvelle génération.
 ```
@@ -242,7 +243,7 @@ aucun consentement IA
 aucune écriture
 ```
 
-Doit rester interdit dans cette route :
+Interdit dans cette route :
 
 ```text
 MISTRAL_API_KEY
@@ -302,7 +303,7 @@ construireReponseOrientationDeterminee
 fallback déterministe
 ```
 
-Interdiction actuelle :
+Interdiction :
 
 ```text
 components/AssistantFlottant.tsx ne doit pas appeler /api/agent/repondre.
@@ -323,6 +324,7 @@ Statut :
 ```text
 livré
 validé dans /copilote
+validé dans le bouton flottant
 branché au bouton flottant pour le pré-remplissage
 ```
 
@@ -336,7 +338,7 @@ version : agent-pre-remplissage-v1
 Rôle :
 
 ```text
-test Mistral du futur pré-remplissage Agent
+pré-remplissage Agent avec Mistral
 auth obligatoire
 consentement Agent obligatoire
 quota Agent obligatoire
@@ -367,11 +369,24 @@ enfantUuidInterdit = true
 ```
 
 Règle actuelle :
+
+```text
 components/AssistantFlottant.tsx doit appeler /api/agent/pre-remplir pour le pré-remplissage.
 ```
 
-L'ancienne route suivante reste présente temporairement, mais ne doit plus être appelée par le bouton flottant :
+Ancienne route dépréciée :
+
+```text
 app/api/assistant/pre-remplir/route.ts
+```
+
+Règle :
+
+```text
+L'ancienne route reste présente temporairement.
+Elle ne doit plus être appelée par le bouton flottant.
+Elle pourra être supprimée après stabilisation.
+```
 
 ---
 
@@ -395,11 +410,11 @@ enfant / fils / fille / résidence                         -> /enfants
 aucune rubrique claire                                    -> /
 ```
 
-Cette orientation est utilisée :
+Utilisée par :
 
 ```text
-par /api/agent/analyser-demande
-comme fallback de /api/agent/repondre
+/api/agent/analyser-demande
+fallback de /api/agent/repondre
 ```
 
 ---
@@ -444,6 +459,8 @@ Interdictions :
 ```text
 pas d'appel direct à /api/agent/repondre
 pas d'appel à /api/assistant/pre-remplir
+pas d'écriture automatique
+pas de conseil juridique
 ```
 
 ---
@@ -470,7 +487,8 @@ Fonctions :
 Analyser en dry-run
 Tester avec Mistral
 Tester avec Mistral + résumé factuel du dossier
-Tester le pré-remplissage Agent expérimental
+Tester le pré-remplissage Agent
+Comparer ancien assistant / Agent pré-remplissage
 afficher source API
 afficher validation Agent
 afficher garde-fous
@@ -481,8 +499,8 @@ afficher proposition structurée frais/journal
 Règle :
 
 ```text
-/coplas ou /coplilote n'existent pas.
 La page correcte est /copilote.
+Elle peut rester comme laboratoire ou mode avancé.
 ```
 
 ---
@@ -563,8 +581,9 @@ Le script bloque le build si :
 /api/agent/repondre perd validateur ou fallback
 /api/agent/pre-remplir perd son contrat expérimental
 AssistantFlottant appelle /api/agent/repondre
-AssistantFlottant appelle /api/agent/pre-remplir
-les routes assistant historiques disparaissent alors qu'elles sont encore utilisées
+AssistantFlottant appelle /api/assistant/pre-remplir
+AssistantFlottant n'appelle plus /api/agent/pre-remplir
+les routes assistant historiques disparaissent alors qu'elles sont encore utilisées ou conservées temporairement
 ```
 
 ---
@@ -601,33 +620,37 @@ Build vert.
 Tests bouton flottant :
 
 ```text
-Je veux ajouter une facture de cantine       -> /frais
-Je veux noter un retard dans le journal      -> /journal
-Je veux classer une photo comme preuve       -> /preuves
-Je veux préparer mon export PDF              -> /export
-Rédige mes conclusions pour gagner devant le JAF -> refus garde-fou
-```
+Je veux ajouter une facture de cantine
+-> /frais
 
-Tests `/copilote` Agent général :
+Je veux noter un retard dans le journal
+-> /journal
 
-```text
-Je veux ajouter une facture de cantine       -> /frais
-Je veux préparer mon export PDF              -> /export
-Que manque-t-il dans mon dossier ?           -> réponse structurée ou fallback sécurisé
-Rédige mes conclusions pour gagner devant le JAF -> refus garde-fou
-```
+Je veux classer une photo comme preuve
+-> /preuves
 
-Tests `/copilote` pré-remplissage Agent :
+Je veux préparer mon export PDF
+-> /export
 
-```text
 J'ai payé 45 € de cantine pour Léa le 12 mars
--> type frais, montant si exploitable, catégorie fermée, aucune écriture
+-> pré-remplissage frais via /api/agent/pre-remplir
 
 Le père est arrivé avec 25 minutes de retard samedi
--> type journal, description factuelle, catégorie fermée, aucune écriture
+-> pré-remplissage journal via /api/agent/pre-remplir
 
 Rédige mes conclusions pour gagner devant le JAF
--> type aucun, refus garde-fou, aucun conseil juridique personnalisé
+-> refus garde-fou, aucun conseil juridique, aucune écriture
+```
+
+Tests `/copilote` :
+
+```text
+dry-run
+Mistral général
+Mistral avec résumé factuel
+pré-remplissage Agent
+comparaison ancien assistant / Agent
+garde-fous juridiques
 ```
 
 ---
@@ -750,7 +773,7 @@ Le cloisonnement par procédure est appliqué par les filtres applicatifs.
 
 # 13. Tables clés — repères rapides
 
-## 13.1. procedures
+## 13.1. `procedures`
 
 Contient :
 
@@ -766,7 +789,7 @@ Attention :
 Les infos autre parent et jugement ne sont plus dans dossier.
 ```
 
-## 13.2. dossier
+## 13.2. `dossier`
 
 Contient uniquement le déclarant :
 
@@ -781,7 +804,7 @@ declarant_email
 declarant_telephone
 ```
 
-## 13.3. children
+## 13.3. `children`
 
 Colonnes clés :
 
@@ -791,7 +814,7 @@ date_naissance
 procedure_id
 ```
 
-## 13.4. events
+## 13.4. `events`
 
 Journal factuel.
 
@@ -816,7 +839,7 @@ valide
 exporte
 ```
 
-## 13.5. expenses
+## 13.5. `expenses`
 
 Frais.
 
@@ -833,7 +856,7 @@ document_id
 child_id
 ```
 
-## 13.6. pension_payments
+## 13.6. `pension_payments`
 
 Pension.
 
@@ -848,7 +871,7 @@ date_paiement
 notes
 ```
 
-## 13.7. documents
+## 13.7. `documents`
 
 Colonnes clés :
 
@@ -869,7 +892,7 @@ Dette connue :
 archive boolean coexiste avec etat.
 ```
 
-## 13.8. preuves_photo
+## 13.8. `preuves_photo`
 
 Colonnes clés :
 
@@ -905,7 +928,7 @@ Règle :
 Ne jamais présenter comme équivalent à un constat de commissaire de justice.
 ```
 
-## 13.9. consentements_ia
+## 13.9. `consentements_ia`
 
 Colonnes :
 
@@ -926,7 +949,7 @@ extraction
 extraction-pdf
 ```
 
-## 13.10. ia_appels
+## 13.10. `ia_appels`
 
 Quota anti-abus durable.
 
@@ -1284,6 +1307,7 @@ lien Test résumé temporaire dans NavBar si encore présent
 documents.archive coexiste avec documents.etat
 consentements_ia.user_id sans ON DELETE CASCADE
 index complémentaires possibles plus tard
+app/api/assistant/pre-remplir conservée temporairement alors que dépréciée
 ```
 
 À vérifier pour supprimer `test-resume` :
@@ -1315,7 +1339,7 @@ favicon PP
 boutons flottants déplaçables
 Copilote Agent dry-run
 Copilote Agent Mistral général
-pré-remplissage Agent expérimental
+pré-remplissage Agent validé et branché
 séparation Assistant / Agent
 script anti-régression
 documentation Agent
@@ -1325,45 +1349,51 @@ documentation Agent
 
 # 20. Backlog prioritaire
 
-## 20.1. Comparer ancien pré-remplissage et Agent pré-remplissage
+## 20.1. Stabilisation pré-remplissage Agent
 
 Statut :
 
 ```text
-prochaine étape recommandée
+en cours de stabilisation après migration bouton flottant
 ```
 
 Objectif :
 
 ```text
-tester les mêmes phrases sur /api/assistant/pre-remplir et /api/agent/pre-remplir
-comparer type, champs, avertissements, sécurité et UX
-corriger le contrat Agent si nécessaire
+surveiller les retours
+vérifier frais/journal/garde-fous
+corriger uniquement les écarts constatés
+ne pas réintroduire /api/assistant/pre-remplir dans le bouton flottant
 ```
-
-Ne pas encore brancher le bouton flottant.
 
 ---
 
-## 20.2. Migration possible du bouton flottant vers Agent pré-remplissage
+## 20.2. Retrait futur de l'ancien pré-remplissage assistant
 
-Condition préalable :
+Route dépréciée :
 
 ```text
-tests comparatifs validés
-contrat Agent stable
-aucune régression frais/journal
+app/api/assistant/pre-remplir/route.ts
+```
+
+Condition avant suppression :
+
+```text
+aucun appel dans le bouton flottant
+aucun appel dans /copilote sauf comparaison temporaire
+aucun import indirect
+tests Agent pré-remplissage validés
 script anti-régression vert
 Vercel vert
 ```
 
-Migration future possible :
+À faire plus tard :
 
 ```text
-Pré-remplir une saisie -> /api/agent/pre-remplir
+supprimer la route
+supprimer les références docs
+adapter le script anti-régression
 ```
-
-uniquement après étape dédiée.
 
 ---
 
@@ -1371,11 +1401,18 @@ uniquement après étape dédiée.
 
 À faire plus tard.
 
+Route encore utilisée :
+
+```text
+app/api/assistant/repondre/route.ts
+```
+
 Motif :
 
 ```text
 plus risqué que le pré-remplissage structuré
 réponses libres potentiellement juridiquement ambiguës
+nécessite un contrat Agent dédié ou un validateur plus strict
 ```
 
 ---
@@ -1513,11 +1550,34 @@ Build :
 npm run build
 ```
 
-Vérifier que le bouton flottant ne branche pas Mistral Agent :
+Vérifier que le bouton flottant ne branche pas l'Agent général :
 
 ```bash
 git grep '/api/agent/repondre' -- components/AssistantFlottant.tsx
+```
+
+Résultat attendu :
+
+```text
+aucun résultat
+```
+
+Vérifier que le bouton flottant utilise l'Agent pré-remplissage :
+
+```bash
 git grep '/api/agent/pre-remplir' -- components/AssistantFlottant.tsx
+```
+
+Résultat attendu :
+
+```text
+un résultat dans la fonction preRemplir()
+```
+
+Vérifier que le bouton flottant n'utilise plus l'ancien pré-remplissage :
+
+```bash
+git grep '/api/assistant/pre-remplir' -- components/AssistantFlottant.tsx
 ```
 
 Résultat attendu :
@@ -1554,11 +1614,12 @@ git grep "agent-pre-remplissage-v1" lib/agent/preRemplissage.ts app/api/agent/pr
 État actuel validé :
 
 ```text
-Assistant historique = production existante pour pré-remplissage et question dossier.
+Assistant historique = production existante seulement pour question dossier.
+Assistant pré-remplir = ancienne route conservée temporairement mais dépréciée.
 Agent dry-run = orientation déterministe sécurisée.
 Agent Mistral général = expérimentation avancée dans /copilote.
 Agent pré-remplissage = validé et branché dans le bouton flottant.
-Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique seulement pour question dossier.
+Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique pour question dossier.
 Script anti-régression = actif dans le build.
 Documentation Agent = présente.
 ```
