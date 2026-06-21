@@ -15,9 +15,10 @@
 //    - aucune écriture
 //
 // 2. Aide à la saisie
-//    - route : /api/assistant/pre-remplir
-//    - génération : Assistant historique
-//    - comportement : proposition de pré-remplissage
+//    - route : /api/agent/pre-remplir
+//    - génération : Agent nouvelle génération
+//    - comportement : proposition structurée de pré-remplissage
+//    - contrat : agent-pre-remplissage-v1
 //    - validation humaine obligatoire
 //
 // 3. Question sur le dossier
@@ -264,7 +265,7 @@ export default function AssistantFlottant() {
     setErreurPre("");
 
     try {
-      const r = await fetch("/api/assistant/pre-remplir", {
+      const r = await fetch("/api/agent/pre-remplir", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -282,7 +283,7 @@ export default function AssistantFlottant() {
         return;
       }
 
-      const proposition = data.proposition;
+      const proposition = data.reponse?.proposition;
 
       if (!proposition || proposition.type === "aucun") {
         setErreurPre(
@@ -528,13 +529,11 @@ export default function AssistantFlottant() {
                   </h3>
                 </div>
 
-                <Badge ton="ia">Assistant historique</Badge>
+                <Badge ton="agent">Agent</Badge>
               </div>
 
               <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-                Cette aide utilise l’IA pour proposer des champs à pré-remplir.
-                Rien n’est ajouté au dossier tant que vous ne validez pas
-                vous-même sur l’écran concerné.
+              Cette aide utilise le pré-remplissage Agent pour proposer des champs structurés à vérifier. Rien n’est ajouté au dossier tant que vous ne validez pas vous-même sur l’écran concerné.
               </p>
 
               <textarea

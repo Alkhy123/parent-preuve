@@ -131,15 +131,15 @@ app/api/assistant/aiguiller/route.ts
 État :
 
 ```text
-assistant/repondre      encore utilisé par le bouton flottant
-assistant/pre-remplir   encore utilisé par le bouton flottant
+assistant/repondre      encore utilisé par le bouton flottant pour la question dossier
+assistant/pre-remplir   conservé temporairement, mais plus appelé par le bouton flottant
 assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
 ```
 
 Usage actuel dans `components/AssistantFlottant.tsx` :
 
 ```text
-Pré-remplir une saisie -> /api/assistant/pre-remplir
+Pré-remplir une saisie -> /api/agent/pre-remplir
 Poser une question      -> /api/assistant/repondre
 ```
 
@@ -323,7 +323,7 @@ Statut :
 ```text
 livré
 validé dans /copilote
-non branché au bouton flottant
+branché au bouton flottant pour le pré-remplissage
 ```
 
 Contrat :
@@ -366,19 +366,12 @@ validationHumaineRequise = true
 enfantUuidInterdit = true
 ```
 
-Interdiction actuelle :
-
-```text
-components/AssistantFlottant.tsx ne doit pas appeler /api/agent/pre-remplir.
+Règle actuelle :
+components/AssistantFlottant.tsx doit appeler /api/agent/pre-remplir pour le pré-remplissage.
 ```
 
-Le bouton flottant continue d'utiliser :
-
-```text
+L'ancienne route suivante reste présente temporairement, mais ne doit plus être appelée par le bouton flottant :
 app/api/assistant/pre-remplir/route.ts
-```
-
-jusqu'à migration validée.
 
 ---
 
@@ -441,7 +434,7 @@ Routage attendu :
 
 ```text
 M'orienter              -> /api/agent/analyser-demande
-Pré-remplir une saisie  -> /api/assistant/pre-remplir
+Pré-remplir une saisie  -> /api/agent/pre-remplir
 Poser une question      -> /api/assistant/repondre
 Mode avancé             -> /copilote
 ```
@@ -450,7 +443,7 @@ Interdictions :
 
 ```text
 pas d'appel direct à /api/agent/repondre
-pas d'appel direct à /api/agent/pre-remplir
+pas d'appel à /api/assistant/pre-remplir
 ```
 
 ---
@@ -1564,8 +1557,8 @@ git grep "agent-pre-remplissage-v1" lib/agent/preRemplissage.ts app/api/agent/pr
 Assistant historique = production existante pour pré-remplissage et question dossier.
 Agent dry-run = orientation déterministe sécurisée.
 Agent Mistral général = expérimentation avancée dans /copilote.
-Agent pré-remplissage = expérimentation validée dans /copilote.
-Bouton flottant = pas d'appel direct aux routes Agent Mistral expérimentales.
+Agent pré-remplissage = validé et branché dans le bouton flottant.
+Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique seulement pour question dossier.
 Script anti-régression = actif dans le build.
 Documentation Agent = présente.
 ```

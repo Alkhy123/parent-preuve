@@ -3,9 +3,12 @@
 // Vérifie que les routes Assistant historique et Agent nouvelle génération
 // ne sont pas mélangées.
 //
-// Objectif : bloquer le build Vercel si /api/agent/analyser-demande
-// redevient accidentellement une route Mistral avec quota, consentement ou
-// appel IA.
+// État attendu :
+// - /api/agent/analyser-demande reste dry-run pur.
+// - /api/agent/repondre reste réservé au mode avancé /copilote.
+// - /api/agent/pre-remplir est maintenant utilisé par le bouton flottant.
+// - /api/assistant/repondre reste utilisé par le bouton flottant pour la question dossier.
+// - /api/assistant/pre-remplir reste présent temporairement, mais n'est plus appelé par le bouton flottant.
 //
 // Ce script est volontairement simple, sans dépendance externe.
 
@@ -103,7 +106,7 @@ verifierPresences(
     "orienterDemandeAgent",
     "construireReponseOrientationDeterminee",
   ],
-  "la route /api/agent/repondre doit rester la route Agent Mistral expérimentale"
+  "la route /api/agent/repondre doit rester la route Agent Mistral expérimentale générale"
 );
 
 verifierPresences(
@@ -117,7 +120,7 @@ verifierPresences(
     "parserEtValiderReponsePreRemplissageAgent",
     "aucune écriture métier en base",
   ],
-  "la route /api/agent/pre-remplir doit rester une route expérimentale structurée et non branchée"
+  "la route /api/agent/pre-remplir doit rester une route Agent structurée"
 );
 
 verifierPresences(
@@ -134,23 +137,24 @@ verifierPresences(
     "nettoyerProposition",
     "MISTRAL_API_KEY",
   ],
-  "l'assistant historique de pré-remplissage reste séparé"
+  "l'ancienne route assistant de pré-remplissage reste présente temporairement"
 );
 
 verifierPresences(
   fichiers.assistantFlottant,
   [
     'fetch("/api/agent/analyser-demande"',
+    'fetch("/api/agent/pre-remplir"',
     'fetch("/api/assistant/repondre"',
-    'fetch("/api/assistant/pre-remplir"',
+    "data.reponse?.proposition",
   ],
-  "le bouton flottant doit appeler les bonnes routes"
+  "le bouton flottant doit utiliser l'Agent pour l'orientation et le pré-remplissage, et conserver l'assistant historique pour la question dossier"
 );
 
 verifierAbsences(
   fichiers.assistantFlottant,
-  ['fetch("/api/agent/repondre"', 'fetch("/api/agent/pre-remplir"'],
-  "le bouton flottant ne doit pas appeler directement les routes Mistral Agent expérimentales"
+  ['fetch("/api/agent/repondre"', 'fetch("/api/assistant/pre-remplir"'],
+  "le bouton flottant ne doit pas appeler directement /api/agent/repondre ni l'ancien pré-remplissage assistant"
 );
 
 if (erreurs.length > 0) {
@@ -161,7 +165,7 @@ if (erreurs.length > 0) {
   }
 
   console.error(
-    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, les routes Agent Mistral doivent rester isolées, et /api/assistant/* doit rester l'ancienne génération tant qu'elle est utilisée.\n"
+    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, /api/agent/pre-remplir doit porter le pré-remplissage du bouton flottant, /api/agent/repondre doit rester réservé au mode avancé, et /api/assistant/repondre doit rester l'ancienne question dossier tant qu'elle n'est pas migrée.\n"
   );
 
   process.exit(1);
