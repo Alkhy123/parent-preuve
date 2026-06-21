@@ -1,7 +1,7 @@
 # Parent Preuve — Référence technique synthétique
 
 > Référence technique vivante de Parent Preuve.
-> À lire avant toute modification de code, Supabase, IA, Copilote, Assistant, routes API, exports, preuves, documents ou UX principale.
+> À lire avant toute modification de code, Supabase, IA, Copilote, Assistant, routes API, preuves, exports, documents ou UX principale.
 >
 > Le code réel reste la source de vérité.
 >
@@ -148,7 +148,7 @@ Règles :
 ```text
 Ne pas supprimer brutalement /api/assistant/*.
 Ne pas réutiliser /api/assistant/pre-remplir dans le bouton flottant.
-Ne pas copier ces routes dans /api/agent/.
+Ne pas copier les anciennes routes assistant dans /api/agent/.
 Ne pas mélanger Assistant historique et Agent nouvelle génération.
 ```
 
@@ -1366,8 +1366,6 @@ corriger uniquement les écarts constatés
 ne pas réintroduire /api/assistant/pre-remplir dans le bouton flottant
 ```
 
----
-
 ## 20.2. Retrait futur de l'ancien pré-remplissage assistant
 
 Route dépréciée :
@@ -1395,8 +1393,6 @@ supprimer les références docs
 adapter le script anti-régression
 ```
 
----
-
 ## 20.3. Migration question sur dossier vers Agent
 
 À faire plus tard.
@@ -1414,8 +1410,6 @@ plus risqué que le pré-remplissage structuré
 réponses libres potentiellement juridiquement ambiguës
 nécessite un contrat Agent dédié ou un validateur plus strict
 ```
-
----
 
 ## 20.4. Audit log
 
@@ -1437,8 +1431,6 @@ exports
 horodatages
 vérifications de hash
 ```
-
----
 
 ## 20.5. Export avocat ZIP
 
@@ -1462,8 +1454,6 @@ manifest.json
 hashes_sha256.txt
 ```
 
----
-
 ## 20.6. Horodatage eIDAS-ready
 
 Évolution future :
@@ -1483,8 +1473,6 @@ qualifie_en_attente
 qualifie_valide
 qualifie_echec
 ```
-
----
 
 ## 20.7. QR code de vérification
 
