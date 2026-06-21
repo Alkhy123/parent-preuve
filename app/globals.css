@@ -53,10 +53,11 @@ h1, h2 {
 }
 
 .carte {
-  /* Élévation nette mais sobre : assez de relief pour détacher la carte du
-     fond crème, sans la double ombre lourde d'origine. */
-  box-shadow: 0 1px 2px rgba(21, 35, 63, 0.10),
-              0 8px 20px -6px rgba(21, 35, 63, 0.22);
+  /* Relief marqué : ombre de contact nette + ombre portée profonde teintée
+     navy, pour que la carte décolle franchement du fond crème. */
+  box-shadow: 0 1px 2px rgba(21, 35, 63, 0.18),
+              0 4px 10px rgba(21, 35, 63, 0.14),
+              0 18px 36px -10px rgba(21, 35, 63, 0.42);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
