@@ -23,13 +23,13 @@ const fichiers = {
   agentMistral: "app/api/agent/repondre/route.ts",
   agentPreRemplir: "app/api/agent/pre-remplir/route.ts",
   agentQuestionDossier: "app/api/agent/question-dossier/route.ts",
-  assistantRepondre: "app/api/assistant/repondre/route.ts",
   assistantFlottant: "components/AssistantFlottant.tsx",
   copilote: "app/copilote/page.tsx",
 };
 
 const fichiersSupprimes = {
   assistantPreRemplir: "app/api/assistant/pre-remplir/route.ts",
+  assistantRepondre: "app/api/assistant/repondre/route.ts",
 };
 
 const erreurs = [];
@@ -80,6 +80,11 @@ function verifierAbsences(relatif, termes, contexte) {
 verifierFichierAbsent(
   fichiersSupprimes.assistantPreRemplir,
   "l'ancien pré-remplissage assistant doit être supprimé"
+);
+
+verifierFichierAbsent(
+  fichiersSupprimes.assistantRepondre,
+  "l'ancienne question dossier assistant doit être supprimée après migration vers /api/agent/question-dossier"
 );
 
 verifierPresences(
@@ -154,24 +159,14 @@ verifierPresences(
 );
 
 verifierPresences(
-  fichiers.assistantRepondre,
-  [
-    "app/api/assistant/repondre/route.ts",
-    "verifierQuotaIa",
-    "MISTRAL_API_KEY",
-  ],
-  "l'assistant historique de question/réponse reste séparé"
-);
-
-verifierPresences(
   fichiers.assistantFlottant,
   [
     'fetch("/api/agent/analyser-demande"',
     'fetch("/api/agent/pre-remplir"',
-    'fetch("/api/assistant/repondre"',
+    'fetch("/api/agent/question-dossier"',
     "data.reponse?.proposition",
   ],
-  "le bouton flottant doit utiliser l'Agent pour l'orientation et le pré-remplissage, et conserver l'assistant historique pour la question dossier"
+  "le bouton flottant doit utiliser l'Agent pour l'orientation, le pré-remplissage et la question dossier"
 );
 
 verifierAbsences(
@@ -179,9 +174,9 @@ verifierAbsences(
   [
     'fetch("/api/agent/repondre"',
     'fetch("/api/assistant/pre-remplir"',
-    'fetch("/api/agent/question-dossier"',
+    'fetch("/api/assistant/repondre"',
   ],
-  "le bouton flottant ne doit pas appeler directement /api/agent/repondre, l'ancien pré-remplissage assistant, ni la question dossier Agent tant que le test /copilote n'est pas validé"
+  "le bouton flottant ne doit jamais appeler /api/agent/repondre, ni les anciennes routes assistant (pré-remplissage et question dossier)"
 );
 
 verifierPresences(
@@ -215,7 +210,7 @@ if (erreurs.length > 0) {
   }
 
   console.error(
-    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, /api/agent/pre-remplir doit être la seule route de pré-remplissage, /api/agent/repondre doit rester réservé au mode avancé, et /api/assistant/repondre doit rester l'ancienne question dossier tant qu'elle n'est pas migrée.\n"
+    "\nCorrection attendue : /api/agent/analyser-demande doit rester dry-run pur, /api/agent/pre-remplir doit être la seule route de pré-remplissage, /api/agent/question-dossier est la question dossier Agent branchée au bouton flottant, /api/agent/repondre doit rester réservé au mode avancé, et les anciennes routes assistant (pré-remplissage et question dossier) doivent être supprimées.\n"
   );
 
   process.exit(1);

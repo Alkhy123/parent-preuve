@@ -55,7 +55,7 @@ Deux générations cohabitent encore.
 Routes :
 
 ```text
-app/api/assistant/repondre/route.ts
+app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
 app/api/assistant/aiguiller/route.ts
 ```
@@ -63,16 +63,15 @@ app/api/assistant/aiguiller/route.ts
 État :
 
 ```text
-assistant/repondre      encore utilisé par le bouton flottant pour la question dossier
-assistant/pre-remplir   déprécié, conservé temporairement, plus appelé par le bouton flottant
+assistant/repondre      supprimé après migration de la question dossier vers /api/agent/question-dossier
+assistant/pre-remplir   supprimé après migration vers /api/agent/pre-remplir
 assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
 ```
 
 Règles :
 
 ```text
-Ne pas supprimer brutalement /api/assistant/*.
-Ne pas réutiliser /api/assistant/pre-remplir dans le bouton flottant.
+Ne pas réintroduire /api/assistant/repondre ni /api/assistant/pre-remplir.
 Ne pas copier ces routes dans /api/agent/.
 ```
 
@@ -312,9 +311,8 @@ Statut :
 
 ```text
 livrée
-expérimentale
-testée uniquement dans /copilote
-non branchée au bouton flottant
+validée dans /copilote
+branchée au bouton flottant pour la question dossier
 ```
 
 Contrat :
@@ -376,8 +374,8 @@ Règles strictes :
 La question dossier Agent ne donne aucun conseil juridique.
 Elle répond uniquement à partir du résumé factuel.
 Elle ne rédige pas de conclusions et ne prédit aucune décision.
-Le bouton flottant ne doit pas l'appeler tant que les tests /copilote ne sont pas validés.
-Tant que la migration n'est pas validée, le bouton flottant garde /api/assistant/repondre.
+Le bouton flottant l'appelle pour la question dossier.
+L'ancienne route /api/assistant/repondre est supprimée.
 ```
 
 ---
@@ -406,7 +404,6 @@ Tester avec Mistral
 Tester avec Mistral + résumé factuel du dossier
 Tester le pré-remplissage Agent
 Tester la question dossier Agent
-Comparer ancien assistant / Agent pré-remplissage
 afficher la source API
 afficher la validation Agent
 afficher les garde-fous
@@ -436,7 +433,7 @@ Routage attendu :
 ```text
 M'orienter             -> /api/agent/analyser-demande
 Pré-remplir une saisie -> /api/agent/pre-remplir
-Poser une question     -> /api/assistant/repondre
+Poser une question     -> /api/agent/question-dossier
 Mode avancé            -> /copilote
 ```
 
@@ -444,7 +441,7 @@ Interdictions :
 
 ```text
 ne pas appeler directement /api/agent/repondre
-ne pas appeler /api/assistant/pre-remplir
+ne pas réintroduire /api/assistant/repondre ni /api/assistant/pre-remplir
 ne pas écrire automatiquement en base
 ne pas donner de conseil juridique
 ```
@@ -508,11 +505,10 @@ Le script doit bloquer le build si :
 /api/agent/pre-remplir perd son contrat de validation
 /api/agent/question-dossier perd son contrat agent-question-dossier-v1 ou son validateur
 components/AssistantFlottant.tsx appelle directement /api/agent/repondre
-components/AssistantFlottant.tsx appelle /api/assistant/pre-remplir
-components/AssistantFlottant.tsx appelle /api/agent/question-dossier (migration prématurée)
-components/AssistantFlottant.tsx n'appelle plus /api/agent/pre-remplir
+components/AssistantFlottant.tsx appelle une ancienne route assistant supprimée
+components/AssistantFlottant.tsx n'appelle plus /api/agent/analyser-demande, /api/agent/pre-remplir ou /api/agent/question-dossier
 /copilote n'appelle plus /api/agent/question-dossier
-les routes assistant historiques disparaissent alors qu'elles sont encore conservées ou utilisées
+app/api/assistant/repondre/route.ts ou app/api/assistant/pre-remplir/route.ts réapparaissent
 ```
 
 ---
@@ -657,14 +653,14 @@ Vercel vert
 
 ## 11.3. Migrer la question dossier vers Agent
 
-En cours.
+Terminé.
 
 État :
 
 ```text
-/api/agent/question-dossier est livrée et testée dans /copilote.
+/api/agent/question-dossier est branchée au bouton flottant pour la question dossier.
 Contrat dédié agent-question-dossier-v1 en place.
-Le bouton flottant utilise encore /api/assistant/repondre pour la question dossier.
+/api/assistant/repondre est supprimée.
 ```
 
 Motif du contrat dédié :
@@ -675,13 +671,12 @@ elle peut produire des réponses trop larges ou juridiquement ambiguës
 elle nécessite un contrat Agent dédié et un validateur strict
 ```
 
-Condition avant de brancher le bouton flottant :
+Surveillance après bascule :
 
 ```text
-tests /copilote validés (factuels et garde-fous)
-script anti-régression mis à jour pour autoriser l'appel dans le bouton flottant
-étape de mise en production dédiée validée
-Vercel vert
+surveiller les retours utilisateur sur la question dossier
+garder le contrat agent-question-dossier-v1 strict
+ne jamais réintroduire /api/assistant/repondre
 ```
 
 ---
@@ -689,13 +684,13 @@ Vercel vert
 # 12. Règle finale
 
 ```text
-Assistant historique = production existante seulement pour question dossier.
-Assistant pré-remplir = ancienne route supprimée après migration vers l'Agent.
+Assistant historique = routes repondre et pre-remplir supprimées après migration vers l'Agent.
 Agent dry-run = orientation déterministe sécurisée.
 Agent Mistral général = expérimentation avancée dans /copilote.
 Agent pré-remplissage = validé et branché dans le bouton flottant.
-Agent question dossier = nouvelle route expérimentale, testée dans /copilote, pas encore branchée.
-Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique pour question dossier.
+Agent question dossier = validé et branché dans le bouton flottant.
+Bouton flottant = Agent pour orientation, pré-remplissage et question dossier.
+Bouton flottant = ne jamais appeler /api/agent/repondre.
 ```
 
 En cas de doute :

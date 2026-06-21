@@ -123,7 +123,7 @@ Le projet contient encore deux générations IA.
 Routes :
 
 ```text
-app/api/assistant/repondre/route.ts
+app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
 app/api/assistant/aiguiller/route.ts
 ```
@@ -131,23 +131,23 @@ app/api/assistant/aiguiller/route.ts
 État :
 
 ```text
-assistant/repondre      encore utilisé par le bouton flottant pour la question dossier
-assistant/pre-remplir   déprécié, conservé temporairement, plus appelé par le bouton flottant
+assistant/repondre      supprimé après migration de la question dossier vers /api/agent/question-dossier
+assistant/pre-remplir   supprimé après migration vers /api/agent/pre-remplir
 assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
 ```
 
 Usage actuel dans `components/AssistantFlottant.tsx` :
 
 ```text
-Pré-remplir une saisie -> /api/agent/pre-remplir
-Poser une question      -> /api/assistant/repondre
+M'orienter              -> /api/agent/analyser-demande
+Pré-remplir une saisie  -> /api/agent/pre-remplir
+Poser une question      -> /api/agent/question-dossier
 ```
 
 Règles :
 
 ```text
-Ne pas supprimer brutalement /api/assistant/*.
-Ne pas réutiliser /api/assistant/pre-remplir dans le bouton flottant.
+Ne pas réintroduire /api/assistant/repondre ni /api/assistant/pre-remplir.
 Ne pas copier les anciennes routes assistant dans /api/agent/.
 Ne pas mélanger Assistant historique et Agent nouvelle génération.
 ```
@@ -404,9 +404,8 @@ Statut :
 
 ```text
 livré
-expérimental
-testé dans /copilote
-non branché au bouton flottant
+validé dans /copilote
+branché au bouton flottant pour la question dossier
 ```
 
 Contrat :
@@ -454,8 +453,9 @@ validationHumaineRequise = true
 Règle actuelle :
 
 ```text
-Le bouton flottant garde /api/assistant/repondre pour la question dossier.
-Il ne doit pas appeler /api/agent/question-dossier tant que les tests /copilote ne sont pas validés.
+Le bouton flottant appelle /api/agent/question-dossier pour la question dossier.
+L'ancienne route /api/assistant/repondre est supprimée.
+Le bouton flottant ne doit jamais appeler /api/agent/repondre.
 ```
 
 ---
@@ -520,7 +520,7 @@ Routage attendu :
 ```text
 M'orienter              -> /api/agent/analyser-demande
 Pré-remplir une saisie  -> /api/agent/pre-remplir
-Poser une question      -> /api/assistant/repondre
+Poser une question      -> /api/agent/question-dossier
 Mode avancé             -> /copilote
 ```
 
@@ -528,7 +528,7 @@ Interdictions :
 
 ```text
 pas d'appel direct à /api/agent/repondre
-pas d'appel à /api/assistant/pre-remplir
+pas de réintroduction de /api/assistant/repondre ni /api/assistant/pre-remplir
 pas d'écriture automatique
 pas de conseil juridique
 ```
@@ -652,11 +652,10 @@ Le script bloque le build si :
 /api/agent/pre-remplir perd son contrat expérimental
 /api/agent/question-dossier perd son contrat agent-question-dossier-v1 ou son validateur
 AssistantFlottant appelle /api/agent/repondre
-AssistantFlottant appelle /api/assistant/pre-remplir
-AssistantFlottant appelle /api/agent/question-dossier (migration prématurée)
-AssistantFlottant n'appelle plus /api/agent/pre-remplir
+AssistantFlottant appelle une ancienne route assistant supprimée
+AssistantFlottant n'appelle plus /api/agent/analyser-demande, /api/agent/pre-remplir ou /api/agent/question-dossier
 /copilote n'appelle plus /api/agent/question-dossier
-les routes assistant historiques disparaissent alors qu'elles sont encore utilisées ou conservées temporairement
+app/api/assistant/repondre/route.ts ou app/api/assistant/pre-remplir/route.ts réapparaissent
 ```
 
 ---
@@ -1086,8 +1085,8 @@ app/api/ia/reformuler/route.ts
 app/api/ia/extraire/route.ts
 app/api/ia/extraire-pdf/route.ts
 
-app/api/assistant/repondre/route.ts
 app/api/assistant/aiguiller/route.ts
+app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
 
 app/api/agent/analyser-demande/route.ts
@@ -1469,20 +1468,26 @@ adapter le script anti-régression
 
 ## 20.3. Migration question sur dossier vers Agent
 
-À faire plus tard.
+Terminé.
 
-Route encore utilisée :
+Route de production :
 
 ```text
-app/api/assistant/repondre/route.ts
+app/api/agent/question-dossier/route.ts (contrat agent-question-dossier-v1)
 ```
 
-Motif :
+Ancienne route supprimée :
+
+```text
+app/api/assistant/repondre/route.ts supprimé
+```
+
+Motif du contrat dédié :
 
 ```text
 plus risqué que le pré-remplissage structuré
 réponses libres potentiellement juridiquement ambiguës
-nécessite un contrat Agent dédié ou un validateur plus strict
+nécessite un contrat Agent dédié et un validateur strict
 ```
 
 ## 20.4. Audit log

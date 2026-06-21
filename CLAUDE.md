@@ -32,8 +32,8 @@ For any Agent IA work:
 
 Le projet contient deux générations IA qui cohabitent temporairement.
 
-Assistant historique encore utilisé en production :
-- `app/api/assistant/repondre/route.ts`
+Assistant historique :
+- `app/api/assistant/repondre/route.ts` a été supprimée après migration de la question dossier vers `/api/agent/question-dossier`.
 - `app/api/assistant/pre-remplir/route.ts` a été supprimée après migration vers `/api/agent/pre-remplir`.
 
 Agent nouvelle génération :
@@ -49,10 +49,10 @@ Règles obligatoires :
 - Ne jamais mettre Mistral, quota IA, consentement IA ou validation Mistral dans `app/api/agent/analyser-demande/route.ts`.
 - `app/api/agent/analyser-demande/route.ts` doit rester une route dry-run déterministe : authentification, garde-fous, orientation, aucune écriture.
 - `app/api/agent/analyser-demande/route.ts` est la seule route Agent qui n'appelle pas Mistral ; `repondre`, `pre-remplir` et `question-dossier` appellent Mistral derrière garde-fous, consentement, quota et validateur.
-- `app/api/agent/question-dossier/route.ts` est la nouvelle route expérimentale de question dossier (contrat `agent-question-dossier-v1`), testée dans `/copilote`. Elle ne doit rien écrire en base métier.
-- `components/AssistantFlottant.tsx` ne doit pas appeler directement `/api/agent/repondre` ni `/api/agent/question-dossier`.
-- `components/AssistantFlottant.tsx` garde `/api/assistant/repondre` pour la question dossier tant que la migration vers `/api/agent/question-dossier` n'est pas validée.
-- `/api/agent/repondre` et `/api/agent/question-dossier` restent réservés au test avancé via `/copilote`, tant qu’une étape dédiée de mise en production n’a pas été validée.
+- `app/api/agent/question-dossier/route.ts` est la route de question dossier (contrat `agent-question-dossier-v1`) branchée au bouton flottant. Elle ne doit rien écrire en base métier.
+- `components/AssistantFlottant.tsx` utilise l'Agent pour ses trois usages : orientation (`/api/agent/analyser-demande`), pré-remplissage (`/api/agent/pre-remplir`) et question dossier (`/api/agent/question-dossier`).
+- `components/AssistantFlottant.tsx` ne doit jamais appeler `/api/agent/repondre`, ni les anciennes routes assistant supprimées.
+- `/api/agent/repondre` reste réservé au test avancé via `/copilote`, tant qu’une étape dédiée de mise en production n’a pas été validée.
 - Avant tout commit touchant l’Agent ou le bouton flottant, lancer `npm run check:agent-boundaries`.
 
 

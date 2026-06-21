@@ -22,9 +22,11 @@
 //    - validation humaine obligatoire
 //
 // 3. Question sur le dossier
-//    - route : /api/assistant/repondre
-//    - génération : Assistant historique
-//    - comportement : réponse à partir du résumé factuel
+//    - route : /api/agent/question-dossier
+//    - génération : Agent nouvelle génération
+//    - contrat : agent-question-dossier-v1
+//    - comportement : réponse factuelle à partir du résumé du dossier
+//    - aucun conseil juridique, aucune écriture, aucune action automatique
 //
 // La route /api/agent/repondre ne doit pas être appelée directement ici.
 // Elle reste réservée au mode avancé /copilote.
@@ -74,6 +76,28 @@ type ReponseAgent = {
 type ReponseAgentApi = {
   erreur?: string;
   reponse?: ReponseAgent;
+};
+
+type ReponseQuestionDossierAgent = {
+  resume?: string;
+  reponse?: string;
+  pointsAppui?: string[];
+  limites?: string[];
+  gardeFous?: {
+    conseilJuridiqueRefuse?: boolean;
+    strategieJudiciaireRefusee?: boolean;
+    redactionConclusionsRefusee?: boolean;
+    predictionDecisionRefusee?: boolean;
+    ecritureAutomatiqueRefusee?: boolean;
+    validationHumaineRequise?: boolean;
+  };
+};
+
+type ReponseQuestionDossierApi = {
+  erreur?: string;
+  source?: "mistral" | "garde_fou_local" | "fallback";
+  validation?: { ok: boolean; erreur: string };
+  reponse?: ReponseQuestionDossierAgent;
 };
 
 function Badge({
@@ -129,7 +153,8 @@ export default function AssistantFlottant() {
   const [erreurPre, setErreurPre] = useState("");
 
   const [question, setQuestion] = useState("");
-  const [reponse, setReponse] = useState("");
+  const [reponseQuestion, setReponseQuestion] =
+    useState<ReponseQuestionDossierAgent | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreurQuestion, setErreurQuestion] = useState("");
 
@@ -346,11 +371,11 @@ export default function AssistantFlottant() {
     }
 
     setEnCours(true);
-    setReponse("");
+    setReponseQuestion(null);
     setErreurQuestion("");
 
     try {
-      const r = await fetch("/api/assistant/repondre", {
+      const r = await fetch("/api/agent/question-dossier", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,15 +384,27 @@ export default function AssistantFlottant() {
         body: JSON.stringify({ question, resume }),
       });
 
-      const data = await r.json().catch(() => ({
+      const data = (await r.json().catch(() => ({
         erreur: "Réponse serveur illisible.",
-      }));
+      }))) as ReponseQuestionDossierApi;
 
       if (!r.ok) {
         setErreurQuestion(data.erreur ?? "Erreur inconnue.");
-      } else {
-        setReponse(data.reponse ?? "");
+        return;
       }
+
+      const reponseAgent = data.reponse;
+
+      if (
+        !reponseAgent ||
+        typeof reponseAgent.reponse !== "string" ||
+        reponseAgent.reponse.trim() === ""
+      ) {
+        setErreurQuestion("Réponse du copilote invalide.");
+        return;
+      }
+
+      setReponseQuestion(reponseAgent);
     } catch {
       setErreurQuestion("Connexion impossible.");
     } finally {
@@ -598,12 +635,12 @@ export default function AssistantFlottant() {
                   </h3>
                 </div>
 
-                <Badge ton="ia">Assistant historique</Badge>
+                <Badge ton="agent">Agent</Badge>
               </div>
 
               <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-                Cette réponse s’appuie sur le résumé factuel du dossier. Elle
-                reste informative et ne remplace pas un conseil professionnel.
+                Réponse factuelle à partir du résumé du dossier. Aucun conseil
+                juridique. Le copilote propose, vous vérifiez, vous validez.
               </p>
 
               <textarea
@@ -629,9 +666,44 @@ export default function AssistantFlottant() {
                 </p>
               )}
 
-              {reponse && (
-                <div className="mt-2 whitespace-pre-wrap rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-3 text-sm leading-5 text-[#5A6473]">
-                  {reponse}
+              {reponseQuestion && (
+                <div className="mt-2 space-y-3 rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-3 text-sm leading-5 text-[#5A6473]">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                      Réponse du copilote
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap">
+                      {reponseQuestion.reponse}
+                    </p>
+                  </div>
+
+                  {reponseQuestion.pointsAppui &&
+                    reponseQuestion.pointsAppui.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                          Points d’appui factuels
+                        </p>
+                        <ul className="mt-1 list-disc space-y-1 pl-5">
+                          {reponseQuestion.pointsAppui.map((item, index) => (
+                            <li key={`appui-${index}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {reponseQuestion.limites &&
+                    reponseQuestion.limites.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                          Limites
+                        </p>
+                        <ul className="mt-1 list-disc space-y-1 pl-5">
+                          {reponseQuestion.limites.map((item, index) => (
+                            <li key={`limite-${index}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                 </div>
               )}
             </section>
