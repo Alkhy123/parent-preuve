@@ -5,62 +5,80 @@
 // les fichiers internes, afin de garder une architecture claire.
 
 export type {
-    AgentActionAutorisee,
-    AgentActionId,
-    AgentActionProposee,
-    AgentDecisionGardeFou,
-    AgentDomaine,
-    AgentMessage,
-    AgentMessageRole,
-    AgentMode,
-    AgentReponseStructuree,
-    AgentRisque,
-  } from "@/lib/agent/types";
-  
-  export {
-    CATALOGUE_ACTIONS_AGENT,
-    listerActionsAgentAutorisees,
-    listerActionsAgentInterdites,
-    trouverActionAgent,
-  } from "@/lib/agent/catalogueActions";
-  
-  export {
-    construireRefusConseilJuridique,
-    estTexteProbablementJuridiquePersonnalise,
-    evaluerActionAgent,
-  } from "@/lib/agent/gardeFous";
-  
-  export type { AgentOrientation } from "@/lib/agent/orientation";
-  
-  export {
-    estDemandeJuridiqueSensibleAgent,
-    orienterDemandeAgent,
-  } from "@/lib/agent/orientation";
-  
-  export type { ConstruirePromptSystemeAgentParams } from "@/lib/agent/prompt";
-  
-  export {
-    PROMPT_SYSTEME_AGENT_PARENT_PREUVE,
-    VERSION_PROMPT_AGENT_PARENT_PREUVE,
-    construirePromptSystemeAgent,
-  } from "@/lib/agent/prompt";
-  
-  export type { ResultatValidationReponseAgent } from "@/lib/agent/schemaReponse";
-  
-  export {
-    construireReponseFallback,
-    parserEtValiderReponseAgent,
-    parserJsonReponseAgent,
-    validerReponseAgent,
-  } from "@/lib/agent/schemaReponse";
-  
-  export {
-    ENDPOINT_MISTRAL_CHAT_COMPLETIONS,
-    FONCTIONNALITE_CONSENTEMENT_AGENT,
-    FONCTIONNALITE_QUOTA_AGENT,
-    LIMITE_CARACTERES_MESSAGE_AGENT,
-    LIMITE_CARACTERES_RESUME_AGENT,
-    MAX_TOKENS_AGENT_MISTRAL,
-    QUOTA_AGENT_FENETRE_SECONDES,
-    QUOTA_AGENT_NOMBRE_APPELS,
-  } from "@/lib/agent/config";
+  AgentActionAutorisee,
+  AgentActionId,
+  AgentActionProposee,
+  AgentDecisionGardeFou,
+  AgentDomaine,
+  AgentMessage,
+  AgentMessageRole,
+  AgentMode,
+  AgentReponseStructuree,
+  AgentRisque,
+} from "@/lib/agent/types";
+
+export {
+  CATALOGUE_ACTIONS_AGENT,
+  listerActionsAgentAutorisees,
+  listerActionsAgentInterdites,
+  trouverActionAgent,
+} from "@/lib/agent/catalogueActions";
+
+export {
+  construireRefusConseilJuridique,
+  estTexteProbablementJuridiquePersonnalise,
+  evaluerActionAgent,
+} from "@/lib/agent/gardeFous";
+
+export type { AgentOrientation } from "@/lib/agent/orientation";
+
+export {
+  estDemandeJuridiqueSensibleAgent,
+  orienterDemandeAgent,
+} from "@/lib/agent/orientation";
+
+export type { ConstruirePromptSystemeAgentParams } from "@/lib/agent/prompt";
+
+export {
+  PROMPT_SYSTEME_AGENT_PARENT_PREUVE,
+  VERSION_PROMPT_AGENT_PARENT_PREUVE,
+  construirePromptSystemeAgent,
+} from "@/lib/agent/prompt";
+
+export type { ResultatValidationReponseAgent } from "@/lib/agent/schemaReponse";
+
+export {
+  construireReponseFallback,
+  parserEtValiderReponseAgent,
+  parserJsonReponseAgent,
+  validerReponseAgent,
+} from "@/lib/agent/schemaReponse";
+
+export {
+  ENDPOINT_MISTRAL_CHAT_COMPLETIONS,
+  FONCTIONNALITE_CONSENTEMENT_AGENT,
+  FONCTIONNALITE_QUOTA_AGENT,
+  LIMITE_CARACTERES_MESSAGE_AGENT,
+  LIMITE_CARACTERES_RESUME_AGENT,
+  MAX_TOKENS_AGENT_MISTRAL,
+  QUOTA_AGENT_FENETRE_SECONDES,
+  QUOTA_AGENT_NOMBRE_APPELS,
+} from "@/lib/agent/config";
+
+export type {
+  AgentGardeFousPreRemplissage,
+  AgentReponsePreRemplissage,
+  AgentTypePreRemplissage,
+  ResultatValidationPreRemplissageAgent,
+} from "@/lib/agent/preRemplissage";
+
+export {
+  TYPES_PREREMPLISSAGE_AGENT,
+  VERSION_CONTRAT_PREREMPLISSAGE_AGENT,
+  construireConsignePreRemplissageAgent,
+  construireReponsePreRemplissageAgent,
+  construireReponsePreRemplissageRefusee,
+  parserEtValiderReponsePreRemplissageAgent,
+  parserJsonPreRemplissageAgent,
+  validerReponsePreRemplissageAgent,
+} from "@/lib/agent/preRemplissage";
