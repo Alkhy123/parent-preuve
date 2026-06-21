@@ -38,6 +38,7 @@ type Frais = {
   rembourse: boolean;
   child_id: string | null;
   document_id: string | null;
+  sans_justificatif: boolean;
 };
 
 const CATEGORIES = ["Santé", "École", "Activités", "Vêtements", "Garde", "Autre"];
@@ -66,6 +67,10 @@ export default function FraisPage() {
   const [uploadEnCours, setUploadEnCours] = useState(false);
   const [uploadErreur, setUploadErreur] = useState("");
   const champFichierRef = useRef<HTMLInputElement>(null);
+
+  // Édition d'un frais existant. null = mode ajout ; sinon l'id du frais modifié.
+  const [editionId, setEditionId] = useState<string | null>(null);
+  const formulaireRef = useRef<HTMLDivElement>(null);
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
@@ -100,7 +105,7 @@ export default function FraisPage() {
   async function chargerFrais() {
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, libelle, categorie, montant, part_autre, date_frais, rembourse, child_id, document_id")
+      .select("id, libelle, categorie, montant, part_autre, date_frais, rembourse, child_id, document_id, sans_justificatif")
       .order("date_frais", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setFrais(data ?? []);
@@ -219,6 +224,36 @@ export default function FraisPage() {
     }
   }
 
+  // Charge un frais existant dans le formulaire pour le modifier.
+  function chargerPourEdition(f: Frais) {
+    setMessage("");
+    setConfirmation("");
+    setEditionId(f.id);
+    setLibelle(f.libelle ?? "");
+    setCategorie(f.categorie ?? "Autre");
+    setMontant(String(f.montant ?? ""));
+    setPartAutre(String(f.part_autre ?? ""));
+    setDateFrais(f.date_frais ?? "");
+    setChildId(f.child_id ?? "");
+    setDocumentId(f.document_id ?? "");
+    setMontrerSelection(false);
+    setUploadErreur("");
+    // État justificatif : joint si pièce liée, "aucun" si choix explicite, sinon question.
+    setJustifEtape(f.document_id ? "question" : f.sans_justificatif ? "aucun" : "question");
+    // Pré-remplissage Agent éventuel : on l'efface pour ne pas mélanger les bandeaux.
+    setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+    formulaireRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Quitte l'édition sans enregistrer et vide le formulaire.
+  function annulerEdition() {
+    setEditionId(null);
+    setMessage("");
+    setLibelle(""); setCategorie("Autre"); setMontant("");
+    setPartAutre(""); setDateFrais(""); setChildId("");
+    reinitialiserJustificatif();
+  }
+
   async function ajouterFrais() {
     setMessage("");
     setConfirmation("");
@@ -232,7 +267,11 @@ export default function FraisPage() {
       ? parseFloat(partAutre.replace(",", "."))
       : montantNum / 2;
 
-    const { error } = await supabase.from("expenses").insert({
+    // Mémorise le choix explicite « sans justificatif » : vrai seulement si aucune
+    // pièce n'est liée ET que l'utilisateur a cliqué « Non, pas de justificatif ».
+    const sansJustif = !documentId && justifEtape === "aucun";
+
+    const payload = {
       libelle: libelle.trim(),
       categorie,
       montant: montantNum,
@@ -240,18 +279,27 @@ export default function FraisPage() {
       date_frais: dateFrais,
       child_id: childId || null,
       document_id: documentId || null,
-    });
+      sans_justificatif: sansJustif,
+    };
+
+    const { error } = editionId
+      ? await supabase.from("expenses").update(payload).eq("id", editionId)
+      : await supabase.from("expenses").insert(payload);
 
     if (error) {
       setMessage("Erreur : " + error.message);
     } else {
+      const etaitEdition = editionId !== null;
+      setEditionId(null);
       setLibelle(""); setCategorie("Autre"); setMontant("");
       setPartAutre(""); setDateFrais(""); setChildId("");
       reinitialiserJustificatif();
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
       setConfirmation(
-        "Frais ajouté. Vous pouvez lui lier un justificatif depuis la liste ci-dessous si besoin."
+        etaitEdition
+          ? "Frais modifié."
+          : "Frais ajouté. Vous pouvez lui lier un justificatif depuis la liste ci-dessous si besoin."
       );
       setSignalAjout((n) => n + 1);
       chargerFrais();
@@ -395,15 +443,23 @@ export default function FraisPage() {
         </div>
 
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
-            pré-remplissage arrive (sans modifier le composant partagé). */}
-        <div className="mt-8">
+            pré-remplissage arrive ou quand on édite un frais. */}
+        <div className="mt-8" ref={formulaireRef}>
           <EncartPliable
-            key={preRempli ? "frais-prerempli" : "frais-standard"}
-            titre="Ajouter un frais"
-            replieParDefaut={!preRempli}
+            key={editionId ? `frais-edition-${editionId}` : preRempli ? "frais-prerempli" : "frais-standard"}
+            titre={editionId ? "Modifier le frais" : "Ajouter un frais"}
+            replieParDefaut={!preRempli && !editionId}
             signalFermeture={signalAjout}
           >
             <div className="space-y-4">
+          {editionId && (
+            <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
+              <p className="font-medium text-[#15233F]">Modification d&apos;un frais existant.</p>
+              <p className="mt-1 text-slate-600">
+                Ajustez les champs puis enregistrez. Vous pouvez annuler pour revenir à la liste sans modifier.
+              </p>
+            </div>
+          )}
           {preRempli && (
             <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
               <p className="font-medium text-[#15233F]">
@@ -621,12 +677,23 @@ export default function FraisPage() {
             )}
           </div>
 
-          <button
-            onClick={ajouterFrais}
-            className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
-          >
-            Ajouter le frais
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={ajouterFrais}
+              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+            >
+              {editionId ? "Enregistrer les modifications" : "Ajouter le frais"}
+            </button>
+            {editionId && (
+              <button
+                type="button"
+                onClick={annulerEdition}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                Annuler
+              </button>
+            )}
+          </div>
           <FormMessage message={message} type="erreur" />
             </div>
           </EncartPliable>
@@ -683,6 +750,10 @@ export default function FraisPage() {
                           Ouvrir
                         </button>
                       </>
+                    ) : f.sans_justificatif ? (
+                      <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                        Sans justificatif (choisi)
+                      </span>
                     ) : (
                       <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
                         Sans justificatif
@@ -701,6 +772,12 @@ export default function FraisPage() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
+                  <button
+                    onClick={() => chargerPourEdition(f)}
+                    className="text-sm text-[#15233F] hover:underline"
+                  >
+                    Modifier
+                  </button>
                   <button
                     onClick={() => basculerRembourse(f)}
                     className="text-sm text-slate-700 hover:underline"

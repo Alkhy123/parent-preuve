@@ -65,7 +65,11 @@ export async function chargerEtatDossier(
   const [preuvesRes, brouillonsRes, fraisRes] = await Promise.all([
     supabase.from("preuves_photo").select("id, enfant_id").eq("horodatage_statut", "a_refaire"),
     supabase.from("events").select("id, child_id").eq("statut", "brouillon"),
-    supabase.from("expenses").select("id, child_id").is("document_id", null),
+    supabase
+      .from("expenses")
+      .select("id, child_id")
+      .is("document_id", null)
+      .eq("sans_justificatif", false),
   ]);
 
   const preuvesARefaire = (preuvesRes.data ?? []).filter((p) => garde(p.enfant_id)).length;
