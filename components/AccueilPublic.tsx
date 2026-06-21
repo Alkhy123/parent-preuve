@@ -51,15 +51,23 @@ export default function AccueilPublic() {
           ))}
         </div>
 
-        <p className="mt-12 text-sm text-[#1F2733]/70">
-          Parent Preuve est une aide à l&apos;organisation d&apos;un dossier factuel.
-          L&apos;application ne fournit pas de conseil juridique et ne remplace pas un
-          professionnel du droit. En savoir plus dans la{" "}
-          <Link href="/confidentialite" className="underline">
-            politique de confidentialité
-          </Link>
-          .
-        </p>
+        <div className="mt-12 space-y-3 text-sm text-[#1F2733]/70">
+          <p>
+            <span className="font-medium text-[#15233F]">Ce que Parent Preuve ne fait pas :</span>{" "}
+            pas de conseil juridique ni de stratégie, aucune promesse de recevabilité, aucun
+            contact avec l&apos;autre parent. C&apos;est un outil d&apos;organisation factuelle,
+            pas un avocat.
+          </p>
+          <p>
+            <span className="font-medium text-[#15233F]">Confidentialité :</span>{" "}
+            vos données restent privées, cloisonnées par compte, hébergées dans l&apos;Union
+            européenne et jamais revendues. Détails dans la{" "}
+            <Link href="/confidentialite" className="underline">
+              politique de confidentialité
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     </>
   );

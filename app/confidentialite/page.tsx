@@ -10,15 +10,11 @@ export default function ConfidentialitePage() {
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
-        {/* Avertissement modèle */}
-        <div className="rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
-          <strong>À faire relire.</strong> Ce texte décrit fidèlement le fonctionnement de
-          l&apos;application. Il reste recommandé de le faire{" "}
-          <strong>valider par un professionnel du droit</strong> avant une ouverture publique
-          plus large.
-        </div>
-
-        <p className="text-sm text-gray-500">Dernière mise à jour : 16 juin 2026.</p>
+        {/* Note discrète : posture éditoriale, sans effet "prototype". */}
+        <p className="text-xs text-texte-doux">
+          Cette politique est susceptible d&apos;évoluer et pourra être revue par un
+          professionnel du droit. Dernière mise à jour : 16 juin 2026.
+        </p>
 
         {/* Responsable */}
         <section className="space-y-2">

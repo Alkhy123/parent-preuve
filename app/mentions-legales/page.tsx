@@ -11,12 +11,11 @@ export default function MentionsLegalesPage() {
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
-        {/* Avertissement */}
-        <div className="rounded-lg border border-[#C2A24C] bg-white p-4 text-sm">
-          <strong>À faire relire.</strong> Ce texte est renseigné. Il reste recommandé de le
-          faire <strong>valider par un professionnel du droit</strong> avant une ouverture
-          publique plus large.
-        </div>
+        {/* Note discrète : posture éditoriale, sans effet "prototype". */}
+        <p className="text-xs text-texte-doux">
+          Ces mentions sont susceptibles d&apos;évoluer et pourront être revues par un
+          professionnel du droit.
+        </p>
 
         {/* MENTIONS LÉGALES */}
         <section className="space-y-4">
