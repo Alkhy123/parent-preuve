@@ -7,8 +7,9 @@
 // - /api/agent/analyser-demande reste dry-run pur.
 // - /api/agent/repondre reste réservé au mode avancé /copilote.
 // - /api/agent/pre-remplir est la seule route de pré-remplissage utilisée.
-// - /api/assistant/repondre reste utilisé par le bouton flottant pour la question dossier.
-// - /api/assistant/pre-remplir est supprimé.
+// - /api/agent/question-dossier est la route de question dossier du bouton flottant.
+// - /api/assistant/repondre et /api/assistant/pre-remplir sont supprimés,
+//   remplacés par les routes /api/agent/* correspondantes.
 //
 // Ce script est volontairement simple, sans dépendance externe.
 
