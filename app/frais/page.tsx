@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
@@ -57,6 +57,15 @@ export default function FraisPage() {
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+
+  // Section justificatif guidée. "question" = on demande oui/non ;
+  // "oui" = on propose téléverser ou sélectionner ; "aucun" = pas de justificatif
+  // (le frais reste valable et exportable). documentId tient la pièce liée.
+  const [justifEtape, setJustifEtape] = useState<"question" | "oui" | "aucun">("question");
+  const [montrerSelection, setMontrerSelection] = useState(false);
+  const [uploadEnCours, setUploadEnCours] = useState(false);
+  const [uploadErreur, setUploadErreur] = useState("");
+  const champFichierRef = useRef<HTMLInputElement>(null);
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
@@ -151,6 +160,65 @@ export default function FraisPage() {
     setEnfantPropose(null);
   }, [enfants, enfantPropose]);
 
+  // Remet la section justificatif à son état initial (question oui/non).
+  function reinitialiserJustificatif() {
+    setDocumentId("");
+    setJustifEtape("question");
+    setMontrerSelection(false);
+    setUploadErreur("");
+  }
+
+  // Téléverse un fichier (photo ou PDF) dans le bucket justificatifs, crée la
+  // pièce dans `documents` et la rattache au frais en cours. Même logique que la
+  // page Documents. La pièce reste valable indépendamment du frais.
+  async function televerserJustificatif(fichier: File) {
+    setUploadErreur("");
+    setUploadEnCours(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      if (!userId) {
+        setUploadErreur("Vous devez être connecté.");
+        return;
+      }
+
+      const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const chemin = `${userId}/${Date.now()}-${nomNettoye}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("justificatifs")
+        .upload(chemin, fichier);
+      if (uploadError) {
+        setUploadErreur("Erreur d'envoi : " + uploadError.message);
+        return;
+      }
+
+      const { data: cree, error: insertError } = await supabase
+        .from("documents")
+        .insert({
+          libelle: (libelle.trim() || fichier.name).slice(0, 200),
+          categorie: "Facture",
+          chemin_fichier: chemin,
+          date_document: dateFrais || null,
+          child_id: childId || null,
+        })
+        .select("id")
+        .single();
+      if (insertError || !cree) {
+        setUploadErreur(
+          "Erreur d'enregistrement : " + (insertError?.message ?? "inconnue")
+        );
+        return;
+      }
+
+      setDocumentId(cree.id);
+      setMontrerSelection(false);
+      await chargerDocuments();
+    } finally {
+      setUploadEnCours(false);
+    }
+  }
+
   async function ajouterFrais() {
     setMessage("");
     setConfirmation("");
@@ -178,7 +246,8 @@ export default function FraisPage() {
       setMessage("Erreur : " + error.message);
     } else {
       setLibelle(""); setCategorie("Autre"); setMontant("");
-      setPartAutre(""); setDateFrais(""); setChildId(""); setDocumentId("");
+      setPartAutre(""); setDateFrais(""); setChildId("");
+      reinitialiserJustificatif();
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
       setConfirmation(
@@ -228,6 +297,12 @@ export default function FraisPage() {
   function nomEnfant(id: string | null) {
     if (!id) return null;
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
+  }
+
+  // Libellé lisible d'une pièce liée (catégorie · libellé), pour l'état "joint".
+  function nomDocument(id: string) {
+    const d = documents.find((doc) => doc.id === id);
+    return d ? `${d.categorie} · ${d.libelle}` : "Justificatif joint";
   }
 
   // Filtrage par procédure active (frais/justificatifs d'un enfant de la procédure,
@@ -419,25 +494,132 @@ export default function FraisPage() {
                 selon la règle de partage de votre dossier.
               </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Justificatif (facultatif)</label>
-              <select
-                value={documentId} onChange={(e) => setDocumentId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Aucun —</option>
-                {documentsProcedure.map((d) => (
-                  <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-slate-500">
-                {documentsProcedure.length === 0
-                  ? "Aucune pièce disponible. Ajoutez vos pièces dans « Documents » pour pouvoir les lier ici."
-                  : "Reliez la facture ou le reçu correspondant. Vous pourrez aussi le faire plus tard depuis la liste."}
-              </p>
-            </div>
           </OptionsAvancees>
+
+          {/* Justificatif guidé. Optionnel : sans justificatif, le frais reste
+              valable et exportable. */}
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="text-sm font-medium text-slate-700">Justificatif</p>
+
+            {documentId ? (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                  ✓ Justificatif joint
+                </span>
+                <span className="text-sm text-slate-600">{nomDocument(documentId)}</span>
+                <button
+                  type="button"
+                  onClick={reinitialiserJustificatif}
+                  className="text-sm text-slate-700 hover:underline"
+                >
+                  Changer
+                </button>
+              </div>
+            ) : justifEtape === "question" ? (
+              <>
+                <p className="mt-1 text-xs text-slate-500">
+                  Un justificatif n&apos;est pas obligatoire : le frais reste
+                  valable et exportable.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setJustifEtape("oui")}
+                    className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                  >
+                    Oui, j&apos;ai un justificatif
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setJustifEtape("aucun")}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    Non, pas de justificatif
+                  </button>
+                </div>
+              </>
+            ) : justifEtape === "aucun" ? (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <p className="text-sm text-slate-600">
+                  Aucun justificatif. Le frais reste valable et exportable.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setJustifEtape("question")}
+                  className="text-sm text-slate-700 hover:underline"
+                >
+                  Modifier
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => champFichierRef.current?.click()}
+                    disabled={uploadEnCours}
+                    className="rounded-lg bg-[#15233F] px-3 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-50"
+                  >
+                    {uploadEnCours ? "Envoi en cours…" : "Téléverser un justificatif"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMontrerSelection((v) => !v)}
+                    className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                  >
+                    Sélectionner un justificatif existant
+                  </button>
+                </div>
+
+                <input
+                  ref={champFichierRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) televerserJustificatif(f);
+                    e.target.value = "";
+                  }}
+                />
+
+                <p className="text-xs text-slate-500">
+                  Le téléversement ouvre l&apos;appareil photo ou les fichiers de
+                  votre appareil. La pièce est aussi ajoutée à « Documents ».
+                </p>
+
+                <FormMessage message={uploadErreur} type="erreur" />
+
+                {montrerSelection && (
+                  <div>
+                    <select
+                      value={documentId}
+                      onChange={(e) => setDocumentId(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    >
+                      <option value="">— Choisir une pièce —</option>
+                      {documentsProcedure.map((d) => (
+                        <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                      ))}
+                    </select>
+                    {documentsProcedure.length === 0 && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Aucune pièce disponible. Ajoutez vos pièces dans « Documents ».
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setJustifEtape("question")}
+                  className="text-xs text-slate-500 hover:underline"
+                >
+                  Retour
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={ajouterFrais}
