@@ -2,37 +2,18 @@
 
 // app/copilote/page.tsx
 //
-// Page de test du Copilote Agent.
+// Laboratoire du Copilote Agent.
 //
-// Cette page permet quatre tests contrôlés :
+// Tests disponibles :
+// 1. Dry-run sécurisé : /api/agent/analyser-demande.
+// 2. Agent Mistral général : /api/agent/repondre.
+// 3. Agent Mistral général + résumé factuel du dossier.
+// 4. Pré-remplissage Agent expérimental : /api/agent/pre-remplir.
+// 5. Comparaison ancien Assistant / nouveau pré-remplissage Agent.
 //
-// 1. Dry-run sécurisé : /api/agent/analyser-demande
-//    - aucun appel IA ;
-//    - aucun quota IA ;
-//    - aucune écriture.
-//
-// 2. Test expérimental Mistral : /api/agent/repondre
-//    - appel IA réel ;
-//    - consentement IA requis ;
-//    - quota IA requis ;
-//    - validation stricte de la réponse ;
-//    - aucune écriture métier ;
-//    - aucune action automatique.
-//
-// 3. Test Mistral avec résumé factuel du dossier
-//    - résumé chargé côté client ;
-//    - lecture seule ;
-//    - envoyé uniquement si l'utilisateur coche l'option ;
-//    - aucun document, pièce jointe ou donnée de santé ne doit être envoyé.
-//
-// 4. Test pré-remplissage Agent : /api/agent/pre-remplir
-//    - appel IA réel ;
-//    - consentement IA requis ;
-//    - quota IA requis ;
-//    - contrat agent-pre-remplissage-v1 ;
-//    - aucune écriture métier ;
-//    - aucune action automatique ;
-//    - validation humaine obligatoire.
+// Aucune écriture métier.
+// Aucune action automatique.
+// Validation humaine obligatoire.
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
@@ -109,12 +90,21 @@ type ReponsePreRemplissageAgent = {
   };
 };
 
-type ReponsePreRemplissageApi =
+type ReponsePreRemplissageAgentApi =
   | {
       ok: true;
       source?: "mistral" | "garde_fou_local";
       validation?: ValidationAgentApi;
       reponse: ReponsePreRemplissageAgent;
+    }
+  | {
+      erreur: string;
+    };
+
+type ReponsePreRemplissageAssistantApi =
+  | {
+      ok: true;
+      proposition: PropositionPreRemplissage;
     }
   | {
       erreur: string;
@@ -134,6 +124,7 @@ const EXEMPLES_PREREMPLISSAGE = [
   "J'ai payé 45 € de cantine pour Léa le 12 mars",
   "Le père est arrivé avec 25 minutes de retard samedi",
   "J'ai acheté des vêtements pour 38,90 € hier",
+  "J'ai payé 120 € d'orthophoniste pour mon fils",
   "Rédige mes conclusions pour gagner devant le JAF",
 ];
 
@@ -160,6 +151,205 @@ function libelleTypeProposition(type: PropositionPreRemplissage["type"]) {
   return "Aucun pré-remplissage";
 }
 
+function propositionEnTexte(proposition: PropositionPreRemplissage | null) {
+  if (!proposition) return "Aucune proposition";
+
+  if (proposition.type === "aucun") {
+    return "Aucun pré-remplissage";
+  }
+
+  if (proposition.type === "frais") {
+    return [
+      `type=frais`,
+      `libelle=${valeurLisible(proposition.champs.libelle)}`,
+      `categorie=${valeurLisible(proposition.champs.categorie)}`,
+      `montant=${valeurLisible(proposition.champs.montant)}`,
+      `date=${valeurLisible(proposition.champs.date)}`,
+      `enfant=${valeurLisible(proposition.champs.enfant)}`,
+    ].join(" | ");
+  }
+
+  return [
+    `type=journal`,
+    `titre=${valeurLisible(proposition.champs.titre)}`,
+    `categorie=${valeurLisible(proposition.champs.categorie)}`,
+    `date=${valeurLisible(proposition.champs.date)}`,
+    `enfant=${valeurLisible(proposition.champs.enfant)}`,
+    `description=${valeurLisible(proposition.champs.description)}`,
+  ].join(" | ");
+}
+
+function propositionsSemblentIdentiques(
+  ancienne: PropositionPreRemplissage | null,
+  agent: PropositionPreRemplissage | null
+) {
+  return propositionEnTexte(ancienne) === propositionEnTexte(agent);
+}
+
+function BlocProposition({
+  titre,
+  sousTitre,
+  proposition,
+  validation,
+  source,
+}: {
+  titre: string;
+  sousTitre: string;
+  proposition: PropositionPreRemplissage | null;
+  validation?: ValidationAgentApi | null;
+  source?: string;
+}) {
+  if (!proposition) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h3 className="font-semibold text-[#15233F]">{titre}</h3>
+        <p className="mt-1 text-xs text-slate-500">{sousTitre}</p>
+        <p className="mt-3 text-sm text-slate-500">Aucun résultat.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-semibold text-[#15233F]">{titre}</h3>
+          <p className="mt-1 text-xs text-slate-500">{sousTitre}</p>
+        </div>
+
+        <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+          {libelleTypeProposition(proposition.type)}
+        </span>
+      </div>
+
+      {source && (
+        <p className="mt-3 text-xs text-slate-500">
+          Source : <span className="font-medium">{source}</span>
+        </p>
+      )}
+
+      {validation && (
+        <div
+          className={`mt-3 rounded-lg border p-3 ${
+            validation.ok
+              ? "border-emerald-200 bg-emerald-50"
+              : "border-amber-200 bg-amber-50"
+          }`}
+        >
+          <p
+            className={`text-xs font-medium ${
+              validation.ok ? "text-emerald-800" : "text-amber-800"
+            }`}
+          >
+            {validation.ok
+              ? "Validateur Agent passé."
+              : validation.erreur ||
+                "Réponse remplacée par une proposition sécurisée."}
+          </p>
+        </div>
+      )}
+
+      {proposition.type === "frais" && (
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Libellé</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.libelle)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Catégorie</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {proposition.champs.categorie}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Montant</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.montant)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Date</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.date)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+            <dt className="text-xs text-slate-500">Enfant</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.enfant)}
+            </dd>
+          </div>
+        </dl>
+      )}
+
+      {proposition.type === "journal" && (
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Titre</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.titre)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Catégorie</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {proposition.champs.categorie}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Date</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.date)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3">
+            <dt className="text-xs text-slate-500">Enfant</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.enfant)}
+            </dd>
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+            <dt className="text-xs text-slate-500">Description</dt>
+            <dd className="mt-1 font-medium text-[#15233F]">
+              {valeurLisible(proposition.champs.description)}
+            </dd>
+          </div>
+        </dl>
+      )}
+
+      {proposition.type === "aucun" && (
+        <p className="mt-4 text-sm leading-6 text-[#5A6473]">
+          Aucun pré-remplissage exploitable proposé.
+        </p>
+      )}
+
+      {proposition.avertissements.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="text-xs font-semibold text-amber-900">
+            Avertissements
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-amber-800">
+            {proposition.avertissements.map((item, index) => (
+              <li key={`${item}-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PageCopilote() {
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
   const [verificationConnexion, setVerificationConnexion] = useState(true);
@@ -178,14 +368,18 @@ export default function PageCopilote() {
   const [chargementMistral, setChargementMistral] = useState(false);
 
   const [phrasePreRemplissage, setPhrasePreRemplissage] = useState("");
+  const [propositionAssistant, setPropositionAssistant] =
+    useState<PropositionPreRemplissage | null>(null);
   const [reponsePreRemplissage, setReponsePreRemplissage] =
     useState<ReponsePreRemplissageAgent | null>(null);
   const [validationPreRemplissage, setValidationPreRemplissage] =
     useState<ValidationAgentApi | null>(null);
   const [sourcePreRemplissage, setSourcePreRemplissage] = useState("");
   const [erreurPreRemplissage, setErreurPreRemplissage] = useState("");
-  const [chargementPreRemplissage, setChargementPreRemplissage] =
+  const [chargementPreRemplissageAgent, setChargementPreRemplissageAgent] =
     useState(false);
+  const [chargementComparaison, setChargementComparaison] = useState(false);
+  const [comparaisonEffectuee, setComparaisonEffectuee] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -213,10 +407,12 @@ export default function PageCopilote() {
   }
 
   function viderResultatsPreRemplissage() {
+    setPropositionAssistant(null);
     setReponsePreRemplissage(null);
     setValidationPreRemplissage(null);
     setSourcePreRemplissage("");
     setErreurPreRemplissage("");
+    setComparaisonEffectuee(false);
   }
 
   async function construireCorpsRequete(mode: ModeReponse, demande: string) {
@@ -244,9 +440,7 @@ export default function PageCopilote() {
   }) {
     const demande = message.trim();
 
-    if (demande === "") {
-      return;
-    }
+    if (demande === "") return;
 
     if (mode === "dry-run") {
       setChargementDryRun(true);
@@ -296,6 +490,56 @@ export default function PageCopilote() {
     }
   }
 
+  async function appelerAssistantHistoriquePreRemplissage(phrase: string) {
+    const resultat = await fetch("/api/assistant/pre-remplir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(await enteteAuth()),
+      },
+      body: JSON.stringify({ phrase }),
+    });
+
+    const data = (await resultat.json().catch(() => ({
+      erreur: "Réponse serveur illisible.",
+    }))) as ReponsePreRemplissageAssistantApi;
+
+    if (!resultat.ok || "erreur" in data) {
+      throw new Error(
+        "erreur" in data
+          ? data.erreur
+          : "L'ancien assistant n'a pas pu répondre."
+      );
+    }
+
+    return data.proposition;
+  }
+
+  async function appelerAgentPreRemplissage(phrase: string) {
+    const resultat = await fetch("/api/agent/pre-remplir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(await enteteAuth()),
+      },
+      body: JSON.stringify({ phrase }),
+    });
+
+    const data = (await resultat.json().catch(() => ({
+      erreur: "Réponse serveur illisible.",
+    }))) as ReponsePreRemplissageAgentApi;
+
+    if (!resultat.ok || "erreur" in data) {
+      throw new Error(
+        "erreur" in data
+          ? data.erreur
+          : "Le pré-remplissage Agent n'a pas pu répondre."
+      );
+    }
+
+    return data;
+  }
+
   async function analyserDemande(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -315,45 +559,55 @@ export default function PageCopilote() {
   async function testerPreRemplissageAgent() {
     const phrase = phrasePreRemplissage.trim();
 
-    if (phrase === "") {
-      return;
-    }
+    if (phrase === "") return;
 
-    setChargementPreRemplissage(true);
+    setChargementPreRemplissageAgent(true);
     viderResultatsPreRemplissage();
 
     try {
-      const resultat = await fetch("/api/agent/pre-remplir", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(await enteteAuth()),
-        },
-        body: JSON.stringify({ phrase }),
-      });
-
-      const data = (await resultat.json().catch(() => ({
-        erreur: "Réponse serveur illisible.",
-      }))) as ReponsePreRemplissageApi;
-
-      if (!resultat.ok || "erreur" in data) {
-        setErreurPreRemplissage(
-          "erreur" in data
-            ? data.erreur
-            : "Le pré-remplissage Agent n'a pas pu répondre."
-        );
-        return;
-      }
+      const data = await appelerAgentPreRemplissage(phrase);
 
       setReponsePreRemplissage(data.reponse);
       setValidationPreRemplissage(data.validation ?? null);
       setSourcePreRemplissage(data.source ?? "");
-    } catch {
+    } catch (e) {
       setErreurPreRemplissage(
-        "Connexion impossible avec le pré-remplissage Agent."
+        e instanceof Error
+          ? e.message
+          : "Connexion impossible avec le pré-remplissage Agent."
       );
     } finally {
-      setChargementPreRemplissage(false);
+      setChargementPreRemplissageAgent(false);
+    }
+  }
+
+  async function comparerPreRemplissages() {
+    const phrase = phrasePreRemplissage.trim();
+
+    if (phrase === "") return;
+
+    setChargementComparaison(true);
+    viderResultatsPreRemplissage();
+
+    try {
+      const [ancienneProposition, reponseAgent] = await Promise.all([
+        appelerAssistantHistoriquePreRemplissage(phrase),
+        appelerAgentPreRemplissage(phrase),
+      ]);
+
+      setPropositionAssistant(ancienneProposition);
+      setReponsePreRemplissage(reponseAgent.reponse);
+      setValidationPreRemplissage(reponseAgent.validation ?? null);
+      setSourcePreRemplissage(reponseAgent.source ?? "");
+      setComparaisonEffectuee(true);
+    } catch (e) {
+      setErreurPreRemplissage(
+        e instanceof Error
+          ? e.message
+          : "Impossible de comparer les deux pré-remplissages."
+      );
+    } finally {
+      setChargementComparaison(false);
     }
   }
 
@@ -378,8 +632,7 @@ export default function PageCopilote() {
           </h1>
 
           <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-            Vous devez être connecté pour tester le copilote. Les routes Agent
-            refusent les demandes non authentifiées.
+            Vous devez être connecté pour tester le copilote.
           </p>
 
           <Link
@@ -394,6 +647,13 @@ export default function PageCopilote() {
   }
 
   const chargementGlobal = chargementDryRun || chargementMistral;
+  const chargementPreRemplissage =
+    chargementPreRemplissageAgent || chargementComparaison;
+
+  const propositionsIdentiques = propositionsSemblentIdentiques(
+    propositionAssistant,
+    reponsePreRemplissage?.proposition ?? null
+  );
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -407,10 +667,10 @@ export default function PageCopilote() {
         </h1>
 
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-          Cette page permet de tester séparément le dry-run déterministe, la
-          route expérimentale Mistral, l'envoi optionnel du résumé factuel du
-          dossier et le pré-remplissage Agent expérimental. Aucune donnée métier
-          n'est modifiée et aucune action automatique n'est déclenchée.
+          Cette page permet de tester le dry-run, le Copilote Mistral, le résumé
+          factuel du dossier et le pré-remplissage Agent. La comparaison
+          ancien/nouveau permet de vérifier qu'aucune régression n'apparaît
+          avant une éventuelle migration du bouton flottant.
         </p>
       </div>
 
@@ -490,15 +750,8 @@ export default function PageCopilote() {
 
                     <span>
                       Inclure le résumé factuel du dossier pour ce test Mistral.
-                      Ce résumé est chargé en lecture seule et ne contient pas de
-                      pièce jointe.
                     </span>
                   </label>
-
-                  <p className="text-xs leading-5 text-[#5A6473]">
-                    Test expérimental : appel IA réel, quota IA consommé,
-                    réponse validée par les garde-fous Agent.
-                  </p>
                 </div>
               </ConsentementIA>
             </div>
@@ -531,7 +784,6 @@ export default function PageCopilote() {
       {erreur && (
         <section className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
           <h2 className="font-semibold text-red-900">Erreur</h2>
-
           <p className="mt-2 text-sm text-red-800">{erreur}</p>
         </section>
       )}
@@ -603,7 +855,6 @@ export default function PageCopilote() {
 
           <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
             <h3 className="font-semibold text-[#15233F]">Résumé</h3>
-
             <p className="mt-2 text-sm leading-6 text-[#5A6473]">
               {reponse.resume}
             </p>
@@ -678,11 +929,6 @@ export default function PageCopilote() {
               </div>
             </dl>
           </div>
-
-          <p className="mt-4 text-xs leading-5 text-slate-500">
-            Cette réponse sert à tester le cadrage du futur agent. Elle ne
-            déclenche aucune action et ne remplace pas un professionnel du droit.
-          </p>
         </section>
       )}
 
@@ -693,14 +939,12 @@ export default function PageCopilote() {
           </p>
 
           <h2 className="mt-1 font-display text-2xl text-[#15233F]">
-            Test expérimental de saisie structurée
+            Test et comparaison du pré-remplissage
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-[#5A6473]">
-            Ce test appelle la route expérimentale /api/agent/pre-remplir. Il
-            permet de comparer le futur pré-remplissage Agent avec l'ancien
-            assistant, sans brancher cette route au bouton flottant et sans
-            écrire dans le dossier.
+            Ce bloc permet de tester le nouveau pré-remplissage Agent et de le
+            comparer à l'ancien assistant. Le bouton flottant n'est pas modifié.
           </p>
         </div>
 
@@ -742,11 +986,11 @@ export default function PageCopilote() {
         <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
           <ConsentementIA
             fonctionnalite="agent"
-            titre="Avant de tester le pré-remplissage Agent"
-            descriptionTransmission="Le pré-remplissage Agent peut envoyer à Mistral la phrase que vous saisissez afin de proposer des champs structurés. Aucune pièce jointe, photo ou document original n'est envoyé."
-            descriptionResponsabilite="Le pré-remplissage Agent ne crée aucune donnée dans votre dossier. Il propose uniquement des champs à vérifier. La validation humaine reste obligatoire."
+            titre="Avant de tester ou comparer le pré-remplissage"
+            descriptionTransmission="Le test peut envoyer à Mistral la phrase que vous saisissez. Le mode comparaison envoie la même phrase à l'ancien assistant et au nouveau pré-remplissage Agent. Aucune pièce jointe, photo ou document original n'est envoyé."
+            descriptionResponsabilite="Le pré-remplissage ne crée aucune donnée dans votre dossier. Il propose uniquement des champs à vérifier. La validation humaine reste obligatoire."
           >
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={testerPreRemplissageAgent}
@@ -756,16 +1000,30 @@ export default function PageCopilote() {
                 }
                 className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {chargementPreRemplissage
-                  ? "Test pré-remplissage…"
-                  : "Tester le pré-remplissage Agent"}
+                {chargementPreRemplissageAgent
+                  ? "Test Agent…"
+                  : "Tester l'Agent seul"}
               </button>
 
-              <p className="text-xs leading-5 text-[#5A6473]">
-                Test expérimental : appel IA réel, quota IA consommé, contrat
-                agent-pre-remplissage-v1, aucune écriture automatique.
-              </p>
+              <button
+                type="button"
+                onClick={comparerPreRemplissages}
+                disabled={
+                  chargementPreRemplissage ||
+                  phrasePreRemplissage.trim() === ""
+                }
+                className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {chargementComparaison
+                  ? "Comparaison…"
+                  : "Comparer ancien / Agent"}
+              </button>
             </div>
+
+            <p className="mt-3 text-xs leading-5 text-[#5A6473]">
+              Test expérimental : appel IA réel, quota IA consommé, aucune
+              écriture automatique.
+            </p>
           </ConsentementIA>
         </div>
 
@@ -795,7 +1053,7 @@ export default function PageCopilote() {
       {erreurPreRemplissage && (
         <section className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
           <h2 className="font-semibold text-red-900">
-            Erreur pré-remplissage Agent
+            Erreur pré-remplissage
           </h2>
 
           <p className="mt-2 text-sm text-red-800">
@@ -804,267 +1062,129 @@ export default function PageCopilote() {
         </section>
       )}
 
-      {reponsePreRemplissage && (
+      {(propositionAssistant || reponsePreRemplissage) && (
         <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
-                Réponse pré-remplissage
+                Comparaison pré-remplissage
               </p>
 
               <h2 className="mt-1 font-display text-2xl text-[#15233F]">
-                Proposition structurée Agent
+                Ancien Assistant / nouvel Agent
               </h2>
             </div>
 
-            <div className="flex flex-col gap-2 sm:items-end">
-              <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
-                {reponsePreRemplissage.version}
-              </span>
-
-              <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
-                Pré-remplissage Agent
-              </span>
-            </div>
-          </div>
-
-          {sourcePreRemplissage && (
-            <p className="mt-3 text-xs text-slate-500">
-              Source API :{" "}
-              <span className="font-medium">{sourcePreRemplissage}</span>
-            </p>
-          )}
-
-          {validationPreRemplissage && (
-            <div
-              className={`mt-4 rounded-xl border p-4 ${
-                validationPreRemplissage.ok
-                  ? "border-emerald-200 bg-emerald-50"
-                  : "border-amber-200 bg-amber-50"
-              }`}
-            >
-              <h3
-                className={`font-semibold ${
-                  validationPreRemplissage.ok
-                    ? "text-emerald-900"
-                    : "text-amber-900"
+            {comparaisonEffectuee && (
+              <span
+                className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-medium ${
+                  propositionsIdentiques
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
                 }`}
               >
-                Validation du pré-remplissage Agent
+                {propositionsIdentiques
+                  ? "Sorties identiques"
+                  : "Écarts à examiner"}
+              </span>
+            )}
+          </div>
+
+          {reponsePreRemplissage && (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
+              <h3 className="font-semibold text-[#15233F]">
+                Résumé Agent
               </h3>
 
-              <p
-                className={`mt-2 text-sm ${
-                  validationPreRemplissage.ok
-                    ? "text-emerald-800"
-                    : "text-amber-800"
-                }`}
-              >
-                {validationPreRemplissage.ok
-                  ? "La réponse a passé le validateur de pré-remplissage Agent."
-                  : validationPreRemplissage.erreur ||
-                    "La réponse IA a été remplacée par une proposition sécurisée."}
+              <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+                {reponsePreRemplissage.resume}
               </p>
-            </div>
-          )}
 
-          <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-            <h3 className="font-semibold text-[#15233F]">Résumé</h3>
-
-            <p className="mt-2 text-sm leading-6 text-[#5A6473]">
-              {reponsePreRemplissage.resume}
-            </p>
-          </div>
-
-          {reponsePreRemplissage.messages.length > 0 && (
-            <div className="mt-4 rounded-xl border border-slate-200 p-4">
-              <h3 className="font-semibold text-[#15233F]">Messages</h3>
-
-              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
-                {reponsePreRemplissage.messages.map((item, index) => (
-                  <li key={`${item}-${index}`}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4">
-            <h3 className="font-semibold text-[#15233F]">
-              Proposition :{" "}
-              {libelleTypeProposition(reponsePreRemplissage.proposition.type)}
-            </h3>
-
-            {reponsePreRemplissage.proposition.type === "frais" && (
-              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Libellé</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.libelle
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Catégorie</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {reponsePreRemplissage.proposition.champs.categorie}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Montant</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.montant
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Date</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.date
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3 sm:col-span-2">
-                  <dt className="text-xs text-slate-500">Enfant</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.enfant
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            )}
-
-            {reponsePreRemplissage.proposition.type === "journal" && (
-              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Titre</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.titre
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Catégorie</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {reponsePreRemplissage.proposition.champs.categorie}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Date</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.date
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3">
-                  <dt className="text-xs text-slate-500">Enfant</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.enfant
-                    )}
-                  </dd>
-                </div>
-
-                <div className="rounded-lg bg-white p-3 sm:col-span-2">
-                  <dt className="text-xs text-slate-500">Description</dt>
-                  <dd className="mt-1 font-medium text-[#15233F]">
-                    {valeurLisible(
-                      reponsePreRemplissage.proposition.champs.description
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            )}
-
-            {reponsePreRemplissage.proposition.type === "aucun" && (
-              <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-                Aucun pré-remplissage exploitable n'a été proposé. La saisie
-                peut être faite manuellement dans la rubrique adaptée.
-              </p>
-            )}
-
-            {reponsePreRemplissage.proposition.avertissements.length > 0 && (
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <h4 className="font-semibold text-amber-900">
-                  Avertissements
-                </h4>
-
-                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-amber-800">
-                  {reponsePreRemplissage.proposition.avertissements.map(
-                    (item, index) => (
-                      <li key={`${item}-${index}`}>{item}</li>
-                    )
-                  )}
+              {reponsePreRemplissage.messages.length > 0 && (
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-[#5A6473]">
+                  {reponsePreRemplissage.messages.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
+                  ))}
                 </ul>
-              </div>
-            )}
+              )}
+            </div>
+          )}
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <BlocProposition
+              titre="Ancien Assistant"
+              sousTitre="/api/assistant/pre-remplir"
+              proposition={propositionAssistant}
+              source="assistant historique"
+            />
+
+            <BlocProposition
+              titre="Nouvel Agent"
+              sousTitre="/api/agent/pre-remplir"
+              proposition={reponsePreRemplissage?.proposition ?? null}
+              validation={validationPreRemplissage}
+              source={sourcePreRemplissage || "agent"}
+            />
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-[#15233F]">Garde-fous</h3>
+          {reponsePreRemplissage && (
+            <div className="mt-4 rounded-xl border border-slate-200 p-4">
+              <h3 className="font-semibold text-[#15233F]">
+                Garde-fous Agent
+              </h3>
 
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
-                  Conseil juridique refusé
-                </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
-                  {libelleBooleen(
-                    reponsePreRemplissage.gardeFous.conseilJuridiqueRefuse
-                  )}
-                </dd>
-              </div>
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <dt className="text-xs text-slate-500">
+                    Conseil juridique refusé
+                  </dt>
+                  <dd className="mt-1 font-semibold text-[#15233F]">
+                    {libelleBooleen(
+                      reponsePreRemplissage.gardeFous.conseilJuridiqueRefuse
+                    )}
+                  </dd>
+                </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
-                  Écriture automatique refusée
-                </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
-                  {libelleBooleen(
-                    reponsePreRemplissage.gardeFous
-                      .ecritureAutomatiqueRefusee
-                  )}
-                </dd>
-              </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <dt className="text-xs text-slate-500">
+                    Écriture automatique refusée
+                  </dt>
+                  <dd className="mt-1 font-semibold text-[#15233F]">
+                    {libelleBooleen(
+                      reponsePreRemplissage.gardeFous
+                        .ecritureAutomatiqueRefusee
+                    )}
+                  </dd>
+                </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
-                  Validation humaine requise
-                </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
-                  {libelleBooleen(
-                    reponsePreRemplissage.gardeFous.validationHumaineRequise
-                  )}
-                </dd>
-              </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <dt className="text-xs text-slate-500">
+                    Validation humaine requise
+                  </dt>
+                  <dd className="mt-1 font-semibold text-[#15233F]">
+                    {libelleBooleen(
+                      reponsePreRemplissage.gardeFous.validationHumaineRequise
+                    )}
+                  </dd>
+                </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">UUID enfant interdit</dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
-                  {libelleBooleen(
-                    reponsePreRemplissage.gardeFous.enfantUuidInterdit
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <dt className="text-xs text-slate-500">
+                    UUID enfant interdit
+                  </dt>
+                  <dd className="mt-1 font-semibold text-[#15233F]">
+                    {libelleBooleen(
+                      reponsePreRemplissage.gardeFous.enfantUuidInterdit
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          )}
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
-            Cette proposition sert uniquement à tester le futur
-            pré-remplissage Agent. Elle ne déclenche aucune écriture et ne
-            remplace pas le formulaire réel.
+            Cette comparaison sert uniquement à préparer la migration. Elle ne
+            modifie pas le bouton flottant et ne crée aucune donnée.
           </p>
         </section>
       )}
