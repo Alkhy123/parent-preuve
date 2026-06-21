@@ -1362,6 +1362,8 @@ Pages légales :
 ```text
 app/confidentialite/page.tsx
 app/mentions-legales/page.tsx
+mentions réelles renseignées ; bandeau "À faire relire" remplacé par une note discrète
+accueil public : bloc discret "ce que l'app ne fait pas" + rappel confidentialité UE
 ```
 
 Données connues :

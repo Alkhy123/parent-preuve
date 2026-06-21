@@ -55,6 +55,7 @@ Réalisé et en production (le code fait foi) :
 - **Pré-remplissage Agent** : nouveau type `pension` (contrat `agent-pre-remplissage-v1` inchangé), désambiguïsation pension vs frais.
 - **Design system léger** : `.carte` à relief marqué, token `--or-fonce` lisible (contraste AA) pour le texte doré sur fond clair, classes communes `.btn-*` / `.badge-*` (adoption progressive ; accueil déjà harmonisé).
 - **Documents, preuves & exports plus guidés** : export en 3 étapes (période / contrôle / générer) ; preuves photo avec détails techniques repliés et libellé « Preuves photo horodatées » ; intros pédagogiques distinguant document rangé, justificatif et preuve photo ; formulation d'export non anxiogène (« dossier à compléter ») ; avertissements PDF rappelant « organisation factuelle, ni constat ni avis juridique ».
+- **Pages publiques & confiance** : bandeaux internes « À faire relire » remplacés par une note discrète sur les mentions légales et la confidentialité (mentions réelles déjà renseignées, éditeur particulier) ; accueil public enrichi discrètement (« ce que Parent Preuve ne fait pas » + rappel confidentialité UE), sans alourdir l'UX. CGU / À propos non créées (non inventées), à décider par le propriétaire ; relecture juridique prévue post-production.
 
 Reste à faire (progressif) : adoption des classes `.btn-*` / `.badge-*` sur les pages formulaires.
 
