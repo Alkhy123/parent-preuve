@@ -1233,6 +1233,7 @@ app/documents/page.tsx
 app/documents/coffre-fort/page.tsx
 table documents
 états actif / archive / a_traiter
+intro pédagogique + lien vers Preuves photo (distinction pièce rangée / preuve photo)
 ```
 
 ## Preuves photo
@@ -1247,6 +1248,9 @@ GPS
 heure appareil
 horodatage interne
 rapport PDF
+libellé "Preuves photo horodatées" (anciennement "Preuves scellées")
+détails techniques (fichier, position, écart d'heure, empreinte) repliés par carte (OptionsAvancees)
+intro distinguant preuve photo et document rangé (lien vers Documents)
 ```
 
 ## Courriers
@@ -1271,8 +1275,18 @@ pas de conclusions judiciaires
 
 ```text
 app/note-synthese/page.tsx
-note factuelle pour avocat
+résumé factuel à relire et corriger avant export
 pas de stratégie judiciaire
+```
+
+## Export PDF
+
+```text
+app/export/page.tsx
+parcours guidé en 3 étapes : période / contrôle (ControleDossier) / générer
+bouton verrouillé tant qu'un point bloquant subsiste (peutExporter)
+avertissement PDF : organisation factuelle, ni constat, ni avis juridique
+formulation non anxiogène (ControleDossier / WidgetDossierPret : "dossier à compléter")
 ```
 
 ## Extraction jugement

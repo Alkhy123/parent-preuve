@@ -54,6 +54,7 @@ Réalisé et en production (le code fait foi) :
 - **Copilote / bouton flottant** : 3 actions en langage clair (« Je ne sais pas où aller », « Pré-remplir une saisie », « Poser une question sur mon dossier »), phrase de cadrage, retrait du jargon (Agent, dry-run, Mistral, « mode avancé ») du parcours normal — labo accessible en « Mode diagnostic ».
 - **Pré-remplissage Agent** : nouveau type `pension` (contrat `agent-pre-remplissage-v1` inchangé), désambiguïsation pension vs frais.
 - **Design system léger** : `.carte` à relief marqué, token `--or-fonce` lisible (contraste AA) pour le texte doré sur fond clair, classes communes `.btn-*` / `.badge-*` (adoption progressive ; accueil déjà harmonisé).
+- **Documents, preuves & exports plus guidés** : export en 3 étapes (période / contrôle / générer) ; preuves photo avec détails techniques repliés et libellé « Preuves photo horodatées » ; intros pédagogiques distinguant document rangé, justificatif et preuve photo ; formulation d'export non anxiogène (« dossier à compléter ») ; avertissements PDF rappelant « organisation factuelle, ni constat ni avis juridique ».
 
 Reste à faire (progressif) : adoption des classes `.btn-*` / `.badge-*` sur les pages formulaires.
 
