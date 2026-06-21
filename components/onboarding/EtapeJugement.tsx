@@ -68,16 +68,22 @@ export default function EtapeJugement({
             jugement avant de les valider.
           </p>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-            <Link href="/dossier/importer-pdf" className="btn btn-secondaire justify-center">
+            <Link
+              href="/dossier/importer-pdf?retour=assistant"
+              className="btn btn-secondaire justify-center"
+            >
               Importer le PDF du jugement
             </Link>
-            <Link href="/dossier/extraire" className="btn btn-secondaire justify-center">
+            <Link
+              href="/dossier/extraire?retour=assistant"
+              className="btn btn-secondaire justify-center"
+            >
               Décrire le jugement avec mes mots
             </Link>
           </div>
           <p className="mt-3 text-xs text-texte-doux">
-            Ces pages s&apos;ouvrent dans l&apos;assistant existant. Revenez ensuite sur
-            l&apos;assistant de démarrage : il reprendra à cette étape.
+            Ces pages s&apos;ouvrent dans l&apos;assistant existant. Un bouton « Revenir
+            à l&apos;assistant » vous y ramènera directement à l&apos;étape des règles.
           </p>
         </div>
       )}

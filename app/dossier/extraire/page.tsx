@@ -4,6 +4,7 @@
 import { useState, type ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
 import ConsentementIA from "@/components/ConsentementIA";
+import RetourAssistant from "@/components/onboarding/RetourAssistant";
 import ReglePension from "@/components/ReglePension";
 import RegleFrais from "@/components/RegleFrais";
 import RegleDVH from "@/components/RegleDVH";
@@ -149,6 +150,7 @@ export default function ExtrairePage() {
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8">
+        <RetourAssistant />
         <ConsentementIA fonctionnalite="extraction">
           {/* Fil d'avancement */}
           <div className="mb-6 flex items-center gap-3">

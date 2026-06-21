@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import ConsentementIA from "@/components/ConsentementIA";
+import RetourAssistant from "@/components/onboarding/RetourAssistant";
 import ReglePension from "@/components/ReglePension";
 import RegleFrais from "@/components/RegleFrais";
 import RegleDVH from "@/components/RegleDVH";
@@ -119,6 +120,7 @@ export default function ImporterPdfPage() {
       />
 
       <div className="mx-auto max-w-3xl px-4 py-8">
+        <RetourAssistant />
         <ConsentementIA fonctionnalite="extraction">
           {/* Étape 1 : import + analyse */}
           {!resultat && (

@@ -10,8 +10,16 @@ import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import InvitationOnboarding from "@/components/onboarding/InvitationOnboarding";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
-import { lireProgression, demarrerProgression } from "@/lib/onboarding/progression";
-import { PREMIERE_ETAPE } from "@/lib/onboarding/types";
+import {
+  lireProgression,
+  demarrerProgression,
+  definirEtapeCourante,
+} from "@/lib/onboarding/progression";
+import {
+  PREMIERE_ETAPE,
+  indexEtape,
+  type EtapeOnboarding,
+} from "@/lib/onboarding/types";
 
 export default function OnboardingPage() {
   // null = lecture de la progression en cours (localStorage cote client).
@@ -23,6 +31,15 @@ export default function OnboardingPage() {
     // et toute divergence d'hydratation entre serveur et navigateur.
     Promise.resolve().then(() => {
       if (annule) return;
+      // Retour depuis les modules d'import (?etape=...) : on reprend l'assistant
+      // directement a l'etape demandee.
+      const params = new URLSearchParams(window.location.search);
+      const etapeParam = params.get("etape") as EtapeOnboarding | null;
+      if (etapeParam && indexEtape(etapeParam) >= 0) {
+        definirEtapeCourante(etapeParam);
+        setEnCours(true);
+        return;
+      }
       const p = lireProgression();
       setEnCours(p.demarre && !p.termine);
     });
