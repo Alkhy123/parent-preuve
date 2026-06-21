@@ -216,7 +216,7 @@ export default function WidgetCopiloteDossier() {
                 href="/copilote"
                 className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0]"
             >
-                Tester le copilote agent
+                Ouvrir le Copilote
             </Link>
         </div>
       </div>

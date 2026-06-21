@@ -101,29 +101,6 @@ type ReponseQuestionDossierApi = {
   reponse?: ReponseQuestionDossierAgent;
 };
 
-function Badge({
-  children,
-  ton = "neutre",
-}: {
-  children: React.ReactNode;
-  ton?: "neutre" | "agent" | "ia";
-}) {
-  const classes =
-    ton === "agent"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-      : ton === "ia"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : "border-slate-200 bg-slate-50 text-slate-700";
-
-  return (
-    <span
-      className={`inline-flex rounded-full border px-2 py-1 text-[11px] font-medium ${classes}`}
-    >
-      {children}
-    </span>
-  );
-}
-
 export default function AssistantFlottant() {
   const pathname = usePathname();
   const router = useRouter();
@@ -451,53 +428,27 @@ export default function AssistantFlottant() {
                   Parent Preuve
                 </h2>
               </div>
-
-              <Link
-                href="/copilote"
-                onClick={() => setOuvert(false)}
-                className="rounded-full border border-[#C2A24C]/50 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F] transition hover:bg-[#F1E8D0]"
-              >
-                Mode avancé
-              </Link>
             </div>
 
-            <p className="mt-2 text-sm leading-5 text-[#5A6473]">
-              Trois aides sont disponibles. Le copilote propose, vous vérifiez,
-              puis vous validez vous-même.
+            <p className="mt-2 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3 text-sm leading-5 text-[#5A6473]">
+              Le Copilote vous aide à organiser votre dossier. Il ne donne pas de
+              conseil juridique et rien n’est enregistré sans votre validation.
             </p>
 
-            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-              <div className="flex flex-wrap gap-2">
-                <Badge ton="agent">Agent dry-run</Badge>
-                <Badge ton="agent">Sans Mistral</Badge>
-                <Badge ton="agent">Aucune donnée modifiée</Badge>
-              </div>
-
-              <p className="mt-2 text-xs leading-5 text-emerald-900">
-                Le bouton « M’orienter » utilise uniquement des règles fermées
-                pour proposer la bonne rubrique.
-              </p>
-            </div>
-
             <section className="mt-4 rounded-2xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
-                    1. Copilote rapide
-                  </p>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                  Orientation
+                </p>
 
-                  <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
-                    Trouver la bonne rubrique
-                  </h3>
-                </div>
-
-                <Badge ton="agent">Nouveau Agent</Badge>
+                <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
+                  Je ne sais pas où aller
+                </h3>
               </div>
 
               <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-                Pour savoir où aller : frais, journal, preuves, courriers,
-                enfants ou export. Cette analyse est déterministe et ne lance
-                pas Mistral.
+                Décrivez en une phrase ce que vous voulez faire : le Copilote
+                vous indique la bonne rubrique. Rien n’est enregistré.
               </p>
 
               <textarea
@@ -534,8 +485,13 @@ export default function AssistantFlottant() {
               )}
 
               {raison && (
-                <div className="mt-3 whitespace-pre-wrap rounded-xl border border-[#C2A24C]/30 bg-white p-3 text-sm leading-5 text-[#5A6473]">
-                  {raison}
+                <div className="mt-3 rounded-xl border border-[#C2A24C]/30 bg-white p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6F2A]">
+                    Ce que le Copilote a compris
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-[#5A6473]">
+                    {raison}
+                  </p>
                 </div>
               )}
 
@@ -575,22 +531,20 @@ export default function AssistantFlottant() {
             </section>
 
             <section className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-800">
-                    2. Aide à la saisie
-                  </p>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-800">
+                  Saisie
+                </p>
 
-                  <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
-                    Pré-remplir un frais, une pension ou un événement
-                  </h3>
-                </div>
-
-                <Badge ton="agent">Agent</Badge>
+                <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
+                  Pré-remplir une saisie
+                </h3>
               </div>
 
               <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-              Cette aide utilise le pré-remplissage Agent pour proposer des champs structurés à vérifier. Rien n’est ajouté au dossier tant que vous ne validez pas vous-même sur l’écran concerné.
+                Écrivez votre dépense, votre pension ou votre fait en une phrase :
+                le Copilote prépare les champs à vérifier. Rien n’est ajouté au
+                dossier tant que vous ne validez pas vous-même sur l’écran concerné.
               </p>
 
               <div className="mt-3">
@@ -634,23 +588,19 @@ export default function AssistantFlottant() {
             </section>
 
             <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    3. Question sur le dossier
-                  </p>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Dossier
+                </p>
 
-                  <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
-                    Interroger le résumé factuel
-                  </h3>
-                </div>
-
-                <Badge ton="agent">Agent</Badge>
+                <h3 className="mt-1 text-sm font-semibold text-[#15233F]">
+                  Poser une question sur mon dossier
+                </h3>
               </div>
 
               <p className="mt-2 text-xs leading-5 text-[#5A6473]">
-                Réponse factuelle à partir du résumé du dossier. Aucun conseil
-                juridique. Le copilote propose, vous vérifiez, vous validez.
+                Réponse factuelle à partir de votre dossier. Aucun conseil
+                juridique. Le Copilote propose, vous vérifiez, vous validez.
               </p>
 
               <div className="mt-3">
@@ -733,8 +683,7 @@ export default function AssistantFlottant() {
 
             <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
               <p className="text-xs leading-5 text-[#5A6473]">
-                Besoin de tester le nouveau Copilote avec Mistral et le résumé
-                du dossier ? Utilisez le mode avancé.
+                Pour tester le Copilote en détail et vérifier son fonctionnement.
               </p>
 
               <Link
@@ -742,7 +691,7 @@ export default function AssistantFlottant() {
                 onClick={() => setOuvert(false)}
                 className="mt-2 inline-flex rounded-lg border border-[#C2A24C] bg-white px-3 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0]"
               >
-                Ouvrir le mode avancé →
+                Mode diagnostic →
               </Link>
             </div>
           </div>
