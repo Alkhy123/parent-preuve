@@ -155,7 +155,7 @@ export default function ImplicationParentalePage() {
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
-        eyebrow="Production"
+        eyebrow="Synthèses & exports"
         title="Implication parentale"
         subtitle="Les faits et pièces que vous avez marqués comme éléments d'implication parentale, classés par thème."
       />

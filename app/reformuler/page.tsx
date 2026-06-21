@@ -91,7 +91,7 @@ export default function ReformulerPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Production"
+        eyebrow="Synthèses & exports"
         title="Reformulation neutre"
         subtitle="Transformez un message ou un récit en une version factuelle et apaisée."
       />

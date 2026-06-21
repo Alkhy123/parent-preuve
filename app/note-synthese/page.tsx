@@ -62,8 +62,8 @@ export default function PageNoteSynthese() {
   return (
     <main className="min-h-screen">
       <PageHeader
-        eyebrow="Production"
-        title="Note de synthèse pour l'avocat"
+        eyebrow="Synthèses & exports"
+        title="Note de synthèse factuelle"
         subtitle="Remplissez les sections, choisissez les pièces, générez un brouillon, sauvegardez-le, puis exportez en PDF."
       />
 

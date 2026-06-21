@@ -7,46 +7,49 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import SelecteurProcedure from "@/components/SelecteurProcedure";
 
+// Lien direct vers l'accueil (premier pôle de navigation).
+const ACCUEIL = { href: "/", label: "Accueil" };
+
 // Chaque entrée de la barre est une "famille" qui regroupe plusieurs liens.
+// Quatre pôles thématiques + l'accueil pour limiter l'effet fourre-tout.
 const GROUPES = [
   {
-    label: "Mon dossier",
-    liens: [
-      { href: "/resume-mois", label: "Résumé du mois" },
-      { href: "/chronologie", label: "Chronologie" },
-      { href: "/calendrier", label: "Calendrier de garde" },
-      { href: "/documents/coffre-fort", label: "Coffre-fort (pièces rangées)" },
-    ],
-  },
-  {
-    label: "Saisir",
+    label: "Suivi quotidien",
     liens: [
       { href: "/journal", label: "Noter un fait" },
       { href: "/frais", label: "Ajouter une dépense" },
-      { href: "/pension", label: "Ajouter un paiement de pension" },
-      { href: "/documents", label: "Ajouter un document" },
-      { href: "/preuves", label: "Capturer une preuve photo" },
+      { href: "/pension", label: "Paiement de pension" },
+      { href: "/calendrier", label: "Calendrier de garde" },
     ],
   },
   {
-    label: "Production",
+    label: "Dossier & règles",
     liens: [
-      { href: "/export", label: "Export PDF" },
-      { href: "/implication-parentale", label: "Implication parentale" },
-      { href: "/courriers", label: "Courriers" },
-      { href: "/note-synthese", label: "Note pour l'avocat" },
-      { href: "/reformuler", label: "Reformulation" },
-    ],
-  },
-  {
-    label: "Réglages",
-    liens: [
-      { href: "/procedure", label: "Procédure (autre parent)" },
-      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
-      { href: "/dossier/extraire", label: "Analyser le jugement" },
-      { href: "/dossier", label: "Socle (état civil)" },
+      { href: "/dossier", label: "Vos informations" },
       { href: "/enfants", label: "Enfants" },
-      
+      { href: "/procedure", label: "Autre parent et jugement" },
+      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
+      { href: "/dossier/extraire", label: "Extraire les règles du jugement" },
+    ],
+  },
+  {
+    label: "Pièces & preuves",
+    liens: [
+      { href: "/documents", label: "Documents et justificatifs" },
+      { href: "/documents/coffre-fort", label: "Pièces rangées" },
+      { href: "/preuves", label: "Preuves photo horodatées" },
+    ],
+  },
+  {
+    label: "Synthèses & exports",
+    liens: [
+      { href: "/resume-mois", label: "Résumé du mois" },
+      { href: "/chronologie", label: "Chronologie" },
+      { href: "/courriers", label: "Courriers factuels" },
+      { href: "/note-synthese", label: "Note de synthèse factuelle" },
+      { href: "/export", label: "Export PDF" },
+      { href: "/reformuler", label: "Reformulation" },
+      { href: "/implication-parentale", label: "Implication parentale" },
     ],
   },
 ];
@@ -121,6 +124,20 @@ export default function NavBar() {
         {/* ===== Version BUREAU (à partir de md) ===== */}
         <div className="hidden flex-wrap items-center gap-2 md:flex">
           {/* Les modules ne s'affichent que pour un utilisateur connecté. */}
+          {utilisateur && (
+            <Link
+              href={ACCUEIL.href}
+              onClick={() => setMenuOuvert(null)}
+              className={`rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
+                pathname === ACCUEIL.href
+                  ? "text-[#C2A24C]"
+                  : "text-[#F8F6F1]/80"
+              }`}
+            >
+              {ACCUEIL.label}
+            </Link>
+          )}
+
           {utilisateur &&
             GROUPES.map((groupe) => {
               const ouvert = menuOuvert === groupe.label;
@@ -229,6 +246,18 @@ export default function NavBar() {
           <div className="space-y-4 pt-3">
             {/* Sélecteur de procédure active (visible si >= 2 procédures). */}
             <SelecteurProcedure />
+
+            <Link
+              href={ACCUEIL.href}
+              onClick={() => setMobileOuvert(false)}
+              className={`block rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
+                pathname === ACCUEIL.href
+                  ? "font-semibold text-[#C2A24C]"
+                  : "text-[#F8F6F1]/80"
+              }`}
+            >
+              {ACCUEIL.label}
+            </Link>
 
             {GROUPES.map((groupe) => (
               <div key={groupe.label}>

@@ -95,7 +95,7 @@ export default function DossierPage() {
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
-        eyebrow="Socle"
+        eyebrow="Vos informations"
         title="Mon dossier"
         subtitle="Vos informations personnelles, réutilisées automatiquement dans vos courriers."
       />

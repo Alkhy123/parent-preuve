@@ -232,7 +232,7 @@ export default function ExportPage() {
   return (
     <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
       <PageHeader
-        eyebrow="Production"
+        eyebrow="Synthèses & exports"
         title="Export du dossier"
         subtitle="Générez un PDF du dossier, avec tous vos justificatifs."
       />
