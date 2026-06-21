@@ -125,7 +125,7 @@ Routes :
 ```text
 app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
-app/api/assistant/aiguiller/route.ts
+app/api/assistant/aiguiller/route.ts supprimé
 ```
 
 État :
@@ -133,7 +133,7 @@ app/api/assistant/aiguiller/route.ts
 ```text
 assistant/repondre      supprimé après migration de la question dossier vers /api/agent/question-dossier
 assistant/pre-remplir   supprimé après migration vers /api/agent/pre-remplir
-assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
+assistant/aiguiller     ancien aiguillage supprimé, l'orientation passe par /api/agent/analyser-demande
 ```
 
 Usage actuel dans `components/AssistantFlottant.tsx` :
@@ -1085,7 +1085,7 @@ app/api/ia/reformuler/route.ts
 app/api/ia/extraire/route.ts
 app/api/ia/extraire-pdf/route.ts
 
-app/api/assistant/aiguiller/route.ts
+app/api/assistant/aiguiller/route.ts supprimé
 app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
 
@@ -1380,7 +1380,6 @@ lien Test résumé temporaire dans NavBar si encore présent
 documents.archive coexiste avec documents.etat
 consentements_ia.user_id sans ON DELETE CASCADE
 index complémentaires possibles plus tard
-app/api/assistant/pre-remplir conservée temporairement alors que dépréciée
 ```
 
 À vérifier pour supprimer `test-resume` :

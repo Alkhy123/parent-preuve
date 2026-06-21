@@ -57,7 +57,7 @@ Routes :
 ```text
 app/api/assistant/repondre/route.ts supprimé
 app/api/assistant/pre-remplir/route.ts supprimé
-app/api/assistant/aiguiller/route.ts
+app/api/assistant/aiguiller/route.ts supprimé
 ```
 
 État :
@@ -65,7 +65,7 @@ app/api/assistant/aiguiller/route.ts
 ```text
 assistant/repondre      supprimé après migration de la question dossier vers /api/agent/question-dossier
 assistant/pre-remplir   supprimé après migration vers /api/agent/pre-remplir
-assistant/aiguiller     ancien aiguillage, ne doit plus être utilisé par le bouton flottant principal
+assistant/aiguiller     ancien aiguillage supprimé, l'orientation passe par /api/agent/analyser-demande
 ```
 
 Règles :
