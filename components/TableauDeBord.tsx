@@ -117,7 +117,7 @@ export default function TableauDeBord() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {/* Carte Frais */}
         <div className="carte rounded-xl bg-white p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
             Frais — reste dû
           </h2>
           {frais === null ? (
@@ -136,7 +136,7 @@ export default function TableauDeBord() {
 
         {/* Carte Pension */}
         <div className="carte rounded-xl bg-white p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
             Pension — solde
           </h2>
           {pension === null ? (
@@ -164,7 +164,7 @@ export default function TableauDeBord() {
 
         {/* Carte Preuves */}
         <div className="carte rounded-xl bg-white p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
             Preuves scellées
           </h2>
           {preuves === null ? (

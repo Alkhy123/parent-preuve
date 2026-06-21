@@ -156,7 +156,7 @@ export default function ResumeMoisPage() {
             <div className="mt-6 space-y-5">
               {/* Frais du mois */}
               <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
                   Frais du mois
                 </h2>
                 {resume.nbFrais === 0 ? (
@@ -176,7 +176,7 @@ export default function ResumeMoisPage() {
 
               {/* Pension du mois */}
               <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
                   Pension du mois
                 </h2>
                 {resume.nbPension === 0 ? (
@@ -206,7 +206,7 @@ export default function ResumeMoisPage() {
 
               {/* Faits notés du mois */}
               <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-[#C2A24C]">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
                   Faits notés du mois
                 </h2>
                 {resume.nbFaits === 0 ? (

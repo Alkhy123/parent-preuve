@@ -8,7 +8,8 @@
 
   /* Palette de marque */
   --navy: #15233F;
-  --or: #C2A24C;
+  --or: #C2A24C;          /* or vif : fonds, traits, accents sur navy */
+  --or-fonce: #7A6326;    /* or foncé lisible : texte doré sur fond clair (AA) */
   --creme: #ECE7DC;
 
   /* Texte */
@@ -27,6 +28,7 @@
   --color-surface: var(--surface);
   --color-navy: var(--navy);
   --color-or: var(--or);
+  --color-or-fonce: var(--or-fonce);
   --color-creme: var(--creme);
   --color-texte: var(--texte);
   --color-texte-doux: var(--texte-doux);
@@ -51,10 +53,10 @@ h1, h2 {
 }
 
 .carte {
-  /* Ombre légère : une seule élévation douce, pour calmer la densité visuelle
-     (avant : double ombre lourde). */
-  box-shadow: 0 1px 3px rgba(21, 35, 63, 0.08),
-              0 6px 16px -6px rgba(21, 35, 63, 0.16);
+  /* Élévation nette mais sobre : assez de relief pour détacher la carte du
+     fond crème, sans la double ombre lourde d'origine. */
+  box-shadow: 0 1px 2px rgba(21, 35, 63, 0.10),
+              0 8px 20px -6px rgba(21, 35, 63, 0.22);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 

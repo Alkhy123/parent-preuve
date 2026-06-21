@@ -57,7 +57,7 @@ export default function CourriersPage() {
               >
                 <h2 className="font-display text-lg text-[#15233F]">{m.titre}</h2>
                 <p className="mt-1 text-sm text-slate-600">{m.description}</p>
-                <span className="mt-3 inline-block text-sm font-medium text-[#C2A24C]">
+                <span className="mt-3 inline-block text-sm font-medium text-or-fonce">
                   Rédiger →
                 </span>
               </Link>
