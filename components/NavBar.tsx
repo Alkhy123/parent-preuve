@@ -47,6 +47,7 @@ const GROUPES = [
       { href: "/chronologie", label: "Chronologie" },
       { href: "/courriers", label: "Courriers factuels" },
       { href: "/note-synthese", label: "Note de synthèse factuelle" },
+      { href: "/dossier-avocat", label: "Dossier pour l'avocat" },
       { href: "/export", label: "Export PDF" },
       { href: "/reformuler", label: "Reformulation" },
       { href: "/implication-parentale", label: "Implication parentale" },
