@@ -110,15 +110,9 @@ function libelleNiveau(niveau: NiveauCopilote) {
 }
 
 function classesNiveau(niveau: NiveauCopilote) {
-  if (niveau === "bloquant") {
-    return "border-amber-200 bg-amber-50 text-amber-800";
-  }
-
-  if (niveau === "avertissement") {
-    return "border-sky-200 bg-sky-50 text-sky-800";
-  }
-
-  return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (niveau === "bloquant") return "badge-attention";
+  if (niveau === "avertissement") return "badge-info";
+  return "badge-succes";
 }
 
 export default function WidgetCopiloteDossier() {
@@ -188,11 +182,7 @@ export default function WidgetCopiloteDossier() {
           </h2>
         </div>
 
-        <span
-          className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-medium ${classesNiveau(
-            action.niveau
-          )}`}
-        >
+        <span className={`badge ${classesNiveau(action.niveau)}`}>
           {libelleNiveau(action.niveau)}
         </span>
       </div>
@@ -205,17 +195,11 @@ export default function WidgetCopiloteDossier() {
         </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Link
-                href={action.href}
-                className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E]"
-            >
+            <Link href={action.href} className="btn btn-primaire">
                 {action.cta}
             </Link>
 
-            <Link
-                href="/copilote"
-                className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0]"
-            >
+            <Link href="/copilote" className="btn btn-secondaire">
                 Ouvrir le Copilote
             </Link>
         </div>

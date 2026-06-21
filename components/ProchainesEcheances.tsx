@@ -96,54 +96,51 @@ export default function ProchainesEcheances() {
       <div className="flex items-center justify-between gap-3 mb-3">
         <h2 className="font-display text-xl text-[#15233F]">Prochaines échéances de garde</h2>
         {permission !== "granted" && (
-          <button
-            onClick={activerRappels}
-            className="rounded-md border border-[#15233F] px-3 py-1.5 text-sm text-[#15233F] hover:bg-[#15233F] hover:text-white"
-          >
+          <button onClick={activerRappels} className="btn btn-secondaire">
             Activer les rappels
           </button>
         )}
       </div>
 
       {permission === "granted" && (
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-texte-doux mb-3">
           Rappels activés. Tu seras averti quand une garde approche, lorsque l'app est ouverte dans ce navigateur.
         </p>
       )}
 
       {chargement ? (
-        <p className="text-sm text-gray-500">Chargement…</p>
+        <p className="text-sm text-texte-doux">Chargement…</p>
       ) : echeances.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-texte-doux">
           Aucune garde à venir dans les 30 prochains jours. Vérifie qu'une règle est enregistrée dans le calendrier.
         </p>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-[#15233F]/10">
           {echeances.map((e, i) => (
             <li key={i} className="py-3 flex items-center gap-3">
               <span
                 className={
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-md " +
-                  (e.chezQui === "moi" ? "bg-[#C2A24C]/15" : "bg-gray-100")
+                  (e.chezQui === "moi" ? "bg-[#C2A24C]/15" : "bg-[#15233F]/5")
                 }
               >
                 <span
                   className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: e.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
+                  style={{ backgroundColor: e.chezQui === "moi" ? "#C2A24C" : "#5A6473" }}
                 />
               </span>
               <div className="flex-1 text-[#1F2733]">
                 <span className="font-medium">{e.enfantNom}</span> — {fmt(e.debut)} {fmtHeure(e.debut)}
-                <span className="block text-xs text-gray-500">
+                <span className="block text-xs text-texte-doux">
                   {e.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
                 </span>
               </div>
               <span
                 className={
-                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium " +
+                  "badge shrink-0 " +
                   (e.joursRestants <= SEUIL_NOTIF_JOURS && e.chezQui === "moi"
-                    ? "bg-[#C2A24C] text-white"
-                    : "bg-gray-100 text-gray-600")
+                    ? "border-transparent bg-[#C2A24C] text-white"
+                    : "badge-neutre")
                 }
               >
                 {badge(e.joursRestants)}
