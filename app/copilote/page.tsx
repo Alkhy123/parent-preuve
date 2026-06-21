@@ -4,7 +4,8 @@
 //
 // Page de test du Copilote Agent.
 //
-// Cette page permet trois tests contrôlés :
+// Cette page permet quatre tests contrôlés :
+//
 // 1. Dry-run sécurisé : /api/agent/analyser-demande
 //    - aucun appel IA ;
 //    - aucun quota IA ;
@@ -23,6 +24,15 @@
 //    - lecture seule ;
 //    - envoyé uniquement si l'utilisateur coche l'option ;
 //    - aucun document, pièce jointe ou donnée de santé ne doit être envoyé.
+//
+// 4. Test pré-remplissage Agent : /api/agent/pre-remplir
+//    - appel IA réel ;
+//    - consentement IA requis ;
+//    - quota IA requis ;
+//    - contrat agent-pre-remplissage-v1 ;
+//    - aucune écriture métier ;
+//    - aucune action automatique ;
+//    - validation humaine obligatoire.
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
@@ -51,6 +61,65 @@ type ReponseAgentApi =
       erreur: string;
     };
 
+type PropositionFrais = {
+  type: "frais";
+  champs: {
+    libelle: string | null;
+    categorie: string;
+    montant: number | null;
+    date: string | null;
+    enfant: string | null;
+  };
+  avertissements: string[];
+};
+
+type PropositionJournal = {
+  type: "journal";
+  champs: {
+    titre: string | null;
+    categorie: string;
+    date: string | null;
+    description: string | null;
+    enfant: string | null;
+  };
+  avertissements: string[];
+};
+
+type PropositionAucun = {
+  type: "aucun";
+  champs: null;
+  avertissements: string[];
+};
+
+type PropositionPreRemplissage =
+  | PropositionFrais
+  | PropositionJournal
+  | PropositionAucun;
+
+type ReponsePreRemplissageAgent = {
+  version: string;
+  resume: string;
+  messages: string[];
+  proposition: PropositionPreRemplissage;
+  gardeFous: {
+    conseilJuridiqueRefuse: boolean;
+    ecritureAutomatiqueRefusee: true;
+    validationHumaineRequise: true;
+    enfantUuidInterdit: true;
+  };
+};
+
+type ReponsePreRemplissageApi =
+  | {
+      ok: true;
+      source?: "mistral" | "garde_fou_local";
+      validation?: ValidationAgentApi;
+      reponse: ReponsePreRemplissageAgent;
+    }
+  | {
+      erreur: string;
+    };
+
 type ModeReponse = "dry-run" | "mistral";
 
 const EXEMPLES_DEMANDES = [
@@ -61,6 +130,13 @@ const EXEMPLES_DEMANDES = [
   "Rédige mes conclusions pour gagner devant le JAF",
 ];
 
+const EXEMPLES_PREREMPLISSAGE = [
+  "J'ai payé 45 € de cantine pour Léa le 12 mars",
+  "Le père est arrivé avec 25 minutes de retard samedi",
+  "J'ai acheté des vêtements pour 38,90 € hier",
+  "Rédige mes conclusions pour gagner devant le JAF",
+];
+
 function libelleBooleen(valeur: boolean) {
   return valeur ? "Oui" : "Non";
 }
@@ -68,6 +144,20 @@ function libelleBooleen(valeur: boolean) {
 function libelleMode(mode: ModeReponse | null) {
   if (mode === "mistral") return "Test Mistral expérimental";
   return "Dry-run sécurisé";
+}
+
+function valeurLisible(valeur: string | number | null | undefined) {
+  if (valeur === null || valeur === undefined || valeur === "") {
+    return "Non renseigné";
+  }
+
+  return String(valeur);
+}
+
+function libelleTypeProposition(type: PropositionPreRemplissage["type"]) {
+  if (type === "frais") return "Frais";
+  if (type === "journal") return "Journal";
+  return "Aucun pré-remplissage";
 }
 
 export default function PageCopilote() {
@@ -86,6 +176,16 @@ export default function PageCopilote() {
   const [erreur, setErreur] = useState("");
   const [chargementDryRun, setChargementDryRun] = useState(false);
   const [chargementMistral, setChargementMistral] = useState(false);
+
+  const [phrasePreRemplissage, setPhrasePreRemplissage] = useState("");
+  const [reponsePreRemplissage, setReponsePreRemplissage] =
+    useState<ReponsePreRemplissageAgent | null>(null);
+  const [validationPreRemplissage, setValidationPreRemplissage] =
+    useState<ValidationAgentApi | null>(null);
+  const [sourcePreRemplissage, setSourcePreRemplissage] = useState("");
+  const [erreurPreRemplissage, setErreurPreRemplissage] = useState("");
+  const [chargementPreRemplissage, setChargementPreRemplissage] =
+    useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -110,6 +210,13 @@ export default function PageCopilote() {
     setSourceApi("");
     setErreur("");
     setResumeEnvoye(false);
+  }
+
+  function viderResultatsPreRemplissage() {
+    setReponsePreRemplissage(null);
+    setValidationPreRemplissage(null);
+    setSourcePreRemplissage("");
+    setErreurPreRemplissage("");
   }
 
   async function construireCorpsRequete(mode: ModeReponse, demande: string) {
@@ -205,6 +312,51 @@ export default function PageCopilote() {
     });
   }
 
+  async function testerPreRemplissageAgent() {
+    const phrase = phrasePreRemplissage.trim();
+
+    if (phrase === "") {
+      return;
+    }
+
+    setChargementPreRemplissage(true);
+    viderResultatsPreRemplissage();
+
+    try {
+      const resultat = await fetch("/api/agent/pre-remplir", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(await enteteAuth()),
+        },
+        body: JSON.stringify({ phrase }),
+      });
+
+      const data = (await resultat.json().catch(() => ({
+        erreur: "Réponse serveur illisible.",
+      }))) as ReponsePreRemplissageApi;
+
+      if (!resultat.ok || "erreur" in data) {
+        setErreurPreRemplissage(
+          "erreur" in data
+            ? data.erreur
+            : "Le pré-remplissage Agent n'a pas pu répondre."
+        );
+        return;
+      }
+
+      setReponsePreRemplissage(data.reponse);
+      setValidationPreRemplissage(data.validation ?? null);
+      setSourcePreRemplissage(data.source ?? "");
+    } catch {
+      setErreurPreRemplissage(
+        "Connexion impossible avec le pré-remplissage Agent."
+      );
+    } finally {
+      setChargementPreRemplissage(false);
+    }
+  }
+
   if (verificationConnexion) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
@@ -256,9 +408,9 @@ export default function PageCopilote() {
 
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
           Cette page permet de tester séparément le dry-run déterministe, la
-          route expérimentale Mistral et l&apos;envoi optionnel du résumé factuel
-          du dossier. Aucune donnée métier n&apos;est modifiée et aucune action
-          automatique n&apos;est déclenchée.
+          route expérimentale Mistral, l'envoi optionnel du résumé factuel du
+          dossier et le pré-remplissage Agent expérimental. Aucune donnée métier
+          n'est modifiée et aucune action automatique n'est déclenchée.
         </p>
       </div>
 
@@ -306,12 +458,12 @@ export default function PageCopilote() {
             </button>
 
             <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
-            <ConsentementIA
+              <ConsentementIA
                 fonctionnalite="agent"
                 titre="Avant d'utiliser le Copilote Agent avec Mistral"
-                 descriptionTransmission="Le Copilote Agent peut envoyer à Mistral le texte que vous saisissez. Si vous cochez l'option correspondante, il peut aussi envoyer un résumé factuel limité de votre dossier. Aucune pièce jointe, photo, document original ou donnée de santé ne doit être envoyé."
+                descriptionTransmission="Le Copilote Agent peut envoyer à Mistral le texte que vous saisissez. Si vous cochez l'option correspondante, il peut aussi envoyer un résumé factuel limité de votre dossier. Aucune pièce jointe, photo, document original ou donnée de santé ne doit être envoyé."
                 descriptionResponsabilite="Le Copilote Agent sert à tester une aide d'organisation factuelle. Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires et ne déclenche aucune action automatique."
-            >
+              >
                 <div className="space-y-3">
                   <button
                     type="button"
@@ -530,6 +682,389 @@ export default function PageCopilote() {
           <p className="mt-4 text-xs leading-5 text-slate-500">
             Cette réponse sert à tester le cadrage du futur agent. Elle ne
             déclenche aucune action et ne remplace pas un professionnel du droit.
+          </p>
+        </section>
+      )}
+
+      <section className="mt-8 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+            Pré-remplissage Agent
+          </p>
+
+          <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+            Test expérimental de saisie structurée
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+            Ce test appelle la route expérimentale /api/agent/pre-remplir. Il
+            permet de comparer le futur pré-remplissage Agent avec l'ancien
+            assistant, sans brancher cette route au bouton flottant et sans
+            écrire dans le dossier.
+          </p>
+        </div>
+
+        <label
+          htmlFor="phrase-pre-remplissage-agent"
+          className="mt-5 block text-sm font-semibold text-[#15233F]"
+        >
+          Phrase à pré-remplir
+        </label>
+
+        <textarea
+          id="phrase-pre-remplissage-agent"
+          value={phrasePreRemplissage}
+          onChange={(event) => {
+            setPhrasePreRemplissage(event.target.value);
+            viderResultatsPreRemplissage();
+          }}
+          rows={4}
+          maxLength={500}
+          placeholder="Ex. : J'ai payé 45 € de cantine pour Léa le 12 mars"
+          className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+        />
+
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+          <span>{phrasePreRemplissage.length}/500 caractères</span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPhrasePreRemplissage("");
+              viderResultatsPreRemplissage();
+            }}
+            className="text-[#8A6F2A] underline-offset-2 hover:underline"
+          >
+            Effacer
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
+          <ConsentementIA
+            fonctionnalite="agent"
+            titre="Avant de tester le pré-remplissage Agent"
+            descriptionTransmission="Le pré-remplissage Agent peut envoyer à Mistral la phrase que vous saisissez afin de proposer des champs structurés. Aucune pièce jointe, photo ou document original n'est envoyé."
+            descriptionResponsabilite="Le pré-remplissage Agent ne crée aucune donnée dans votre dossier. Il propose uniquement des champs à vérifier. La validation humaine reste obligatoire."
+          >
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={testerPreRemplissageAgent}
+                disabled={
+                  chargementPreRemplissage ||
+                  phrasePreRemplissage.trim() === ""
+                }
+                className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {chargementPreRemplissage
+                  ? "Test pré-remplissage…"
+                  : "Tester le pré-remplissage Agent"}
+              </button>
+
+              <p className="text-xs leading-5 text-[#5A6473]">
+                Test expérimental : appel IA réel, quota IA consommé, contrat
+                agent-pre-remplissage-v1, aucune écriture automatique.
+              </p>
+            </div>
+          </ConsentementIA>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
+          <p className="text-sm font-semibold text-[#15233F]">
+            Exemples de pré-remplissage
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {EXEMPLES_PREREMPLISSAGE.map((exemple) => (
+              <button
+                key={exemple}
+                type="button"
+                onClick={() => {
+                  setPhrasePreRemplissage(exemple);
+                  viderResultatsPreRemplissage();
+                }}
+                className="rounded-full border border-[#C2A24C]/50 bg-white px-3 py-1 text-xs text-[#15233F] transition hover:bg-[#F1E8D0]"
+              >
+                {exemple}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {erreurPreRemplissage && (
+        <section className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+          <h2 className="font-semibold text-red-900">
+            Erreur pré-remplissage Agent
+          </h2>
+
+          <p className="mt-2 text-sm text-red-800">
+            {erreurPreRemplissage}
+          </p>
+        </section>
+      )}
+
+      {reponsePreRemplissage && (
+        <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+                Réponse pré-remplissage
+              </p>
+
+              <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+                Proposition structurée Agent
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:items-end">
+              <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                {reponsePreRemplissage.version}
+              </span>
+
+              <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+                Pré-remplissage Agent
+              </span>
+            </div>
+          </div>
+
+          {sourcePreRemplissage && (
+            <p className="mt-3 text-xs text-slate-500">
+              Source API :{" "}
+              <span className="font-medium">{sourcePreRemplissage}</span>
+            </p>
+          )}
+
+          {validationPreRemplissage && (
+            <div
+              className={`mt-4 rounded-xl border p-4 ${
+                validationPreRemplissage.ok
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              <h3
+                className={`font-semibold ${
+                  validationPreRemplissage.ok
+                    ? "text-emerald-900"
+                    : "text-amber-900"
+                }`}
+              >
+                Validation du pré-remplissage Agent
+              </h3>
+
+              <p
+                className={`mt-2 text-sm ${
+                  validationPreRemplissage.ok
+                    ? "text-emerald-800"
+                    : "text-amber-800"
+                }`}
+              >
+                {validationPreRemplissage.ok
+                  ? "La réponse a passé le validateur de pré-remplissage Agent."
+                  : validationPreRemplissage.erreur ||
+                    "La réponse IA a été remplacée par une proposition sécurisée."}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
+            <h3 className="font-semibold text-[#15233F]">Résumé</h3>
+
+            <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+              {reponsePreRemplissage.resume}
+            </p>
+          </div>
+
+          {reponsePreRemplissage.messages.length > 0 && (
+            <div className="mt-4 rounded-xl border border-slate-200 p-4">
+              <h3 className="font-semibold text-[#15233F]">Messages</h3>
+
+              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
+                {reponsePreRemplissage.messages.map((item, index) => (
+                  <li key={`${item}-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4">
+            <h3 className="font-semibold text-[#15233F]">
+              Proposition :{" "}
+              {libelleTypeProposition(reponsePreRemplissage.proposition.type)}
+            </h3>
+
+            {reponsePreRemplissage.proposition.type === "frais" && (
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Libellé</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.libelle
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Catégorie</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {reponsePreRemplissage.proposition.champs.categorie}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Montant</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.montant
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Date</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.date
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3 sm:col-span-2">
+                  <dt className="text-xs text-slate-500">Enfant</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.enfant
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            )}
+
+            {reponsePreRemplissage.proposition.type === "journal" && (
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Titre</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.titre
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Catégorie</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {reponsePreRemplissage.proposition.champs.categorie}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Date</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.date
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <dt className="text-xs text-slate-500">Enfant</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.enfant
+                    )}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-white p-3 sm:col-span-2">
+                  <dt className="text-xs text-slate-500">Description</dt>
+                  <dd className="mt-1 font-medium text-[#15233F]">
+                    {valeurLisible(
+                      reponsePreRemplissage.proposition.champs.description
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            )}
+
+            {reponsePreRemplissage.proposition.type === "aucun" && (
+              <p className="mt-3 text-sm leading-6 text-[#5A6473]">
+                Aucun pré-remplissage exploitable n'a été proposé. La saisie
+                peut être faite manuellement dans la rubrique adaptée.
+              </p>
+            )}
+
+            {reponsePreRemplissage.proposition.avertissements.length > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <h4 className="font-semibold text-amber-900">
+                  Avertissements
+                </h4>
+
+                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-amber-800">
+                  {reponsePreRemplissage.proposition.avertissements.map(
+                    (item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-slate-200 p-4">
+            <h3 className="font-semibold text-[#15233F]">Garde-fous</h3>
+
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
+              <div className="rounded-lg bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">
+                  Conseil juridique refusé
+                </dt>
+                <dd className="mt-1 font-semibold text-[#15233F]">
+                  {libelleBooleen(
+                    reponsePreRemplissage.gardeFous.conseilJuridiqueRefuse
+                  )}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">
+                  Écriture automatique refusée
+                </dt>
+                <dd className="mt-1 font-semibold text-[#15233F]">
+                  {libelleBooleen(
+                    reponsePreRemplissage.gardeFous
+                      .ecritureAutomatiqueRefusee
+                  )}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">
+                  Validation humaine requise
+                </dt>
+                <dd className="mt-1 font-semibold text-[#15233F]">
+                  {libelleBooleen(
+                    reponsePreRemplissage.gardeFous.validationHumaineRequise
+                  )}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">UUID enfant interdit</dt>
+                <dd className="mt-1 font-semibold text-[#15233F]">
+                  {libelleBooleen(
+                    reponsePreRemplissage.gardeFous.enfantUuidInterdit
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <p className="mt-4 text-xs leading-5 text-slate-500">
+            Cette proposition sert uniquement à tester le futur
+            pré-remplissage Agent. Elle ne déclenche aucune écriture et ne
+            remplace pas le formulaire réel.
           </p>
         </section>
       )}
