@@ -5,7 +5,7 @@
 // Ce fichier ne déclenche aucun appel IA.
 // Il ne lit pas Supabase.
 // Il n'écrit rien en base.
-// Il ne remplace pas encore /api/assistant/pre-remplir.
+// // Il remplace désormais l'ancien pré-remplissage assistant supprimé.
 //
 // Rôle : préparer la migration progressive du pré-remplissage historique vers
 // l'architecture Agent, en imposant un contrat structuré, validable et compatible

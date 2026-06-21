@@ -124,7 +124,7 @@ Routes :
 
 ```text
 app/api/assistant/repondre/route.ts
-app/api/assistant/pre-remplir/route.ts
+app/api/assistant/pre-remplir/route.ts supprimé
 app/api/assistant/aiguiller/route.ts
 ```
 
@@ -377,7 +377,7 @@ components/AssistantFlottant.tsx doit appeler /api/agent/pre-remplir pour le pr�
 Ancienne route dépréciée :
 
 ```text
-app/api/assistant/pre-remplir/route.ts
+app/api/assistant/pre-remplir/route.ts supprimé
 ```
 
 Règle :
@@ -1015,7 +1015,7 @@ app/api/ia/extraire-pdf/route.ts
 
 app/api/assistant/repondre/route.ts
 app/api/assistant/aiguiller/route.ts
-app/api/assistant/pre-remplir/route.ts
+app/api/assistant/pre-remplir/route.ts supprimé
 
 app/api/agent/analyser-demande/route.ts
 app/api/agent/repondre/route.ts
@@ -1371,7 +1371,7 @@ ne pas réintroduire /api/assistant/pre-remplir dans le bouton flottant
 Route dépréciée :
 
 ```text
-app/api/assistant/pre-remplir/route.ts
+app/api/assistant/pre-remplir/route.ts supprimé
 ```
 
 Condition avant suppression :
@@ -1603,7 +1603,7 @@ git grep "agent-pre-remplissage-v1" lib/agent/preRemplissage.ts app/api/agent/pr
 
 ```text
 Assistant historique = production existante seulement pour question dossier.
-Assistant pré-remplir = ancienne route conservée temporairement mais dépréciée.
+Assistant pré-remplir = ancienne route supprimée après migration vers l'Agent.
 Agent dry-run = orientation déterministe sécurisée.
 Agent Mistral général = expérimentation avancée dans /copilote.
 Agent pré-remplissage = validé et branché dans le bouton flottant.

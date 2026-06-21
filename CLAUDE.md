@@ -34,7 +34,7 @@ Le projet contient deux générations IA qui cohabitent temporairement.
 
 Assistant historique encore utilisé en production :
 - `app/api/assistant/repondre/route.ts`
-- `app/api/assistant/pre-remplir/route.ts`
+- `app/api/assistant/pre-remplir/route.ts` a été supprimée après migration vers `/api/agent/pre-remplir`.
 
 Agent nouvelle génération :
 - `app/api/agent/analyser-demande/route.ts`
