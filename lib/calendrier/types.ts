@@ -94,4 +94,8 @@ export type EntreePlanning = {
 export type PlanningCalcule = {
   periodes: PeriodeGardeCalculee[];
   conflits: ConflitRegles[];
+  // Annotations contextuelles (filtrées sur la plage). N'affectent pas
+  // l'attribution en V1 : elles sont affichées dans la prévisualisation.
+  vacances: PeriodeVacances[];
+  joursFeries: JourFerie[];
 };

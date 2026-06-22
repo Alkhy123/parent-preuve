@@ -43,6 +43,11 @@ function finDeJour(d: Date): Date {
   return r;
 }
 
+// Date locale -> "YYYY-MM-DD".
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function ajouterJours(d: Date, n: number): Date {
   const r = new Date(d);
   r.setDate(r.getDate() + n);
@@ -141,7 +146,7 @@ export function calculerPlanningAvance(entree: EntreePlanning): PlanningCalcule 
     d <= entree.au;
     d = ajouterJours(d, 1)
   ) {
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const iso = isoDate(d);
 
     // 1) Exception prioritaire.
     const exc = exceptions.find((e) => iso >= e.debut && iso <= e.fin);
@@ -185,9 +190,21 @@ export function calculerPlanningAvance(entree: EntreePlanning): PlanningCalcule 
     });
   }
 
+  // Annotations contextuelles filtrées sur la plage (chevauchement).
+  const isoDu = isoDate(entree.du);
+  const isoAu = isoDate(entree.au);
+  const vacances = (entree.vacances ?? []).filter(
+    (v) => v.fin >= isoDu && v.debut <= isoAu,
+  );
+  const joursFeries = (entree.joursFeries ?? []).filter(
+    (f) => f.date >= isoDu && f.date <= isoAu,
+  );
+
   return {
     periodes: fusionnerPeriodes(jours),
     conflits: fusionnerConflits(jours),
+    vacances,
+    joursFeries,
   };
 }
 

@@ -25,15 +25,51 @@ function libelleOrigine(p: PeriodeGardeCalculee): string {
   return "Règle";
 }
 
+// "YYYY-MM-DD" -> "JJ/MM"
+function jourMois(iso: string): string {
+  const [, m, j] = iso.split("-");
+  return j && m ? `${j}/${m}` : iso;
+}
+
 export default function PreviewCalendrierAvance({
   planning,
 }: {
   planning: PlanningCalcule;
 }) {
-  const { periodes, conflits } = planning;
+  const { periodes, conflits, vacances, joursFeries } = planning;
 
   return (
     <div className="space-y-4">
+      {(vacances.length > 0 || joursFeries.length > 0) && (
+        <div className="carte rounded-xl p-4">
+          {vacances.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-texte">Vacances scolaires</p>
+              <ul className="mt-1 space-y-1">
+                {vacances.map((v, i) => (
+                  <li key={i} className="text-sm text-texte-doux">
+                    {v.nom} : du {jourMois(v.debut)} au {jourMois(v.fin)}
+                    {v.zone ? ` · zone ${v.zone}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {joursFeries.length > 0 && (
+            <div className={vacances.length > 0 ? "mt-3" : ""}>
+              <p className="text-sm font-semibold text-texte">Jours fériés</p>
+              <ul className="mt-1 flex flex-wrap gap-2">
+                {joursFeries.map((f, i) => (
+                  <li key={i} className="badge badge-neutre">
+                    {jourMois(f.date)} · {f.nom}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {conflits.length > 0 && (
         <div className="carte rounded-xl p-4">
           <p className="text-sm font-semibold text-amber">Points à vérifier</p>

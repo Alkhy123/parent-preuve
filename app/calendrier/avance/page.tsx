@@ -17,8 +17,15 @@ import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance"
 import type {
   ChezQui,
   ExceptionGarde,
+  JourFerie,
+  PeriodeVacances,
   ReglePlanning,
 } from "@/lib/calendrier/types";
+
+// Date locale -> "YYYY-MM-DD".
+function iso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -43,6 +50,21 @@ export default function CalendrierAvancePage() {
   // Options avancées locales (non persistées dans ce sous-bloc).
   const [mercredi, setMercredi] = useState(false);
   const [exceptions, setExceptions] = useState<ExceptionGarde[]>([]);
+
+  // Zones + annotations (vacances scolaires, jours fériés) via les routes serveur.
+  const [zoneVacances, setZoneVacances] = useState("A");
+  const [zoneFerie, setZoneFerie] = useState("metropole");
+  const [vacances, setVacances] = useState<PeriodeVacances[]>([]);
+  const [joursFeries, setJoursFeries] = useState<JourFerie[]>([]);
+
+  // Plage affichée : aujourd'hui -> +8 semaines (stable sur la session).
+  const [du, au] = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const a = new Date(d);
+    a.setDate(a.getDate() + 56);
+    return [d, a] as const;
+  }, []);
 
   // Formulaire d'exception manuelle.
   const [excDebut, setExcDebut] = useState("");
@@ -75,6 +97,43 @@ export default function CalendrierAvancePage() {
     })();
   }, [enfantId]);
 
+  // Annotations (vacances + jours fériés) via les routes serveur. Tout échec
+  // est silencieux (fallback []) : l'aperçu reste fonctionnel sans annotations.
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      // Jours fériés : pour chaque année couverte par la plage.
+      const annees = Array.from(new Set([du.getFullYear(), au.getFullYear()]));
+      const feries: JourFerie[] = [];
+      for (const an of annees) {
+        try {
+          const r = await fetch(`/api/calendrier/jours-feries?annee=${an}&zone=${zoneFerie}`);
+          if (r.ok) {
+            const j = await r.json();
+            if (Array.isArray(j.data)) feries.push(...j.data);
+          }
+        } catch {
+          /* silencieux : fallback */
+        }
+      }
+      if (!annule) setJoursFeries(feries);
+
+      // Vacances scolaires sur la plage.
+      try {
+        const r = await fetch(
+          `/api/calendrier/vacances?zone=${zoneVacances}&du=${iso(du)}&au=${iso(au)}`,
+        );
+        const j = r.ok ? await r.json() : { data: [] };
+        if (!annule) setVacances(Array.isArray(j.data) ? j.data : []);
+      } catch {
+        if (!annule) setVacances([]);
+      }
+    })();
+    return () => {
+      annule = true;
+    };
+  }, [du, au, zoneVacances, zoneFerie]);
+
   // Construit les règles avancées à partir de la règle existante + options.
   const planning = useMemo(() => {
     if (!regle) return null;
@@ -106,19 +165,16 @@ export default function CalendrierAvancePage() {
       });
     }
 
-    const du = new Date();
-    du.setHours(0, 0, 0, 0);
-    const au = new Date(du);
-    au.setDate(au.getDate() + 56); // 8 semaines
-
     return calculerPlanningAvance({
       regles,
       exceptions,
       chezQuiParDefaut,
+      vacances,
+      joursFeries,
       du,
       au,
     });
-  }, [regle, mercredi, exceptions]);
+  }, [regle, mercredi, exceptions, vacances, joursFeries, du, au]);
 
   function ajouterException() {
     if (!excDebut || !excFin) return;
@@ -201,6 +257,37 @@ export default function CalendrierAvancePage() {
                     />
                     Ajouter le mercredi (journée de DVH)
                   </label>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className={labelCss}>Zone de vacances scolaires</label>
+                      <select
+                        value={zoneVacances}
+                        onChange={(e) => setZoneVacances(e.target.value)}
+                        className={champ}
+                      >
+                        <option value="A">Zone A</option>
+                        <option value="B">Zone B</option>
+                        <option value="C">Zone C</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelCss}>Zone des jours fériés</label>
+                      <select
+                        value={zoneFerie}
+                        onChange={(e) => setZoneFerie(e.target.value)}
+                        className={champ}
+                      >
+                        <option value="metropole">Métropole</option>
+                        <option value="alsace-moselle">Alsace-Moselle</option>
+                        <option value="guadeloupe">Guadeloupe</option>
+                        <option value="guyane">Guyane</option>
+                        <option value="martinique">Martinique</option>
+                        <option value="mayotte">Mayotte</option>
+                        <option value="la-reunion">La Réunion</option>
+                      </select>
+                    </div>
+                  </div>
 
                   <div className="border-t border-slate-200 pt-4">
                     <p className="text-sm font-medium text-[#1F2733]">
