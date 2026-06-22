@@ -7,6 +7,7 @@ import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
+import ChampPieceJointe from "@/components/ChampPieceJointe";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
@@ -31,6 +32,16 @@ type Evenement = {
   child_id: string | null;
   statut: string;
   implication_categorie: string | null;
+  document_id: string | null;
+};
+
+// Vue allégée d'une pièce, pour afficher/ouvrir la pièce liée à un fait.
+type DocLite = {
+  id: string;
+  libelle: string;
+  categorie: string;
+  chemin_fichier: string;
+  child_id: string | null;
 };
 
 // Catégories du journal. Liste extensible : pour ajouter un type d'événement,
@@ -86,7 +97,9 @@ export default function JournalPage() {
   const [description, setDescription] = useState("");
   const [childId, setChildId] = useState("");
   const [implicationCategorie, setImplicationCategorie] = useState("");
+  const [documentId, setDocumentId] = useState(""); // pièce liée au fait ("" = aucune)
 
+  const [documents, setDocuments] = useState<DocLite[]>([]);
   const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -109,15 +122,28 @@ export default function JournalPage() {
   async function chargerEvenements() {
     const { data, error } = await supabase
       .from("events")
-      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut, implication_categorie")
+      .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut, implication_categorie, document_id")
       .order("date_evenement", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setEvenements(data ?? []);
   }
 
+  // Pièces actives, pour afficher/ouvrir/lier une pièce sur chaque fait.
+  async function chargerDocuments() {
+    const { data } = await supabase
+      .from("documents")
+      .select("id, libelle, categorie, chemin_fichier, child_id")
+      .eq("etat", "actif")
+      .order("created_at", { ascending: false });
+    setDocuments((data ?? []) as DocLite[]);
+  }
+
   useEffect(() => {
+    // Chargements async (les setState surviennent après await, pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerEnfants();
     chargerEvenements();
+    chargerDocuments();
   }, []);
 
   // Au montage : lit UNE FOIS un éventuel pré-remplissage déposé par l'assistant,
@@ -185,6 +211,7 @@ export default function JournalPage() {
       description_factuelle: description.trim() || null,
       child_id: childId || null,
       implication_categorie: implicationCategorie || null,
+      document_id: documentId || null,
     });
 
     if (error) {
@@ -192,7 +219,8 @@ export default function JournalPage() {
     } else {
       setTitre(""); setCategorie("Autre"); setDateEvenement("");
       setHeureEvenement(""); setDescription(""); setChildId("");
-      setImplicationCategorie("");
+      setImplicationCategorie(""); setDocumentId("");
+      chargerDocuments(); // une pièce a pu être téléversée à la volée
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
       setConfirmation(
@@ -221,6 +249,33 @@ export default function JournalPage() {
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
   }
 
+  // Lier (ou délier si chaîne vide) une pièce existante à un fait.
+  async function lierPiece(eventId: string, docId: string) {
+    const { error } = await supabase
+      .from("events")
+      .update({ document_id: docId || null })
+      .eq("id", eventId);
+    if (error) setMessage("Erreur : " + error.message);
+    else chargerEvenements();
+  }
+
+  // Ouvre la pièce liée via un lien sécurisé valable 1 minute.
+  async function ouvrirPiece(docId: string) {
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc) return setMessage("Pièce introuvable (peut-être supprimée).");
+    const { data, error } = await supabase.storage
+      .from("justificatifs")
+      .createSignedUrl(doc.chemin_fichier, 60);
+    if (error || !data) setMessage("Erreur : impossible d'ouvrir la pièce.");
+    else window.open(data.signedUrl, "_blank");
+  }
+
+  // Libellé lisible d'une pièce liée (catégorie · libellé).
+  function nomDocument(id: string) {
+    const d = documents.find((doc) => doc.id === id);
+    return d ? `${d.categorie} · ${d.libelle}` : "Pièce jointe";
+  }
+
   // Garde-fou neutralité : on repère une tonalité non factuelle (sans bloquer)
   const texte = (titre + " " + description).toLowerCase();
   const motsDetectes = MOTS_SENSIBLES.filter((mot) => texte.includes(mot));
@@ -230,6 +285,11 @@ export default function JournalPage() {
   const idsEnfantsProc = new Set(enfants.map((e) => e.id));
   const evenementsProcedure = evenements.filter(
     (e) => e.child_id === null || idsEnfantsProc.has(e.child_id)
+  );
+
+  // Pièces de la procédure active proposables à la liaison sur un fait.
+  const documentsProcedure = documents.filter(
+    (d) => d.child_id === null || idsEnfantsProc.has(d.child_id)
   );
 
   const evenementsFiltres =
@@ -365,6 +425,16 @@ export default function JournalPage() {
             </div>
           )}
 
+          {/* Pièce jointe facultative : téléverser ou lier une pièce existante.
+              La pièce est aussi rangée dans Documents et au coffre-fort. */}
+          <ChampPieceJointe
+            value={documentId}
+            onChange={setDocumentId}
+            childId={childId || null}
+            libelleDefaut={titre}
+            dateDefaut={dateEvenement}
+          />
+
           {/* Détails non indispensables au premier enregistrement.
               S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
           <OptionsAvancees ouvertParDefaut={preRempli}>
@@ -490,6 +560,37 @@ export default function JournalPage() {
                     {ev.description_factuelle && (
                       <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
                     )}
+
+                    {/* Pièce liée au fait (ou liaison d'une pièce existante). */}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {ev.document_id ? (
+                        <>
+                          <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                            ✓ {nomDocument(ev.document_id)}
+                          </span>
+                          <button
+                            onClick={() => ouvrirPiece(ev.document_id!)}
+                            className="text-xs text-slate-700 hover:underline"
+                          >
+                            Ouvrir
+                          </button>
+                        </>
+                      ) : (
+                        <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                          Sans pièce jointe
+                        </span>
+                      )}
+                      <select
+                        value={ev.document_id ?? ""}
+                        onChange={(e) => lierPiece(ev.id, e.target.value)}
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                      >
+                        <option value="">— Lier une pièce —</option>
+                        {documentsProcedure.map((d) => (
+                          <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="flex shrink-0 flex-col items-end gap-2">
