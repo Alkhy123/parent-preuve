@@ -230,6 +230,22 @@ fix(ia): imposer le consentement côté serveur
 
 ## Bloc 2 — P0 : concevoir la migration multi-procédures
 
+### Statut
+
+Terminé et documenté le 22 juin 2026.
+
+Décisions validées :
+
+```text
+priorité : events, expenses, documents, preuves_photo
+procedure_id nullable pendant la transition
+backfill déterministe uniquement
+aucune duplication des lignes ambiguës
+rattachement humain pour les cas multi-procédures indécidables
+garde_regles dans une étape secondaire
+note_brouillon dans une migration séparée par procédure
+```
+
 ### Objectif
 
 Produire un plan de migration précis avant de toucher au schéma.

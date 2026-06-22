@@ -207,6 +207,166 @@ Ajouter un `procedure_id` direct aux données métier concernées, puis :
 - interdire le mélange dans les exports ;
 - définir une stratégie de suppression sans transformation silencieuse en donnée générale.
 
+### 6.5. Résultat du bloc 2 — matrice de migration
+
+Le bloc 2 a cartographié le schéma et tous les flux sans modifier la base.
+
+| Table | État actuel | Créations principales | Lectures sensibles | Décision |
+|---|---|---|---|---|
+| `events` | `child_id` nullable, aucun `procedure_id` | journal, calendrier de visites | journal, accueil, résumé mensuel, chronologie, export, dossier avocat | ajouter `procedure_id` direct en priorité |
+| `expenses` | `child_id` nullable, `document_id` nullable | page frais | frais, accueil, résumé, chronologie, export, dossier avocat | ajouter `procedure_id` direct en priorité |
+| `documents` | `child_id` nullable | documents, frais, champ pièce jointe | documents, coffre-fort, journal, frais, chronologie, notes, exports | ajouter `procedure_id` direct en priorité |
+| `preuves_photo` | `enfant_id` nullable | nouvelle preuve | preuves, accueil, chronologie, notes, dossier avocat | ajouter `procedure_id` direct en priorité |
+| `garde_regles` | `enfant_id` obligatoire, suppression en cascade | calendrier, onboarding | calendrier, échéances, chronologie, note | ajouter ensuite pour cohérence ; risque immédiat plus faible |
+| `note_brouillon` | une seule ligne par utilisateur | note de synthèse | note de synthèse | migration séparée vers une ligne par utilisateur et procédure |
+
+Tables déjà directement rattachées à une procédure :
+
+```text
+children
+pension_payments
+pension_regle
+frais_regle
+dvh_regle
+decision_regle
+```
+
+Leurs clés étrangères utilisent toutefois souvent `ON DELETE SET NULL`. Leur
+comportement de suppression devra être harmonisé avec la stratégie stricte avant
+de rendre `procedure_id` obligatoire partout.
+
+### 6.6. Backfill déterministe retenu
+
+Le backfill doit suivre cet ordre et ne jamais inventer une relation :
+
+1. rattacher depuis l'enfant lorsque l'enfant et la ligne appartiennent au même utilisateur ;
+2. pour un fait ou un frais sans enfant, utiliser la procédure du document lié seulement si ce document possède un enfant avec une procédure certaine ;
+3. pour un document sans enfant, utiliser la procédure des faits ou frais liés seulement si toutes les références certaines convergent vers une seule procédure ;
+4. si l'utilisateur possède exactement une procédure, y rattacher les lignes encore non ambiguës ;
+5. laisser `procedure_id = null` dans tous les autres cas.
+
+Interdictions :
+
+- ne pas choisir la première procédure arbitrairement ;
+- ne pas copier une ligne dans plusieurs procédures ;
+- ne pas déduire depuis un nom, un titre ou un texte libre ;
+- ne pas demander à l'IA de choisir la procédure ;
+- ne pas supprimer une ligne ambiguë.
+
+### 6.7. Traitement des lignes ambiguës
+
+Une ligne est ambiguë lorsqu'elle n'a pas d'enfant exploitable, qu'aucune relation
+unique ne permet de retrouver sa procédure et que l'utilisateur possède plusieurs
+procédures.
+
+Ces lignes doivent :
+
+- rester en base avec `procedure_id = null` pendant la transition ;
+- être exclues des vues et exports strictement rattachés ;
+- apparaître dans un écran ou encart « Éléments à rattacher » ;
+- être rattachées uniquement par un choix humain explicite ;
+- conserver leur identifiant, leur fichier et leur historique.
+
+Le passage à `NOT NULL` n'est autorisé qu'après résolution de toutes les lignes ambiguës.
+
+### 6.8. Séquençage de migration retenu
+
+#### Étape A — structure compatible
+
+Créer une nouvelle migration ajoutant `procedure_id` nullable et indexé sur :
+
+```text
+events
+expenses
+documents
+preuves_photo
+```
+
+Effectuer uniquement le backfill déterministe. La migration doit pouvoir être
+appliquée avant le nouveau front sans casser les insertions existantes.
+
+#### Étape B — écritures
+
+Adapter tous les créateurs pour enregistrer la procédure active, y compris :
+
+```text
+app/journal/page.tsx
+app/frais/page.tsx
+app/documents/page.tsx
+app/preuves/nouvelle/page.tsx
+components/ChampPieceJointe.tsx
+components/onboarding/CalendrierVisites.tsx
+```
+
+Chaque création sans procédure doit être refusée proprement.
+
+#### Étape C — lectures strictes
+
+Filtrer en base sur `procedure_id` dans les pages, widgets, résumés, chronologies,
+notes et exports. Supprimer la règle `child_id === null || idsProc.has(child_id)`
+comme mécanisme de cloisonnement.
+
+#### Étape D — ambiguïtés et contrainte finale
+
+Livrer le rattachement manuel, vérifier qu'il ne reste aucune ligne ambiguë, puis
+ajouter `NOT NULL` dans une migration ultérieure.
+
+#### Étape E — tables secondaires
+
+Migrer `garde_regles` vers un rattachement direct cohérent. Migrer séparément
+`note_brouillon` vers une unicité `(user_id, procedure_id)` afin d'éviter qu'un
+brouillon d'une procédure soit chargé dans une autre.
+
+### 6.9. Intégrité relationnelle cible
+
+La base doit garantir, indépendamment du client :
+
+- que `procedure_id` appartient au même `user_id` que la ligne ;
+- que l'enfant appartient à cette procédure et à cet utilisateur ;
+- que le document lié appartient à cette même procédure ;
+- qu'une mise à jour ne déplace pas une ligne vers une procédure étrangère.
+
+Option principale recommandée : contraintes composites appuyées par des clés
+uniques sur les triplets utiles, complétées par des policies RLS `WITH CHECK`.
+Une solution par triggers n'est à retenir que si les contraintes composites se
+révèlent impraticables lors du prototype SQL.
+
+### 6.10. Stratégie de suppression
+
+Pendant la transition :
+
+- empêcher la suppression d'un enfant tant que des données lui sont rattachées,
+  ou demander une action explicite de détachement/réaffectation ;
+- empêcher la suppression d'une procédure tant qu'elle contient des données métier ;
+- ne jamais utiliser `ON DELETE SET NULL` pour rendre une donnée générale ;
+- ne jamais ignorer une erreur de suppression intermédiaire.
+
+Après ajout du `procedure_id` direct, détacher volontairement un enfant peut
+laisser la donnée dans sa procédure, mais ce choix doit être visible et confirmé.
+
+### 6.11. Matrice de tests obligatoire
+
+Préparer au minimum :
+
+```text
+U1 / procédure A / enfant A / données avec et sans enfant
+U1 / procédure B / enfant B / données avec et sans enfant
+U2 / procédure C / enfant C
+```
+
+Vérifier :
+
+- aucune ligne A dans B et réciproquement ;
+- aucune référence de U1 vers une procédure, un enfant ou un document de U2 ;
+- backfill depuis enfant correct ;
+- backfill mono-procédure correct ;
+- ligne multi-procédures ambiguë laissée à null ;
+- aucune duplication ;
+- exports et résumé IA strictement cloisonnés ;
+- suppression enfant/procédure bloquée ou explicitement traitée ;
+- fichiers Storage préservés pendant le backfill ;
+- migration rejouable sur une base de test reconstruite depuis 001 à 008.
+
 ---
 
 ## 7. P0 corrigé — Consentement IA imposé sur toutes les routes serveur

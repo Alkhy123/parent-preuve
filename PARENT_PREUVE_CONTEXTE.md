@@ -633,9 +633,24 @@ Autre parent différent = procédure séparée.
 
 Documents, preuves, événements et frais restent rattachés à l'enfant.
 
-Comme un enfant appartient à une procédure, le filtrage par procédure en découle.
+État hérité observé : comme un enfant appartient à une procédure, le filtrage par
+procédure est actuellement déduit de l'enfant.
 
-Les lignes sans enfant sont traitées comme générales et visibles dans toutes les procédures.
+Dette P0 confirmée par l'audit du 22 juin 2026 : les lignes sans enfant sont
+traitées comme générales et visibles dans toutes les procédures. Ce comportement
+peut mélanger plusieurs dossiers et ne constitue plus la cible produit.
+
+Cible validée :
+
+```text
+Chaque donnée métier appartient directement à une procédure via procedure_id.
+Le rattachement enfant reste facultatif lorsqu'il n'est pas pertinent.
+Une donnée sans enfant reste visible uniquement dans sa procédure.
+Une donnée ambiguë héritée n'est jamais dupliquée ni attribuée automatiquement.
+```
+
+Le plan détaillé de migration est documenté dans
+`PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md`.
 
 ## 6.3. Procédure active
 

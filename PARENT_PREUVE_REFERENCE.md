@@ -769,13 +769,14 @@ Fichiers :
 005_implication_parentale.sql
 006_verification_hash_serveur.sql
 007_frais_sans_justificatif.sql
+008_events_document_id.sql
 ```
 
 Rappel :
 
 ```text
 001 à 003 : non idempotentes, base vierge, dans l'ordre
-004 à 007 : idempotentes
+004 à 008 : idempotentes
 ```
 
 Historique de migration distant aligné via `supabase migration repair --status applied 001 … 007`
@@ -869,6 +870,12 @@ Règle :
 La RLS protège par utilisateur.
 Le cloisonnement par procédure est appliqué par les filtres applicatifs.
 ```
+
+Dette P0 confirmée : `events`, `expenses`, `documents` et `preuves_photo`
+n'ont pas encore de `procedure_id` direct. Les lignes sans enfant sont donc
+actuellement visibles dans toutes les procédures. La cible validée est un
+rattachement direct, avec backfill déterministe et rattachement humain des cas
+ambigus. Voir le plan détaillé dans `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md`.
 
 ---
 
