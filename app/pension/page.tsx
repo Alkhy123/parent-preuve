@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import EncartPliable from "@/components/EncartPliable";
@@ -56,9 +56,14 @@ export default function PensionPage() {
   const [montantDu, setMontantDu] = useState("");
   const [montantPaye, setMontantPaye] = useState("");
   const [datePaiement, setDatePaiement] = useState("");
+  const [notes, setNotes] = useState("");
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+
+  // Édition d'un mois existant. null = mode ajout ; sinon l'id du mois modifié.
+  const [editionId, setEditionId] = useState<string | null>(null);
+  const formulaireRef = useRef<HTMLDivElement>(null);
 
   // Pré-remplissage proposé par le copilote (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; avertissements sont des notes neutres
@@ -121,38 +126,104 @@ export default function PensionPage() {
     setPreRempli(true);
   }, []);
 
-  async function ajouterPaiement() {
+  async function enregistrerMois() {
     setMessage("");
     setConfirmation("");
     if (!mois) return setMessage("Le mois est obligatoire.");
     const duNum = parseFloat(montantDu.replace(",", "."));
-    if (isNaN(duNum)) return setMessage("Le montant dû doit être un nombre.");
+    if (isNaN(duNum)) return setMessage("Le montant attendu doit être un nombre.");
     const payeNum = montantPaye.trim() ? parseFloat(montantPaye.replace(",", ".")) : 0;
 
     if (!procedureId) {
       return setMessage("Aucune procédure active. Ajoutez d'abord un enfant dans « Mes enfants ».");
     }
 
-    const { error } = await supabase.from("pension_payments").insert({
-      mois_du: mois + "-01", // on ajoute le 1er du mois
+    const payload = {
+      mois_du: mois + "-01", // on stocke le 1er du mois
       montant_du: duNum,
       montant_paye: isNaN(payeNum) ? 0 : payeNum,
       date_paiement: datePaiement || null,
+      notes: notes.trim() || null,
       procedure_id: procedureId,
-    });
+    };
+
+    // Anti-doublon : un seul enregistrement par mois et par procédure.
+    // On cherche un mois identique (hors la ligne en cours d'édition).
+    const existant = paiements.find(
+      (p) => p.mois_du.slice(0, 7) === mois && p.id !== editionId
+    );
+
+    let error = null;
+    let confirmationTexte = "";
+    if (existant && !editionId) {
+      // Ajout sur un mois déjà présent : on met à jour la ligne existante au
+      // lieu de créer un doublon (source unique par mois et par procédure).
+      const r = await supabase.from("pension_payments").update(payload).eq("id", existant.id);
+      error = r.error;
+      confirmationTexte = "Ce mois existait déjà : il a été mis à jour.";
+    } else if (existant && editionId) {
+      // Édition vers un mois déjà occupé par une AUTRE ligne : on refuse.
+      return setMessage("Un paiement existe déjà pour ce mois. Modifiez-le directement.");
+    } else if (editionId) {
+      const r = await supabase.from("pension_payments").update(payload).eq("id", editionId);
+      error = r.error;
+      confirmationTexte = "Mois modifié.";
+    } else {
+      const r = await supabase.from("pension_payments").insert(payload);
+      error = r.error;
+      confirmationTexte =
+        "Mois enregistré. Le statut (payé, partiel, en retard) est calculé automatiquement.";
+    }
 
     if (error) {
       setMessage("Erreur : " + error.message);
     } else {
-      setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement("");
+      setEditionId(null);
+      setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement(""); setNotes("");
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]);
-      setConfirmation(
-        "Mois enregistré. Le statut (payé, partiel, en retard) est calculé automatiquement et visible dans la liste."
-      );
+      setConfirmation(confirmationTexte);
       setSignalAjout((n) => n + 1);
       chargerPaiements();
     }
+  }
+
+  // Charge un mois existant dans le formulaire pour le modifier.
+  function chargerPourEdition(p: Paiement) {
+    setMessage("");
+    setConfirmation("");
+    setEditionId(p.id);
+    setMois(p.mois_du.slice(0, 7));
+    setMontantDu(String(p.montant_du ?? ""));
+    setMontantPaye(String(p.montant_paye ?? ""));
+    setDatePaiement(p.date_paiement ?? "");
+    setNotes(p.notes ?? "");
+    // Pré-remplissage éventuel : on l'efface pour ne pas mélanger les bandeaux.
+    setPreRempli(false); setAvertissements([]);
+    formulaireRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Quitte l'édition sans enregistrer et vide le formulaire.
+  function annulerEdition() {
+    setEditionId(null);
+    setMessage("");
+    setMois(""); setMontantDu(""); setMontantPaye(""); setDatePaiement(""); setNotes("");
+  }
+
+  // Action rapide : enregistre le mois comme intégralement payé.
+  // montant_paye = montant_du ; on conserve la date de réception si déjà saisie.
+  async function marquerPayeEnEntier(p: Paiement) {
+    setMessage("");
+    const aujourdHui = new Date().toISOString().slice(0, 10);
+    const { error } = await supabase
+      .from("pension_payments")
+      .update({
+        montant_paye: p.montant_du,
+        date_paiement: p.date_paiement ?? aujourdHui,
+      })
+      .eq("id", p.id);
+    if (error) setMessage("Erreur : " + error.message);
+    else chargerPaiements();
   }
 
   async function supprimerPaiement(id: string) {
@@ -234,11 +305,11 @@ export default function PensionPage() {
 
           {/* Formulaire. La clé force l'ouverture de l'encart quand un
               pré-remplissage arrive (sans modifier le composant partagé). */}
-          <div className="mt-8">
+          <div className="mt-8" ref={formulaireRef}>
             <EncartPliable
-              key={preRempli ? "pension-prerempli" : "pension-standard"}
-              titre="Ajouter un paiement"
-              replieParDefaut={!preRempli}
+              key={editionId ? `pension-edition-${editionId}` : preRempli ? "pension-prerempli" : "pension-standard"}
+              titre={editionId ? "Modifier le mois" : "Ajouter un paiement"}
+              replieParDefaut={!preRempli && !editionId}
               signalFermeture={signalAjout}
             >
               <div className="space-y-4">
@@ -272,7 +343,7 @@ export default function PensionPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#15233F]">
-                  Montant dû (€) <span className="text-[#9B2C2C]">*</span>
+                  Montant attendu (€) <span className="text-[#9B2C2C]">*</span>
                 </label>
                 <input
                   type="text" inputMode="decimal" placeholder="300"
@@ -284,7 +355,7 @@ export default function PensionPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#15233F]">Montant payé (€)</label>
+                <label className="block text-sm font-medium text-[#15233F]">Montant reçu (€)</label>
                 <input
                   type="text" inputMode="decimal" placeholder="0 si rien reçu"
                   value={montantPaye} onChange={(e) => setMontantPaye(e.target.value)}
@@ -305,12 +376,33 @@ export default function PensionPage() {
               </div>
             </div>
 
-            <button
-              onClick={ajouterPaiement}
-              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#15233F]/90"
-            >
-              Enregistrer le mois
-            </button>
+            <div>
+              <label className="block text-sm font-medium text-[#15233F]">Note (facultatif)</label>
+              <textarea
+                rows={2} value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ex : virement partiel, paiement en espèces…"
+                className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={enregistrerMois}
+                className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#15233F]/90"
+              >
+                {editionId ? "Enregistrer les modifications" : "Enregistrer le mois"}
+              </button>
+              {editionId && (
+                <button
+                  type="button"
+                  onClick={annulerEdition}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Annuler
+                </button>
+              )}
+            </div>
             <FormMessage message={message} type="erreur" />
               </div>
             </EncartPliable>
@@ -332,9 +424,10 @@ export default function PensionPage() {
             )}
             {paiements.map((p) => {
               const s = statut(p);
+              const resteDu = Math.max(0, Number(p.montant_du) - Number(p.montant_paye));
               return (
                 <div key={p.id} className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold capitalize text-[#15233F]">
@@ -345,16 +438,40 @@ export default function PensionPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-[#1F2733]/60">
-                        Dû {euros(Number(p.montant_du))} · Payé {euros(Number(p.montant_paye))}
+                        Attendu {euros(Number(p.montant_du))} · reçu {euros(Number(p.montant_paye))}
                         {p.date_paiement ? ` le ${p.date_paiement}` : ""}
                       </p>
+                      {resteDu > 0 && (
+                        <p className="mt-0.5 text-sm font-medium text-[#9B2C2C]">
+                          Reste dû {euros(resteDu)}
+                        </p>
+                      )}
+                      {p.notes && (
+                        <p className="mt-1 text-sm text-[#1F2733]/70">{p.notes}</p>
+                      )}
                     </div>
-                    <button
-                      onClick={() => supprimerPaiement(p.id)}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Supprimer
-                    </button>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <button
+                        onClick={() => chargerPourEdition(p)}
+                        className="text-sm text-[#15233F] hover:underline"
+                      >
+                        Modifier
+                      </button>
+                      {resteDu > 0 && (
+                        <button
+                          onClick={() => marquerPayeEnEntier(p)}
+                          className="text-sm text-[#15233F] hover:underline"
+                        >
+                          Marquer payé en entier
+                        </button>
+                      )}
+                      <button
+                        onClick={() => supprimerPaiement(p.id)}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
