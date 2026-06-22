@@ -38,6 +38,19 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+const JOURS = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+// Libellé lisible d'une règle avancée (pour la liste « Retirer »).
+function libelleRegleAvancee(regle: ReglePlanning): string {
+  const chez = regle.chezQui === "moi" ? "chez moi" : "chez l'autre parent";
+  if (regle.type === "hebdomadaire") {
+    const j = JOURS[regle.jourDebut] ?? "jour";
+    return `${j.charAt(0).toUpperCase()}${j.slice(1)} (${chez})`;
+  }
+  if (regle.type === "weekend_alterne") return `Week-end sur deux (${chez})`;
+  return `Semaines alternées (${chez})`;
+}
+
 type Enfant = { id: string; prenom_ou_alias: string };
 
 type RegleDb = {
@@ -248,6 +261,13 @@ export default function CalendrierAvancePage() {
     rechargerPersistance();
   }
 
+  async function retirerRegleAvancee(id: string) {
+    setEnErreur("");
+    const { error } = await supprimerRegleAvancee(id);
+    if (error) return setEnErreur(error);
+    rechargerPersistance();
+  }
+
   return (
     <main className="min-h-screen bg-[#ECE7DC]">
       <PageHeader
@@ -310,6 +330,31 @@ export default function CalendrierAvancePage() {
                   </label>
 
                   {enErreur && <p className="text-sm text-rouge">{enErreur}</p>}
+
+                  {reglesAvancees.length > 0 && (
+                    <div className="border-t border-slate-200 pt-4">
+                      <p className="text-sm font-medium text-[#1F2733]">
+                        Règles avancées enregistrées
+                      </p>
+                      <ul className="mt-2 space-y-1">
+                        {reglesAvancees.map((r) => (
+                          <li
+                            key={r.id}
+                            className="flex items-center justify-between gap-3 text-sm text-texte-doux"
+                          >
+                            <span>{libelleRegleAvancee(r.regle)}</span>
+                            <button
+                              type="button"
+                              onClick={() => retirerRegleAvancee(r.id)}
+                              className="text-rouge hover:underline"
+                            >
+                              Retirer
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
