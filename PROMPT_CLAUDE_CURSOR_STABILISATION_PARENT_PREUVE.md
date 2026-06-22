@@ -346,6 +346,26 @@ feat(db): rattacher les données métier aux procédures
 
 ## Bloc 4 — P0 : adapter toutes les écritures
 
+### Statut
+
+TERMINÉ et validé en production le 22 juin 2026 (soir). Commit `b59b359`.
+
+```text
+6 créateurs modifiés : journal, frais (documents + expenses), documents,
+preuves/nouvelle, ChampPieceJointe, onboarding/CalendrierVisites.
+procedure_id enregistré sur chaque insert (procédure active, ou hérité de
+l'enfant pour le calendrier de visites).
+Refus propre si aucune procédure ; résolution avant upload (pas d'orphelin).
+Édition d'un frais : procedure_id non modifié.
+Migration 009 appliquée en distant. tsc + build + agent-boundaries verts ;
+lint inchangé (129 erreurs préexistantes). Validation SQL : toutes les
+nouvelles lignes portent le bon procedure_id, A et B cloisonnés.
+Limite : lier une pièce héritée (procedure_id null) à une nouvelle ligne est
+rejeté par la contrainte composite -> à débloquer par l'écran de rattachement.
+```
+
+Prochain bloc : Bloc 5 (lectures, résumés, exports).
+
 ### Objectif
 
 Enregistrer systématiquement la procédure active sur les nouvelles données.

@@ -771,6 +771,8 @@ Fichiers :
 007_frais_sans_justificatif.sql
 008_events_document_id.sql
 009_cloisonnement_donnees_metier.sql
+010_calendar_advanced_rules.sql
+011_calendar_exceptions.sql
 ```
 
 Rappel :
@@ -778,7 +780,9 @@ Rappel :
 ```text
 001 à 003 : non idempotentes, base vierge, dans l'ordre
 004 à 008 : idempotentes
-009 : additive, appliquée une seule fois via l'historique Supabase
+009 : additive, appliquée en distant le 22/06/2026 (procedure_id sur 4 tables métier)
+010 / 011 : calendrier avancé (règles + exceptions)
+prochain numéro libre : 012
 ```
 
 Historique de migration distant aligné via `supabase migration repair --status applied 001 … 007`
@@ -874,7 +878,8 @@ Règle :
 
 ```text
 La RLS protège par utilisateur.
-Le cloisonnement par procédure est appliqué par les filtres applicatifs.
+Le cloisonnement écriture par procédure est appliqué directement (procedure_id).
+Le cloisonnement lecture reste partiellement applicatif jusqu'au bloc 5.
 ```
 
 La migration 009 ajoute un `procedure_id` direct, nullable et indexé à `events`,
@@ -890,8 +895,21 @@ Contrôle statique :
 npm run check:multi-procedure-migration
 ```
 
-La migration est versionnée et testée localement. Son application à la base
-Supabase distante reste une opération manuelle distincte du déploiement Vercel.
+État au 22 juin 2026 (soir) :
+
+```text
+migration 009 : appliquée en distant
+écritures (bloc 4, commit b59b359) : TERMINÉ
+  -> les 6 créateurs enregistrent procedure_id :
+     journal, frais (documents + expenses), documents, preuves/nouvelle,
+     ChampPieceJointe, onboarding/CalendrierVisites (hérité de l'enfant)
+  -> refus propre si aucune procédure active ; résolution avant upload
+  -> édition d'un frais : procedure_id non modifié
+lectures / résumés / exports (bloc 5) : À FAIRE
+  -> filtrer en base par procedure_id, retirer child_id === null || idsProc.has(child_id)
+limite connue : lier une pièce héritée (procedure_id null) à une nouvelle ligne
+  est rejeté par la contrainte composite -> écran de rattachement à venir (étape D)
+```
 
 ---
 
@@ -1499,7 +1517,8 @@ Résolu :
 
 ```text
 HORODATAGE_SECRET remplace HMAC_SECRET
-migrations Supabase 001 à 009 versionnées (009 testée localement, application distante manuelle)
+migrations Supabase 001 à 011 versionnées (009 appliquée en distant le 22/06/2026)
+cloisonnement écritures par procedure_id (bloc 4, commit b59b359)
 quota IA fail-closed
 consentement IA vérifié côté serveur avant quota sur reformulation et extraction
 suppression RGPD complète
@@ -1518,6 +1537,24 @@ documentation Agent
 ---
 
 # 20. Backlog prioritaire
+
+## 20.0. Cloisonnement multi-procédures (chantier P0 en cours)
+
+Point de reprise au 22 juin 2026 (soir) :
+
+```text
+FAIT  bloc 1 : consentement IA serveur
+FAIT  bloc 2 : plan de migration multi-procédures
+FAIT  bloc 3 : migration 009 (procedure_id + backfill + contraintes), appliquée en distant
+FAIT  bloc 4 : écritures adaptées (commit b59b359), validé en production
+SUITE bloc 5 : lectures, résumés et exports filtrés en base par procedure_id
+      bloc 6 : suppressions enfant / procédure explicites
+      étape D : écran de rattachement des lignes héritées (procedure_id null) puis NOT NULL
+      étape E : garde_regles + note_brouillon par procédure
+```
+
+Détail complet : `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md` et
+`PROMPT_CLAUDE_CURSOR_STABILISATION_PARENT_PREUVE.md`.
 
 ## 20.1. Stabilisation pré-remplissage Agent
 

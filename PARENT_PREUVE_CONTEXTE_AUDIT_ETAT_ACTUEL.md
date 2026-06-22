@@ -292,23 +292,39 @@ documentaires convergentes puis le cas mono-procédure certain. Une ligne
 multi-procédures ambiguë reste volontairement à `null` ; aucune ligne n'est
 dupliquée ou supprimée. Les contraintes composites vérifient l'appartenance de
 la procédure, de l'enfant et du document au même utilisateur et à la même
-procédure. La migration a été reconstruite localement depuis une base vide ;
-elle n'est pas déclarée appliquée à la base Supabase distante.
+procédure. La migration a été reconstruite localement depuis une base vide.
+
+Mise à jour du 22 juin 2026 (soir) : la migration 009 est désormais appliquée à
+la base Supabase distante (confirmé par l'utilisateur). Les écritures de l'étape B
+sont livrées et validées en production.
 
 #### Étape B — écritures
 
-Adapter tous les créateurs pour enregistrer la procédure active, y compris :
+État au 22 juin 2026 (soir) : TERMINÉ (bloc 4), commit `b59b359`, validé en
+production. Tous les créateurs enregistrent désormais `procedure_id` :
 
 ```text
-app/journal/page.tsx
-app/frais/page.tsx
-app/documents/page.tsx
-app/preuves/nouvelle/page.tsx
-components/ChampPieceJointe.tsx
-components/onboarding/CalendrierVisites.tsx
+app/journal/page.tsx                       events     -> procedure_id = procédure active
+app/frais/page.tsx                         documents + expenses -> procédure active (insert seulement, pas l'update)
+app/documents/page.tsx                     documents  -> procédure active
+app/preuves/nouvelle/page.tsx              preuves_photo -> procédure active
+components/ChampPieceJointe.tsx            documents  -> procédure active
+components/onboarding/CalendrierVisites.tsx events     -> procedure_id hérité de l'enfant
 ```
 
-Chaque création sans procédure doit être refusée proprement.
+Décisions appliquées :
+
+- procédure active résolue via `getProcedureActiveId()` avant chaque insert ;
+- création refusée proprement si aucune procédure active (message UI), sans
+  écriture ni upload orphelin (résolution placée avant l'upload Storage) ;
+- l'édition d'un frais existant ne touche pas `procedure_id` (pas de déplacement
+  silencieux entre procédures) ;
+- `CalendrierVisites` résout la procédure depuis l'enfant ciblé pour respecter
+  la contrainte composite SQL.
+
+Limite connue restante : lier une pièce héritée (`documents.procedure_id = null`)
+à un nouveau fait ou frais est rejeté par la contrainte composite document. Ce
+cas sera débloqué par l'écran de rattachement (étape D).
 
 #### Étape C — lectures strictes
 
@@ -668,8 +684,8 @@ Le fichier local `cleapi.txt` reste toutefois une mauvaise pratique : privilégi
 
 ### P0 — avant toute autre évolution
 
-1. Appliquer la migration 009 distante puis adapter toutes les écritures et lectures à `procedure_id`.
-2. Finaliser les parcours de rattachement ambigu et les suppressions enfant/procédure explicites.
+1. FAIT : migration 009 appliquée en distant + écritures adaptées à `procedure_id` (bloc 4, commit `b59b359`). RESTE : adapter les **lectures, résumés et exports** (bloc 5).
+2. Finaliser les parcours de rattachement ambigu et les suppressions enfant/procédure explicites (blocs 6 et étape D).
 3. Maintenir le contrôle serveur du consentement IA livré au bloc 1.
 
 ### P1 — avant bêta publique

@@ -655,8 +655,14 @@ Le plan détaillé de migration est documenté dans
 La structure cible est versionnée dans la migration 009 : `events`, `expenses`,
 `documents` et `preuves_photo` disposent désormais d'un `procedure_id` direct,
 nullable pendant la transition. Le backfill n'attribue jamais arbitrairement
-les lignes héritées ambiguës. L'application distante de cette migration et
-l'adaptation des écritures/lectures restent des étapes séparées.
+les lignes héritées ambiguës.
+
+État au 22 juin 2026 (soir) : la migration 009 est appliquée en distant et les
+écritures sont adaptées (bloc 4, commit `b59b359`) : chaque création enregistre
+`procedure_id`. Reste à faire : adapter les **lectures, résumés et exports**
+(bloc 5) pour filtrer en base par `procedure_id` et retirer la règle
+`child_id === null || idsProc.has(child_id)`. Les lignes héritées ambiguës
+(`procedure_id = null`) attendent encore l'écran de rattachement.
 
 ## 6.3. Procédure active
 
