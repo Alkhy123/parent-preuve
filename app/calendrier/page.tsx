@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
@@ -144,6 +145,11 @@ export default function CalendrierPage() {
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
       <div className="mt-6">
             <RegleDVH />
+          </div>
+          <div className="text-sm">
+            <Link href="/calendrier/avance" className="text-[#7A6326] underline">
+              Aperçu du calendrier avancé (bêta)
+            </Link>
           </div>
         {enfants.length === 0 ? (
           <p className="text-[#1F2733]">Ajoute d'abord un enfant dans la rubrique « Enfants ».</p>
