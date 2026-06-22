@@ -23,6 +23,7 @@ export type DetailFait = {
   description_factuelle: string | null;
   child_id: string | null;
   statut: string | null;
+  document_id: string | null;
 };
 
 export type DetailFrais = {
@@ -103,7 +104,7 @@ export async function chargerDetailItem(
       const { data } = await supabase
         .from("events")
         .select(
-          "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut",
+          "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut, document_id",
         )
         .eq("id", id)
         .single();

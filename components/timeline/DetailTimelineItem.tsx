@@ -7,6 +7,11 @@ import Modale from "@/components/ui/Modale";
 import type { TimelineItem } from "@/lib/timeline/types";
 import { SOURCES_TIMELINE } from "@/components/timeline/FiltresTimeline";
 import {
+  evaluerQualiteDoc,
+  badgeQualite,
+  type ElementDoc,
+} from "@/lib/ux/qualiteDocumentaire";
+import {
   chargerDetailItem,
   changerStatutFait,
   supprimerFait,
@@ -58,6 +63,42 @@ function Ligne({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-texte">{children}</span>
     </p>
   );
+}
+
+// Traduit un détail en descripteur de qualité documentaire.
+// Renvoie null pour les sources qu'on n'évalue pas (la pièce/preuve EST une
+// pièce ; la règle de garde n'est pas un élément documentaire à compléter).
+// Un critère mis à null est « non applicable » : il ne pénalise pas.
+function descripteurQualite(detail: DetailItem): ElementDoc | null {
+  switch (detail.source) {
+    case "journal":
+      return {
+        date: !!detail.date_evenement,
+        description: !!detail.description_factuelle?.trim(),
+        pieceLiee: !!detail.document_id,
+        enfant: detail.child_id ? true : null, // « général » non pénalisé
+      };
+    case "frais":
+      return {
+        date: !!detail.date_frais,
+        montant: detail.montant != null,
+        // Pièce non applicable si l'absence a été choisie explicitement.
+        pieceLiee: detail.document_id
+          ? true
+          : detail.sans_justificatif
+            ? null
+            : false,
+        enfant: detail.child_id ? true : null,
+      };
+    case "pension":
+      return {
+        date: !!detail.mois_du,
+        montant: detail.montant_du != null,
+        description: detail.notes?.trim() ? true : null, // note facultative
+      };
+    default:
+      return null; // document, preuve, garde : pas de score documentaire
+  }
 }
 
 export default function DetailTimelineItem({
@@ -123,6 +164,10 @@ export default function DetailTimelineItem({
 
   const meta = item ? SOURCES_TIMELINE.find((s) => s.cle === item.source) : null;
   const titre = item?.titre ?? "Détail";
+
+  // Qualité documentaire (lecture seule) de l'élément ouvert, si applicable.
+  const descripteur = detail ? descripteurQualite(detail) : null;
+  const qualite = descripteur ? evaluerQualiteDoc(descripteur) : null;
 
   // Bloc de confirmation de suppression, réutilisé par les sources concernées.
   function confirmationSuppression(fn: () => Promise<ResultatAction>) {
@@ -454,6 +499,18 @@ export default function DetailTimelineItem({
         <p className="mb-3 -mt-2">
           <span className="badge badge-info">{meta.libelle}</span>
         </p>
+      )}
+      {qualite && (
+        <div className="mb-3">
+          <span className={badgeQualite(qualite.niveau).classe}>
+            {badgeQualite(qualite.niveau).label}
+          </span>
+          {qualite.manquants.length > 0 && (
+            <p className="mt-1 text-xs text-texte-doux">
+              À compléter : {qualite.manquants.join(", ")}.
+            </p>
+          )}
+        </div>
       )}
       {corps()}
       {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
