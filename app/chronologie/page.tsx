@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
@@ -65,9 +65,10 @@ export default function ChronologiePage() {
     TYPES.map((t) => t.cle),
   );
 
-  useEffect(() => {
-    async function charger() {
-      // Procédure active + ses enfants (sert au cloisonnement dans la fusion).
+  // Chargement (réutilisable) : sert au montage ET au rafraîchissement après
+  // une action déclenchée depuis la modale de détail de la timeline.
+  const charger = useCallback(async () => {
+    // Procédure active + ses enfants (sert au cloisonnement dans la fusion).
       const [procId, listeEnfants] = await Promise.all([
         getProcedureActiveId(),
         getEnfantsDeProcedureActive(),
@@ -138,9 +139,13 @@ export default function ChronologiePage() {
       setEntrees(resultat);
       setTimelineItems(items);
       setChargement(false);
-    }
-    charger();
   }, []);
+
+  useEffect(() => {
+    // charger() lance des requêtes async avant tout setState : pas de cascade synchrone.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    charger();
+  }, [charger]);
 
   // Coche / décoche un type dans les filtres.
   function basculerType(cle: TypeEntree) {
@@ -257,7 +262,11 @@ export default function ChronologiePage() {
             </div>
 
             {/* Timeline centrale : agrégation lecture seule des 6 sources */}
-            <TimelineDossier items={timelineItems} enfants={enfants} />
+            <TimelineDossier
+              items={timelineItems}
+              enfants={enfants}
+              onRecharger={charger}
+            />
           </>
         )}
       </div>

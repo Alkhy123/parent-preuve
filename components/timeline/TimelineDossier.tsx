@@ -1,17 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { euros } from "@/lib/dossierCalculs";
 import type { TimelineItem, TimelineSource } from "@/lib/timeline/types";
 import FiltresTimeline, {
   SOURCES_TIMELINE,
   type TriTimeline,
 } from "@/components/timeline/FiltresTimeline";
+import DetailTimelineItem from "@/components/timeline/DetailTimelineItem";
 
 type Props = {
   items: TimelineItem[];
   enfants: { id: string; prenom_ou_alias: string }[];
+  onRecharger: () => void;
 };
 
 // "AAAA-MM-JJ" -> "JJ/MM/AAAA"
@@ -38,12 +39,15 @@ function cleTri(item: TimelineItem): string {
   return `${item.date}T${item.heure ?? "00:00"}`;
 }
 
-export default function TimelineDossier({ items, enfants }: Props) {
+export default function TimelineDossier({ items, enfants, onRecharger }: Props) {
   // Sources actives (toutes par défaut) et sens de tri.
   const [actives, setActives] = useState<Set<TimelineSource>>(
     () => new Set(SOURCES_TIMELINE.map((s) => s.cle)),
   );
   const [tri, setTri] = useState<TriTimeline>("recent");
+
+  // Item ouvert dans la modale de détail (null = fermée).
+  const [itemActif, setItemActif] = useState<TimelineItem | null>(null);
 
   const nomEnfant = useMemo(() => {
     const map = new Map(enfants.map((e) => [e.id, e.prenom_ou_alias]));
@@ -121,16 +125,16 @@ export default function TimelineDossier({ items, enfants }: Props) {
       </div>
     );
 
-    // La timeline est en lecture seule : on renvoie vers la page métier d'origine.
+    // Le clic ouvre la modale de détail (au lieu de naviguer vers la page).
     return (
-      <li key={`${item.source}-${item.id}`} className="carte p-4">
-        {item.href ? (
-          <Link href={item.href} className="block hover:opacity-90">
-            {contenu}
-          </Link>
-        ) : (
-          contenu
-        )}
+      <li key={`${item.source}-${item.id}`}>
+        <button
+          type="button"
+          onClick={() => setItemActif(item)}
+          className="carte block w-full p-4 text-left transition hover:opacity-90"
+        >
+          {contenu}
+        </button>
       </li>
     );
   }
@@ -174,6 +178,13 @@ export default function TimelineDossier({ items, enfants }: Props) {
           )}
         </>
       )}
+
+      <DetailTimelineItem
+        item={itemActif}
+        onFermer={() => setItemActif(null)}
+        onRecharger={onRecharger}
+        nomEnfant={nomEnfant}
+      />
     </div>
   );
 }
