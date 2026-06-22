@@ -191,7 +191,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => changerStatutFait(detail.id, "valide"))}
-                  className="btn btn-secondaire"
+                  className="btn btn-primaire"
                 >
                   Marquer comme validé
                 </button>
@@ -201,7 +201,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => changerStatutFait(detail.id, "brouillon"))}
-                  className="btn btn-discret"
+                  className="btn btn-primaire"
                 >
                   Repasser en brouillon
                 </button>
@@ -261,7 +261,7 @@ export default function DetailTimelineItem({
                 onClick={() =>
                   lancer(() => basculerRemboursementFrais(detail.id, detail.rembourse))
                 }
-                className="btn btn-secondaire"
+                className="btn btn-primaire"
               >
                 {rembourse ? "Annuler le remboursement" : "Marquer remboursé"}
               </button>
@@ -270,7 +270,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => ouvrir(() => urlSigneeJustificatifFrais(detail.document_id))}
-                  className="btn btn-discret"
+                  className="btn btn-primaire"
                 >
                   Ouvrir le justificatif
                 </button>
@@ -354,7 +354,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => ouvrir(() => urlSigneeDocument(detail.chemin_fichier))}
-                className="btn btn-secondaire"
+                className="btn btn-primaire"
               >
                 Ouvrir le fichier
               </button>
@@ -363,7 +363,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => archiverDocument(detail.id))}
-                  className="btn btn-discret"
+                  className="btn btn-primaire"
                 >
                   Conserver au coffre-fort
                 </button>
@@ -409,7 +409,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => ouvrir(() => urlSigneePreuve(detail.storage_path))}
-                className="btn btn-secondaire"
+                className="btn btn-primaire"
               >
                 Voir l&apos;original
               </button>
