@@ -3,7 +3,7 @@
 
 import { verifierQuotaIa } from "@/lib/quotaIa";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
-import { enteteAuth } from "@/lib/enteteAuth";
+import { verifierConsentementIa } from "@/lib/consentementIaServeur";
 import { MODELE_REFORMULATION } from "@/lib/modelesIA";
 
 // Le "rôle" donné à l'IA. Garde-fou : intervention minimale, fidélité au vocabulaire,
@@ -32,7 +32,13 @@ if (!utilisateur) {
   return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
 }
 
-// 2. Quota anti-abus (compté en base, par utilisateur) : 15 appels / 60 s.
+// 2. Consentement granulaire vérifié côté serveur avant quota et avant Mistral.
+const consentement = await verifierConsentementIa(request, "reformulation");
+if (!consentement.autorise) {
+  return Response.json({ erreur: consentement.erreur }, { status: 403 });
+}
+
+// 3. Quota anti-abus (compté en base, par utilisateur) : 15 appels / 60 s.
 const quota = await verifierQuotaIa(request, "reformulation", 15, 60);
 if (!quota.autorise) {
   return Response.json(
@@ -84,8 +90,7 @@ if (!quota.autorise) {
     });
 
     if (!reponse.ok) {
-      const detail = await reponse.text();
-      console.error("=== ERREUR MISTRAL ===", reponse.status, detail);
+      console.error("[ia/reformuler] erreur HTTP Mistral", reponse.status);
       return Response.json(
         { erreur: `Mistral a répondu ${reponse.status}` },
         { status: 502 }
@@ -100,8 +105,8 @@ if (!quota.autorise) {
     }
 
     return Response.json({ ok: true, reformule });
-  } catch (e) {
-    console.error("=== APPEL IMPOSSIBLE ===", e);
+  } catch {
+    console.error("[ia/reformuler] appel Mistral impossible");
     return Response.json({ erreur: "Appel à Mistral impossible." }, { status: 502 });
   }
 }

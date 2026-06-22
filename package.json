@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
     "check:agent-boundaries": "node scripts/check-agent-boundaries.mjs",
-    "build": "node scripts/check-agent-boundaries.mjs && next build",
+    "check:ia-consent": "node scripts/check-ia-consent-boundaries.mjs",
+    "build": "node scripts/check-agent-boundaries.mjs && node scripts/check-ia-consent-boundaries.mjs && next build",
     "start": "next start",
     "lint": "eslint"
   },

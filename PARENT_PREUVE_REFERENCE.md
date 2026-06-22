@@ -5,7 +5,7 @@
 >
 > Le code réel reste la source de vérité.
 >
-> Dernière mise à jour : 21/06/2026.
+> Dernière mise à jour : 22/06/2026.
 
 ---
 
@@ -596,6 +596,29 @@ Composant :
 components/ConsentementIA.tsx
 ```
 
+Contrôle serveur partagé :
+
+```text
+lib/consentementIaServeur.ts
+```
+
+Routes IA protégées côté serveur :
+
+```text
+/api/ia/reformuler   -> consentement "reformulation"
+/api/ia/extraire     -> consentement "extraction"
+/api/ia/extraire-pdf -> consentement "extraction"
+/api/agent/* Mistral -> consentement "agent"
+```
+
+Règle :
+
+```text
+Le composant client explique et recueille le consentement.
+La route serveur vérifie à nouveau le consentement avant quota et avant Mistral.
+Toute erreur de lecture du consentement provoque un refus HTTP 403.
+```
+
 Fonctionnalité Agent :
 
 ```text
@@ -1157,6 +1180,7 @@ lib/supabase.ts
 lib/supabaseAdmin.ts
 lib/authServeur.ts
 lib/enteteAuth.ts
+lib/consentementIaServeur.ts
 lib/procedureActive.ts
 lib/etatDossier.ts
 lib/etatConfiguration.ts
@@ -1454,6 +1478,7 @@ Résolu :
 HORODATAGE_SECRET remplace HMAC_SECRET
 migrations Supabase 001 à 007 versionnées (historique distant aligné par migration repair)
 quota IA fail-closed
+consentement IA vérifié côté serveur avant quota sur reformulation et extraction
 suppression RGPD complète
 hash preuve recalculé serveur
 README dégénéricisé

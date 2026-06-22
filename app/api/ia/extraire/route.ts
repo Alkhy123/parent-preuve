@@ -6,7 +6,7 @@
 import { analyserDispositif } from "@/lib/extractionRegles";
 import { verifierQuotaIa } from "@/lib/quotaIa";
 import { utilisateurDeLaRequete } from "@/lib/authServeur";
-import { enteteAuth } from "@/lib/enteteAuth";
+import { verifierConsentementIa } from "@/lib/consentementIaServeur";
 export async function POST(request: Request) {
 // 1. Authentification : seul un utilisateur connecté peut appeler cette route.
 const utilisateur = await utilisateurDeLaRequete(request);
@@ -14,7 +14,13 @@ if (!utilisateur) {
   return Response.json({ erreur: "Vous devez être connecté." }, { status: 401 });
 }
 
-// 2. Quota anti-abus (compté en base, par utilisateur) : 15 appels / 60 s.
+// 2. Consentement granulaire vérifié côté serveur avant quota et avant Mistral.
+const consentement = await verifierConsentementIa(request, "extraction");
+if (!consentement.autorise) {
+  return Response.json({ erreur: consentement.erreur }, { status: 403 });
+}
+
+// 3. Quota anti-abus (compté en base, par utilisateur) : 10 appels / 60 s.
 const quota = await verifierQuotaIa(request, "extraction", 10, 60);
 if (!quota.autorise) {
   return Response.json(
