@@ -23,6 +23,8 @@ type Props = {
   // Valeurs par défaut pour une pièce téléversée depuis ce contexte.
   libelleDefaut?: string;
   dateDefaut?: string;
+  // Libellé de la case à cocher (personnalisable selon le module).
+  question?: string;
 };
 
 // Champ réutilisable d'ajout / liaison d'une pièce justificative.
@@ -37,9 +39,13 @@ export default function ChampPieceJointe({
   childId,
   libelleDefaut,
   dateDefaut,
+  question = "Souhaitez-vous ajouter une pièce ?",
 }: Props) {
   const [documents, setDocuments] = useState<DocLite[]>([]);
   const [idsProc, setIdsProc] = useState<Set<string>>(new Set());
+  // L'option d'ajout n'apparaît que si l'utilisateur le souhaite (case cochée).
+  // Pas de pièce = aucun blocage : l'élément reste valable et exportable.
+  const [souhaite, setSouhaite] = useState(value !== "");
   const [montrerSelection, setMontrerSelection] = useState(false);
   const [uploadEnCours, setUploadEnCours] = useState(false);
   const [erreur, setErreur] = useState("");
@@ -123,10 +129,37 @@ export default function ChampPieceJointe({
     return d ? `${d.categorie} · ${d.libelle}` : "Pièce jointe";
   }
 
+  // Affiché si l'utilisateur a coché la case OU si une pièce est déjà liée.
+  const actif = souhaite || value !== "";
+
   return (
     <div className="rounded-lg border border-slate-200 p-4">
-      <p className="text-sm font-medium text-slate-700">Pièce jointe</p>
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+        <input
+          type="checkbox"
+          checked={actif}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSouhaite(true);
+            } else {
+              // On masque l'option et on détache la pièce (sans la supprimer).
+              setSouhaite(false);
+              onChange("");
+            }
+          }}
+        />
+        {question}
+      </label>
 
+      {!actif && (
+        <p className="mt-2 text-xs text-slate-500">
+          Aucune pièce n&apos;est obligatoire : l&apos;élément reste valable et
+          exportable.
+        </p>
+      )}
+
+      {actif && (
+        <div className="mt-3">
       {value && docChoisi ? (
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
@@ -206,6 +239,8 @@ export default function ChampPieceJointe({
               )}
             </div>
           )}
+        </div>
+      )}
         </div>
       )}
     </div>
