@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
-import Chronologie from "@/components/Chronologie";
+import TimelineDossier from "@/components/timeline/TimelineDossier";
 import {
   fusionnerChronologie,
   type EntreeChronologie,
@@ -13,6 +13,12 @@ import {
   type PreuveSource,
   type TypeEntree,
 } from "@/lib/chronologie";
+import {
+  collecterTimeline,
+  type DocumentSource,
+  type GardeSource,
+} from "@/lib/timeline/collecterTimeline";
+import type { TimelineItem } from "@/lib/timeline/types";
 import {
   getProcedureActiveId,
   getEnfantsDeProcedureActive,
@@ -47,6 +53,7 @@ function telechargerCsv(contenu: string, nomFichier: string) {
 
 export default function ChronologiePage() {
   const [entrees, setEntrees] = useState<EntreeChronologie[]>([]);
+  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [enfants, setEnfants] = useState<EnfantProcedure[]>([]);
   const [etiquette, setEtiquette] = useState("");
   const [chargement, setChargement] = useState(true);
@@ -76,9 +83,9 @@ export default function ChronologiePage() {
         setEtiquette(data?.etiquette?.trim() || "Procédure sans nom");
       }
 
-      // On charge les 4 sources (la RLS limite déjà à l'utilisateur).
-      // Le cloisonnement par procédure est fait par fusionnerChronologie.
-      const [evRes, frRes, peRes, prRes] = await Promise.all([
+      // On charge les 6 sources en lecture seule (la RLS limite déjà à l'utilisateur).
+      // Le cloisonnement par procédure est fait par fusionnerChronologie / collecterTimeline.
+      const [evRes, frRes, peRes, prRes, docRes, gaRes] = await Promise.all([
         supabase
           .from("events")
           .select(
@@ -93,20 +100,43 @@ export default function ChronologiePage() {
         supabase
           .from("preuves_photo")
           .select("id, titre, description, enfant_id, created_at, horodatage_statut"),
+        supabase
+          .from("documents")
+          .select("id, libelle, categorie, date_document, child_id")
+          .eq("etat", "actif"),
+        supabase
+          .from("garde_regles")
+          .select("id, type_garde, date_reference, enfant_id")
+          .eq("actif", true),
       ]);
 
-      const resultat = fusionnerChronologie(
+      const sources = {
+        faits: (evRes.data ?? []) as FaitSource[],
+        frais: (frRes.data ?? []) as FraisSource[],
+        pensions: (peRes.data ?? []) as PensionSource[],
+        preuves: (prRes.data ?? []) as PreuveSource[],
+      };
+      const contexte = {
+        procedureId: procId,
+        enfantIds: listeEnfants.map((e) => e.id),
+      };
+
+      // Export PDF/CSV : inchangé, toujours sur les 4 sources historiques.
+      const resultat = fusionnerChronologie(sources, contexte);
+
+      // Affichage : timeline centrale enrichie (documents + règles de garde).
+      const items = collecterTimeline(
         {
-          faits: (evRes.data ?? []) as FaitSource[],
-          frais: (frRes.data ?? []) as FraisSource[],
-          pensions: (peRes.data ?? []) as PensionSource[],
-          preuves: (prRes.data ?? []) as PreuveSource[],
+          ...sources,
+          documents: (docRes.data ?? []) as DocumentSource[],
+          gardes: (gaRes.data ?? []) as GardeSource[],
         },
-        { procedureId: procId, enfantIds: listeEnfants.map((e) => e.id) },
+        contexte,
       );
 
       setEnfants(listeEnfants);
       setEntrees(resultat);
+      setTimelineItems(items);
       setChargement(false);
     }
     charger();
@@ -226,8 +256,8 @@ export default function ChronologiePage() {
               </div>
             </div>
 
-            {/* Affichage existant, inchangé */}
-            <Chronologie entrees={entrees} enfants={enfants} />
+            {/* Timeline centrale : agrégation lecture seule des 6 sources */}
+            <TimelineDossier items={timelineItems} enfants={enfants} />
           </>
         )}
       </div>
