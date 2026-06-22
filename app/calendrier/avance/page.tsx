@@ -3,9 +3,9 @@
 // app/calendrier/avance/page.tsx
 //
 // Aperçu du calendrier AVANCÉ (bêta). Séparé de /calendrier : ne remplace pas
-// le calendrier actuel. Lecture seule en base (règle garde_regles existante,
-// cloisonnée sur la procédure active). Les options avancées (mercredi,
-// exceptions) sont locales et non persistées dans ce sous-bloc.
+// le calendrier actuel. La règle de base (garde_regles) est lue en lecture
+// seule ; les règles avancées (mercredi) et les exceptions sont PERSISTÉES
+// dans calendar_advanced_rules / calendar_exceptions (cloisonnées par enfant).
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -14,6 +14,17 @@ import PageHeader from "@/components/PageHeader";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import PreviewCalendrierAvance from "@/components/calendrier/PreviewCalendrierAvance";
 import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance";
+import {
+  chargerExceptions,
+  ajouterException as ajouterExceptionDb,
+  supprimerException as supprimerExceptionDb,
+} from "@/lib/calendrier/exceptions";
+import {
+  chargerReglesAvancees,
+  ajouterRegleAvancee,
+  supprimerRegleAvancee,
+  type RegleAvanceeStockee,
+} from "@/lib/calendrier/reglesAvancees";
 import type {
   ChezQui,
   ExceptionGarde,
@@ -47,9 +58,16 @@ export default function CalendrierAvancePage() {
   const [regle, setRegle] = useState<RegleDb | null>(null);
   const [chargement, setChargement] = useState(true);
 
-  // Options avancées locales (non persistées dans ce sous-bloc).
-  const [mercredi, setMercredi] = useState(false);
+  // Règles avancées + exceptions PERSISTÉES (chargées par enfant).
+  const [reglesAvancees, setReglesAvancees] = useState<RegleAvanceeStockee[]>([]);
   const [exceptions, setExceptions] = useState<ExceptionGarde[]>([]);
+  const [enErreur, setEnErreur] = useState("");
+
+  // La case « mercredi » reflète l'existence d'une règle hebdomadaire le mercredi.
+  const mercrediStocke = reglesAvancees.find(
+    (r) => r.regle.type === "hebdomadaire" && r.regle.jourDebut === 3,
+  );
+  const mercredi = !!mercrediStocke;
 
   // Zones + annotations (vacances scolaires, jours fériés) via les routes serveur.
   const [zoneVacances, setZoneVacances] = useState("A");
@@ -93,9 +111,27 @@ export default function CalendrierAvancePage() {
         .eq("actif", true)
         .maybeSingle();
       setRegle((data as RegleDb) ?? null);
+      // Règles avancées + exceptions persistées de cet enfant.
+      const [rav, exc] = await Promise.all([
+        chargerReglesAvancees(enfantId),
+        chargerExceptions(enfantId),
+      ]);
+      setReglesAvancees(rav);
+      setExceptions(exc);
       setChargement(false);
     })();
   }, [enfantId]);
+
+  // Recharge les éléments persistés après une écriture.
+  async function rechargerPersistance() {
+    if (!enfantId) return;
+    const [rav, exc] = await Promise.all([
+      chargerReglesAvancees(enfantId),
+      chargerExceptions(enfantId),
+    ]);
+    setReglesAvancees(rav);
+    setExceptions(exc);
+  }
 
   // Annotations (vacances + jours fériés) via les routes serveur. Tout échec
   // est silencieux (fallback []) : l'aperçu reste fonctionnel sans annotations.
@@ -152,18 +188,9 @@ export default function CalendrierAvancePage() {
         dateReference: regle.date_reference,
         chezQui: chezQuiWeekend,
       },
+      // Règles avancées persistées (mercredi, etc.).
+      ...reglesAvancees.map((r) => r.regle),
     ];
-
-    if (mercredi) {
-      regles.push({
-        type: "hebdomadaire",
-        jourDebut: 3, // mercredi
-        heureDebut: "09:00",
-        jourFin: 3,
-        heureFin: "19:00",
-        chezQui: chezQuiWeekend,
-      });
-    }
 
     return calculerPlanningAvance({
       regles,
@@ -174,27 +201,51 @@ export default function CalendrierAvancePage() {
       du,
       au,
     });
-  }, [regle, mercredi, exceptions, vacances, joursFeries, du, au]);
+  }, [regle, reglesAvancees, exceptions, vacances, joursFeries, du, au]);
 
-  function ajouterException() {
-    if (!excDebut || !excFin) return;
-    setExceptions((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}`,
-        debut: excDebut,
-        fin: excFin,
-        chezQui: excChezQui,
-        motif: excMotif.trim() || undefined,
-      },
-    ]);
+  // Active/désactive la règle « mercredi » persistée.
+  async function basculerMercredi(actif: boolean) {
+    if (!enfantId || !regle) return;
+    setEnErreur("");
+    const chezQui: ChezQui = regle.parent_principal === "autre" ? "moi" : "autre";
+    if (actif) {
+      const { error } = await ajouterRegleAvancee(enfantId, {
+        type: "hebdomadaire",
+        jourDebut: 3,
+        heureDebut: "09:00",
+        jourFin: 3,
+        heureFin: "19:00",
+        chezQui,
+      });
+      if (error) return setEnErreur(error);
+    } else if (mercrediStocke) {
+      const { error } = await supprimerRegleAvancee(mercrediStocke.id);
+      if (error) return setEnErreur(error);
+    }
+    rechargerPersistance();
+  }
+
+  async function ajouterException() {
+    if (!enfantId || !excDebut || !excFin) return;
+    setEnErreur("");
+    const { error } = await ajouterExceptionDb(enfantId, {
+      debut: excDebut,
+      fin: excFin,
+      chezQui: excChezQui,
+      motif: excMotif.trim() || undefined,
+    });
+    if (error) return setEnErreur(error);
     setExcDebut("");
     setExcFin("");
     setExcMotif("");
+    rechargerPersistance();
   }
 
-  function retirerException(id: string) {
-    setExceptions((prev) => prev.filter((e) => e.id !== id));
+  async function retirerException(id: string) {
+    setEnErreur("");
+    const { error } = await supprimerExceptionDb(id);
+    if (error) return setEnErreur(error);
+    rechargerPersistance();
   }
 
   return (
@@ -207,11 +258,11 @@ export default function CalendrierAvancePage() {
 
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
         <p className="text-sm text-texte-doux">
-          Ceci est un aperçu. Il ne modifie rien : votre règle reste gérée dans{" "}
+          La règle de base reste gérée dans{" "}
           <Link href="/calendrier" className="text-or-fonce underline">
             le calendrier de garde
           </Link>
-          .
+          . Ici, le mercredi et les exceptions sont enregistrés pour cet enfant.
         </p>
 
         {enfants.length === 0 ? (
@@ -253,10 +304,12 @@ export default function CalendrierAvancePage() {
                     <input
                       type="checkbox"
                       checked={mercredi}
-                      onChange={(e) => setMercredi(e.target.checked)}
+                      onChange={(e) => basculerMercredi(e.target.checked)}
                     />
                     Ajouter le mercredi (journée de DVH)
                   </label>
+
+                  {enErreur && <p className="text-sm text-rouge">{enErreur}</p>}
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
