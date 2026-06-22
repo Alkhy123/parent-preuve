@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import FormMessage from "@/components/ui/FormMessage";
 
 // Vue allégée d'une pièce existante, pour la proposer à la sélection.
@@ -87,6 +87,16 @@ export default function ChampPieceJointe({
         return;
       }
 
+      // Cloisonnement : on résout la procédure AVANT l'upload pour ne pas
+      // laisser de fichier orphelin si aucune procédure n'est active.
+      const procedureId = await getProcedureActiveId();
+      if (!procedureId) {
+        setErreur(
+          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter une pièce.",
+        );
+        return;
+      }
+
       const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
       const chemin = `${userId}/${Date.now()}-${nomNettoye}`;
 
@@ -106,6 +116,7 @@ export default function ChampPieceJointe({
           chemin_fichier: chemin,
           date_document: dateDefaut || null,
           child_id: childId || null,
+          procedure_id: procedureId,
         })
         .select("id")
         .single();

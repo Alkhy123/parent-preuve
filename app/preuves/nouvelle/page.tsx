@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 
 // Type souple pour la liste des enfants (voir note en bas sur le nom de colonne).
 type Enfant = {
@@ -109,6 +109,14 @@ export default function NouvellePreuvePage() {
       if (userErr || !userData.user) throw new Error("Tu dois être connecté.");
       const userId = userData.user.id;
 
+      // Cloisonnement : on résout la procédure AVANT l'upload pour ne pas
+      // laisser de fichier orphelin si aucune procédure n'est active.
+      const procedureId = await getProcedureActiveId();
+      if (!procedureId)
+        throw new Error(
+          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter une preuve."
+        );
+
       // 2) Heure de l'appareil à l'instant de l'enregistrement
       const heureAppareil = new Date().toISOString();
 
@@ -148,6 +156,7 @@ export default function NouvellePreuvePage() {
           titre: titre || null,
           description: description || null,
           enfant_id: enfantId || null,
+          procedure_id: procedureId,
           storage_path: chemin,
           nom_fichier: fichier.name,
           type_fichier: fichier.type || null,

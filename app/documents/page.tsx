@@ -7,7 +7,7 @@ import PageHeader from "@/components/PageHeader";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
 import {
@@ -120,6 +120,16 @@ export default function DocumentsPage() {
         return;
       }
 
+      // Cloisonnement : on résout la procédure AVANT l'upload pour ne pas
+      // laisser de fichier orphelin si aucune procédure n'est active.
+      const procedureId = await getProcedureActiveId();
+      if (!procedureId) {
+        setMessage(
+          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter une pièce."
+        );
+        return;
+      }
+
       const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
       const chemin = `${userId}/${Date.now()}-${nomNettoye}`;
 
@@ -139,6 +149,7 @@ export default function DocumentsPage() {
         date_document: dateDocument || null,
         child_id: childId || null,
         implication_categorie: implicationCategorie || null,
+        procedure_id: procedureId,
       });
       if (insertError) {
         setMessage("Erreur d'enregistrement : " + insertError.message);

@@ -33,12 +33,22 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
   const [chargement, setChargement] = useState(true);
   const [occupe, setOccupe] = useState<string | null>(null);
   const [erreur, setErreur] = useState("");
+  // Procédure de l'enfant : un événement de visite hérite directement de la
+  // procédure de l'enfant ciblé (cohérence avec la contrainte composite SQL).
+  const [procedureId, setProcedureId] = useState<string | null>(null);
 
   useEffect(() => {
     let annule = false;
     Promise.resolve().then(async () => {
       if (annule) return;
       setChargement(true);
+      const { data: enfant } = await supabase
+        .from("children")
+        .select("procedure_id")
+        .eq("id", enfantId)
+        .single();
+      if (annule) return;
+      setProcedureId((enfant as { procedure_id: string | null } | null)?.procedure_id ?? null);
       const { data } = await supabase
         .from("events")
         .select("id, date_evenement")
@@ -73,6 +83,11 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
           return copie;
         });
     } else {
+      if (!procedureId) {
+        setErreur("Procédure de l'enfant introuvable. Réessaie après avoir rechargé la page.");
+        setOccupe(null);
+        return;
+      }
       const { data, error } = await supabase
         .from("events")
         .insert({
@@ -81,6 +96,7 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
           categorie: CATEGORIE_VISITE,
           date_evenement: dateStr,
           statut: "valide",
+          procedure_id: procedureId,
         })
         .select("id")
         .single();

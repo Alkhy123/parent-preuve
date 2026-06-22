@@ -9,7 +9,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { euros } from "@/lib/dossierCalculs";
 import RegleFrais from '@/components/RegleFrais';
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
 import {
@@ -187,6 +187,16 @@ export default function FraisPage() {
         return;
       }
 
+      // Cloisonnement : on résout la procédure AVANT l'upload pour ne pas
+      // laisser de fichier orphelin si aucune procédure n'est active.
+      const procedureId = await getProcedureActiveId();
+      if (!procedureId) {
+        setUploadErreur(
+          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter une pièce."
+        );
+        return;
+      }
+
       const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
       const chemin = `${userId}/${Date.now()}-${nomNettoye}`;
 
@@ -206,6 +216,7 @@ export default function FraisPage() {
           chemin_fichier: chemin,
           date_document: dateFrais || null,
           child_id: childId || null,
+          procedure_id: procedureId,
         })
         .select("id")
         .single();
@@ -282,9 +293,23 @@ export default function FraisPage() {
       sans_justificatif: sansJustif,
     };
 
-    const { error } = editionId
-      ? await supabase.from("expenses").update(payload).eq("id", editionId)
-      : await supabase.from("expenses").insert(payload);
+    // Cloisonnement : un nouveau frais appartient directement à la procédure
+    // active. On ne touche pas `procedure_id` en édition pour ne pas déplacer
+    // silencieusement une ligne d'une procédure à une autre.
+    let resultat;
+    if (editionId) {
+      resultat = await supabase.from("expenses").update(payload).eq("id", editionId);
+    } else {
+      const procedureId = await getProcedureActiveId();
+      if (!procedureId)
+        return setMessage(
+          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter un frais."
+        );
+      resultat = await supabase
+        .from("expenses")
+        .insert({ ...payload, procedure_id: procedureId });
+    }
+    const { error } = resultat;
 
     if (error) {
       setMessage("Erreur : " + error.message);

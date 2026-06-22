@@ -8,7 +8,7 @@ import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import ChampPieceJointe from "@/components/ChampPieceJointe";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
 import {
@@ -200,6 +200,13 @@ export default function JournalPage() {
     if (!titre.trim()) return setMessage("Le titre est obligatoire.");
     if (!dateEvenement) return setMessage("La date est obligatoire.");
 
+    // Cloisonnement : chaque fait appartient directement à la procédure active.
+    const procedureId = await getProcedureActiveId();
+    if (!procedureId)
+      return setMessage(
+        "Aucune procédure active. Créez d'abord une procédure avant d'ajouter un fait."
+      );
+
     // On n'envoie pas `statut` : la base applique son défaut « brouillon »
     // (même logique que source/valide/actif sur les tables règles).
     // implication_categorie = null si non marqué (champ facultatif).
@@ -212,6 +219,7 @@ export default function JournalPage() {
       child_id: childId || null,
       implication_categorie: implicationCategorie || null,
       document_id: documentId || null,
+      procedure_id: procedureId,
     });
 
     if (error) {
