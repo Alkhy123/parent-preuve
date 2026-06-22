@@ -652,6 +652,12 @@ Une donnée ambiguë héritée n'est jamais dupliquée ni attribuée automatique
 Le plan détaillé de migration est documenté dans
 `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md`.
 
+La structure cible est versionnée dans la migration 009 : `events`, `expenses`,
+`documents` et `preuves_photo` disposent désormais d'un `procedure_id` direct,
+nullable pendant la transition. Le backfill n'attribue jamais arbitrairement
+les lignes héritées ambiguës. L'application distante de cette migration et
+l'adaptation des écritures/lectures restent des étapes séparées.
+
 ## 6.3. Procédure active
 
 Point unique :

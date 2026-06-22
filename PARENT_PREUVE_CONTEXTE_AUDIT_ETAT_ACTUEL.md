@@ -285,6 +285,16 @@ preuves_photo
 Effectuer uniquement le backfill déterministe. La migration doit pouvoir être
 appliquée avant le nouveau front sans casser les insertions existantes.
 
+État au 22 juin 2026 : étape réalisée dans
+`supabase/migrations/009_cloisonnement_donnees_metier.sql`. Les quatre colonnes
+sont nullable et indexées. Le backfill privilégie l'enfant, les relations
+documentaires convergentes puis le cas mono-procédure certain. Une ligne
+multi-procédures ambiguë reste volontairement à `null` ; aucune ligne n'est
+dupliquée ou supprimée. Les contraintes composites vérifient l'appartenance de
+la procédure, de l'enfant et du document au même utilisateur et à la même
+procédure. La migration a été reconstruite localement depuis une base vide ;
+elle n'est pas déclarée appliquée à la base Supabase distante.
+
 #### Étape B — écritures
 
 Adapter tous les créateurs pour enregistrer la procédure active, y compris :
@@ -658,8 +668,8 @@ Le fichier local `cleapi.txt` reste toutefois une mauvaise pratique : privilégi
 
 ### P0 — avant toute autre évolution
 
-1. Ajouter un cloisonnement direct par `procedure_id` aux données métier.
-2. Corriger les suppressions enfant/procédure pour préserver ou supprimer explicitement les données.
+1. Appliquer la migration 009 distante puis adapter toutes les écritures et lectures à `procedure_id`.
+2. Finaliser les parcours de rattachement ambigu et les suppressions enfant/procédure explicites.
 3. Maintenir le contrôle serveur du consentement IA livré au bloc 1.
 
 ### P1 — avant bêta publique

@@ -6,7 +6,8 @@
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
     "check:agent-boundaries": "node scripts/check-agent-boundaries.mjs",
     "check:ia-consent": "node scripts/check-ia-consent-boundaries.mjs",
-    "build": "node scripts/check-agent-boundaries.mjs && node scripts/check-ia-consent-boundaries.mjs && next build",
+    "check:multi-procedure-migration": "node scripts/check-multi-procedure-migration.mjs",
+    "build": "node scripts/check-agent-boundaries.mjs && node scripts/check-ia-consent-boundaries.mjs && node scripts/check-multi-procedure-migration.mjs && next build",
     "start": "next start",
     "lint": "eslint"
   },

@@ -296,6 +296,12 @@ Un plan de migration et une matrice fichiers/tables. Ne pas encore lancer une mi
 
 ## Bloc 3 — P0 : ajouter `procedure_id` aux données métier
 
+> État au 22 juin 2026 : implémenté par la migration 009, avec colonnes
+> nullable/indexées, backfill déterministe, contraintes composites et tests de
+> régression locaux. La migration distante reste manuelle. Le bloc suivant doit
+> adapter les écritures ; il ne faut pas rendre les colonnes `NOT NULL` tant que
+> les lignes héritées ambiguës ne sont pas résolues.
+
 ### Précondition
 
 Le plan du bloc 2 est validé.

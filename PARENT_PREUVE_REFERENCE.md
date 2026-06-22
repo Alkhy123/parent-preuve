@@ -770,6 +770,7 @@ Fichiers :
 006_verification_hash_serveur.sql
 007_frais_sans_justificatif.sql
 008_events_document_id.sql
+009_cloisonnement_donnees_metier.sql
 ```
 
 Rappel :
@@ -777,6 +778,7 @@ Rappel :
 ```text
 001 à 003 : non idempotentes, base vierge, dans l'ordre
 004 à 008 : idempotentes
+009 : additive, appliquée une seule fois via l'historique Supabase
 ```
 
 Historique de migration distant aligné via `supabase migration repair --status applied 001 … 007`
@@ -842,6 +844,10 @@ Colonnes `procedure_id` importantes :
 
 ```text
 children
+events
+expenses
+documents
+preuves_photo
 pension_regle
 frais_regle
 dvh_regle
@@ -871,11 +877,21 @@ La RLS protège par utilisateur.
 Le cloisonnement par procédure est appliqué par les filtres applicatifs.
 ```
 
-Dette P0 confirmée : `events`, `expenses`, `documents` et `preuves_photo`
-n'ont pas encore de `procedure_id` direct. Les lignes sans enfant sont donc
-actuellement visibles dans toutes les procédures. La cible validée est un
-rattachement direct, avec backfill déterministe et rattachement humain des cas
-ambigus. Voir le plan détaillé dans `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md`.
+La migration 009 ajoute un `procedure_id` direct, nullable et indexé à `events`,
+`expenses`, `documents` et `preuves_photo`. Elle ne rattache que les lignes dont
+la procédure peut être déterminée sans ambiguïté ; les cas hérités indécidables
+restent à `null` en attendant un rattachement humain. Les contraintes composites
+protègent les nouvelles écritures contre les références croisées entre
+utilisateurs, procédures, enfants et documents.
+
+Contrôle statique :
+
+```bash
+npm run check:multi-procedure-migration
+```
+
+La migration est versionnée et testée localement. Son application à la base
+Supabase distante reste une opération manuelle distincte du déploiement Vercel.
 
 ---
 
@@ -1483,7 +1499,7 @@ Résolu :
 
 ```text
 HORODATAGE_SECRET remplace HMAC_SECRET
-migrations Supabase 001 à 007 versionnées (historique distant aligné par migration repair)
+migrations Supabase 001 à 009 versionnées (009 testée localement, application distante manuelle)
 quota IA fail-closed
 consentement IA vérifié côté serveur avant quota sur reformulation et extraction
 suppression RGPD complète
