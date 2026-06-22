@@ -33,7 +33,32 @@ type Evenement = {
   implication_categorie: string | null;
 };
 
-const CATEGORIES = ["Remise d'enfant", "Santé", "École", "Communication", "Frais", "Autre"];
+// Catégories du journal. Liste extensible : pour ajouter un type d'événement,
+// ajoutez son libellé ici (et, au besoin, un texte d'aide dans AIDES_CATEGORIE).
+// events.categorie est un texte libre côté base : aucune migration nécessaire.
+const CATEGORIES = [
+  "Remise d'enfant",
+  "Santé",
+  "École",
+  "Communication",
+  "Frais",
+  "Difficulté d'exécution",
+  "Décision importante",
+  "Changement de situation",
+  "Autre",
+];
+
+// Aide factuelle affichée sous le sélecteur quand la catégorie en a une.
+// Extensible : associez un libellé de CATEGORIES à un court rappel de saisie
+// (quoi dater, décrire, quelle pièce lier). Jamais de conseil juridique.
+const AIDES_CATEGORIE: Record<string, string> = {
+  "Difficulté d'exécution":
+    "Décrivez ce qui était prévu et ce qui s'est passé : date, horaire, lieu. Liez une pièce si vous en avez une.",
+  "Décision importante":
+    "Notez la décision concernée et sa date. Joignez le document correspondant si vous l'avez.",
+  "Changement de situation":
+    "Décrivez le changement et depuis quand. Ajoutez un justificatif si possible.",
+};
 
 // Mots à tonalité émotionnelle ou accusatoire — sert à SUGGÉRER, jamais à bloquer
 const MOTS_SENSIBLES = [
@@ -352,6 +377,9 @@ export default function JournalPage() {
                 >
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
+                {AIDES_CATEGORIE[categorie] && (
+                  <p className="mt-1 text-xs text-slate-500">{AIDES_CATEGORIE[categorie]}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Heure (facultatif)</label>
