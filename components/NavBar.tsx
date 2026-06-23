@@ -28,6 +28,7 @@ const GROUPES = [
       { href: "/dossier", label: "Vos informations" },
       { href: "/enfants", label: "Enfants" },
       { href: "/procedure", label: "Autre parent et jugement" },
+      { href: "/rattacher", label: "Éléments à rattacher" },
       { href: "/dossier/importer-pdf", label: "Importer un jugement" },
       { href: "/dossier/extraire", label: "Extraire les règles du jugement" },
     ],
