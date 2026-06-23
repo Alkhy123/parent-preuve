@@ -154,6 +154,8 @@ export default function DocumentsPage() {
         procedure_id: procedureId,
       });
       if (insertError) {
+        // Insertion échouée après l'upload : on retire le fichier orphelin.
+        await supabase.storage.from("justificatifs").remove([chemin]);
         setMessage("Erreur d'enregistrement : " + insertError.message);
         return;
       }
@@ -191,7 +193,15 @@ export default function DocumentsPage() {
 
   async function supprimerDocument(doc: Document) {
     setMessage("");
-    await supabase.storage.from("justificatifs").remove([doc.chemin_fichier]);
+    // On retire d'abord le fichier ; si Storage échoue, on n'orpheline pas la
+    // ligne en la supprimant quand même : on stoppe et on signale.
+    const { error: erreurStorage } = await supabase.storage
+      .from("justificatifs")
+      .remove([doc.chemin_fichier]);
+    if (erreurStorage) {
+      setMessage("Erreur (fichier) : " + erreurStorage.message);
+      return;
+    }
     const { error } = await supabase.from("documents").delete().eq("id", doc.id);
     if (error) { setMessage("Erreur : " + error.message); return; }
     setChoixId(null);

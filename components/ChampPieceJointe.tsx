@@ -122,6 +122,8 @@ export default function ChampPieceJointe({
         .select("id")
         .single();
       if (insertError || !cree) {
+        // Insertion échouée après l'upload : on retire le fichier orphelin.
+        await supabase.storage.from("justificatifs").remove([chemin]);
         setErreur(
           "Erreur d'enregistrement : " + (insertError?.message ?? "inconnue"),
         );

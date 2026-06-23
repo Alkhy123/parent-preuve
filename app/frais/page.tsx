@@ -233,6 +233,8 @@ export default function FraisPage() {
         .select("id")
         .single();
       if (insertError || !cree) {
+        // Insertion échouée après l'upload : on retire le fichier orphelin.
+        await supabase.storage.from("justificatifs").remove([chemin]);
         setUploadErreur(
           "Erreur d'enregistrement : " + (insertError?.message ?? "inconnue")
         );

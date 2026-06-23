@@ -170,7 +170,11 @@ export default function NouvellePreuvePage() {
         })
         .select("created_at")
         .single();
-      if (insErr) throw new Error("Échec de l'enregistrement : " + insErr.message);
+      if (insErr) {
+        // Insertion échouée après l'upload : on retire le fichier orphelin.
+        await supabase.storage.from("preuves").remove([chemin]);
+        throw new Error("Échec de l'enregistrement : " + insErr.message);
+      }
 
       // 7) Écart entre l'heure de l'appareil et l'heure du serveur
       const ecartSec = Math.round(
