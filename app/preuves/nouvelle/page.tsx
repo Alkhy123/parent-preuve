@@ -341,6 +341,9 @@ export default function NouvellePreuvePage() {
         {fichier && !enCours && (
           <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-6 space-y-5">
             {apercu && (
+              // Aperçu local d'un blob (URL.createObjectURL) : dimensions inconnues
+              // et URL éphémère -> next/image n'apporte rien ici.
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={apercu}
                 alt="Aperçu de la photo"

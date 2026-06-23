@@ -64,7 +64,7 @@ export type Volets = {
     champs: Champ[]
   }
   
-  const toujours = (_v: Volets) => true
+  const toujours = () => true
   
   export const STRUCTURE_NOTE: Section[] = [
     {

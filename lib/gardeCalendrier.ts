@@ -91,7 +91,6 @@ export type RegleGarde = {
       .filter((p) => p.fin >= aujourdhui)
       .slice(0, combien);
   }
-import ProchainesEcheances from "@/components/ProchainesEcheances";
 // Chez qui est l'enfant un jour donné, d'après les périodes calculées.
 // Renvoie "moi"/"autre" si le jour tombe dans une période de garde,
 // sinon null (l'écran appliquera alors le parent principal par défaut).

@@ -30,7 +30,14 @@ export async function chargerPiecesDisponibles(): Promise<PieceDisponible[]> {
     .select('id, libelle, categorie, date_document, chemin_fichier, child_id')
     .eq('procedure_id', procId)
   if (docs) {
-    for (const d of docs as any[]) {
+    for (const d of docs as {
+      id: string
+      libelle: string | null
+      categorie: string | null
+      date_document: string | null
+      chemin_fichier: string | null
+      child_id: string | null
+    }[]) {
       liste.push({
         id: d.id,
         origine: 'document',
@@ -49,7 +56,14 @@ export async function chargerPiecesDisponibles(): Promise<PieceDisponible[]> {
     .select('id, titre, created_at, storage_path, type_fichier, enfant_id')
     .eq('procedure_id', procId)
   if (preuves) {
-    for (const p of preuves as any[]) {
+    for (const p of preuves as {
+      id: string
+      titre: string | null
+      created_at: string | null
+      storage_path: string | null
+      type_fichier: string | null
+      enfant_id: string | null
+    }[]) {
       liste.push({
         id: p.id,
         origine: 'preuve',

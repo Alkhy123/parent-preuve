@@ -13,6 +13,8 @@ import {
   totauxPension,
   resteDuGlobal,
   euros,
+  type FraisCalcul,
+  type PensionCalcul,
   type TotauxFrais,
   type TotauxPension,
 } from "@/lib/dossierCalculs";
@@ -36,9 +38,9 @@ export default function TableauDeBord() {
 
       // Cloisonnement strict en base sur procedure_id (frais, pension, preuves).
       // Sans procédure active, rien à afficher.
-      let fraisRows: any[] = [];
-      let pensionRows: any[] = [];
-      let preuvesRows: any[] = [];
+      let fraisRows: FraisCalcul[] = [];
+      let pensionRows: PensionCalcul[] = [];
+      let preuvesRows: { horodatage_statut: string | null }[] = [];
       if (procId) {
         const [frRes, peRes, prRes] = await Promise.all([
           supabase.from("expenses").select("part_autre, rembourse").eq("procedure_id", procId),
@@ -48,9 +50,9 @@ export default function TableauDeBord() {
             .eq("procedure_id", procId),
           supabase.from("preuves_photo").select("horodatage_statut").eq("procedure_id", procId),
         ]);
-        fraisRows = frRes.data ?? [];
-        pensionRows = peRes.data ?? [];
-        preuvesRows = prRes.data ?? [];
+        fraisRows = (frRes.data ?? []) as FraisCalcul[];
+        pensionRows = (peRes.data ?? []) as PensionCalcul[];
+        preuvesRows = (prRes.data ?? []) as { horodatage_statut: string | null }[];
       }
 
       if (annule) return;
@@ -59,7 +61,7 @@ export default function TableauDeBord() {
       setPension(totauxPension(pensionRows));
       setPreuves({
         total: preuvesRows.length,
-        aRefaire: preuvesRows.filter((l: any) => l.horodatage_statut === "a_refaire").length,
+        aRefaire: preuvesRows.filter((l) => l.horodatage_statut === "a_refaire").length,
       });
     }
 

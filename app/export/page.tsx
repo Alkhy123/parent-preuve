@@ -10,8 +10,8 @@ import FormMessage from "@/components/ui/FormMessage";
 import { totauxFrais, totauxPension, resteDuGlobal, euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
 
-
-
+// jspdf-autotable enrichit l'instance jsPDF d'un champ lastAutoTable.
+type DocAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
 
 export default function ExportPage() {
   const [du, setDu] = useState("");
@@ -155,7 +155,7 @@ export default function ExportPage() {
       });
 
       // --- Tableau des frais ---
-      let y = (doc as any).lastAutoTable.finalY + 15;
+      let y = (doc as DocAutoTable).lastAutoTable.finalY + 15;
       doc.setFontSize(13);
       doc.text("2. Frais partagés", 14, y);
       autoTable(doc, {
@@ -176,7 +176,7 @@ export default function ExportPage() {
       });
 
       // --- Tableau de pension ---
-      y = (doc as any).lastAutoTable.finalY + 15;
+      y = (doc as DocAutoTable).lastAutoTable.finalY + 15;
       doc.setFontSize(13);
       doc.text("3. Pension alimentaire", 14, y);
       autoTable(doc, {
@@ -195,7 +195,7 @@ export default function ExportPage() {
       });
 
       // --- Bordereau de pièces ---
-      y = (doc as any).lastAutoTable.finalY + 15;
+      y = (doc as DocAutoTable).lastAutoTable.finalY + 15;
       doc.setFontSize(13);
       const titreBordereau = toutesLesPieces
         ? "4. Bordereau de pièces (toutes les pièces)"
@@ -224,7 +224,7 @@ export default function ExportPage() {
       }
 
       // --- Avertissement ---
-      y = (doc as any).lastAutoTable.finalY + 15;
+      y = (doc as DocAutoTable).lastAutoTable.finalY + 15;
       doc.setFontSize(8);
       doc.setTextColor(120);
       const avertissement =

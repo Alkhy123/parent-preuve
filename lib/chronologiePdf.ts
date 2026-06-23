@@ -88,10 +88,9 @@ export function genererPdfChronologie(
   }
 
   // --- Avertissement en bas ---
+  const docAT = doc as { lastAutoTable?: { finalY: number } };
   const finY =
-    (doc as any).lastAutoTable?.finalY != null
-      ? (doc as any).lastAutoTable.finalY + 12
-      : 60;
+    docAT.lastAutoTable?.finalY != null ? docAT.lastAutoTable.finalY + 12 : 60;
   doc.setFontSize(8);
   doc.setTextColor(GRIS[0], GRIS[1], GRIS[2]);
   doc.text(doc.splitTextToSize(AVERTISSEMENT, 269), 14, finY);
