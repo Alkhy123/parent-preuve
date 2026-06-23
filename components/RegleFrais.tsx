@@ -127,6 +127,8 @@ export default function RegleFrais({
       }
       setChargement(false);
     })();
+    // Chargement unique au montage (procédure active résolue à l'intérieur).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function enregistrer() {

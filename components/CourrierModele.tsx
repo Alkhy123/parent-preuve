@@ -95,6 +95,8 @@ export default function CourrierModele({ eyebrow = "Courrier", titre, sousTitre,
       setChargement(false);
     }
     charger();
+    // Chargement unique au montage (les champs du modèle sont stables).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function maj(nom: string, valeur: string) {
