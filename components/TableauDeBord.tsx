@@ -34,30 +34,26 @@ export default function TableauDeBord() {
     async function charger() {
       const procId = await getProcedureActiveId();
 
-      // Enfants de la procédure active (pour filtrer frais & preuves).
-      let idsProc = new Set<string>();
+      // Cloisonnement strict en base sur procedure_id (frais, pension, preuves).
+      // Sans procédure active, rien à afficher.
+      let fraisRows: any[] = [];
+      let pensionRows: any[] = [];
+      let preuvesRows: any[] = [];
       if (procId) {
-        const { data: enfantsRows } = await supabase
-          .from("children")
-          .select("id")
-          .eq("procedure_id", procId);
-        idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+        const [frRes, peRes, prRes] = await Promise.all([
+          supabase.from("expenses").select("part_autre, rembourse").eq("procedure_id", procId),
+          supabase
+            .from("pension_payments")
+            .select("montant_du, montant_paye")
+            .eq("procedure_id", procId),
+          supabase.from("preuves_photo").select("horodatage_statut").eq("procedure_id", procId),
+        ]);
+        fraisRows = frRes.data ?? [];
+        pensionRows = peRes.data ?? [];
+        preuvesRows = prRes.data ?? [];
       }
-      const garde = (cid: string | null) => cid === null || idsProc.has(cid);
-
-      const [frRes, peRes, prRes] = await Promise.all([
-        supabase.from("expenses").select("part_autre, rembourse, child_id"),
-        supabase.from("pension_payments").select("montant_du, montant_paye, procedure_id"),
-        supabase.from("preuves_photo").select("horodatage_statut, enfant_id"),
-      ]);
 
       if (annule) return;
-
-      // Filtrage par procédure active (frais/preuves par enfant ou sans enfant ;
-      // pension par procedure_id).
-      const fraisRows = (frRes.data ?? []).filter((f: any) => garde(f.child_id ?? null));
-      const pensionRows = (peRes.data ?? []).filter((p: any) => p.procedure_id === procId);
-      const preuvesRows = (prRes.data ?? []).filter((p: any) => garde(p.enfant_id ?? null));
 
       setFrais(totauxFrais(fraisRows));
       setPension(totauxPension(pensionRows));

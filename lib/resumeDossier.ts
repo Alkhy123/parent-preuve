@@ -104,30 +104,23 @@ export async function chargerResumeDossier(): Promise<ResumeDossier> {
   // 2) Controle (bloquants / avertissements) via le moteur pur existant.
   const ctrl = resumeControle(controlerDossier(donnees));
 
-  // 3) Montants : frais reste du + solde pension, cloisonnes procedure active.
+  // 3) Montants : frais reste du + solde pension, cloisonnement strict en base
+  //    sur procedure_id. Sans procedure active, aucun montant.
   const procId = await getProcedureActiveId();
 
-  let idsProc = new Set<string>();
+  let fraisRows: FraisCalcul[] = [];
+  let pensionRows: PensionCalcul[] = [];
   if (procId) {
-    const { data: enfantsRows } = await supabase
-      .from("children")
-      .select("id")
-      .eq("procedure_id", procId);
-    idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+    const [frRes, peRes] = await Promise.all([
+      supabase.from("expenses").select("part_autre, rembourse").eq("procedure_id", procId),
+      supabase
+        .from("pension_payments")
+        .select("montant_du, montant_paye")
+        .eq("procedure_id", procId),
+    ]);
+    fraisRows = (frRes.data ?? []) as FraisCalcul[];
+    pensionRows = (peRes.data ?? []) as PensionCalcul[];
   }
-  const garde = (cid: string | null) => cid === null || idsProc.has(cid);
-
-  const [frRes, peRes] = await Promise.all([
-    supabase.from("expenses").select("part_autre, rembourse, child_id"),
-    supabase.from("pension_payments").select("montant_du, montant_paye, procedure_id"),
-  ]);
-
-  const fraisRows = (frRes.data ?? []).filter((f: any) =>
-    garde(f.child_id ?? null)
-  ) as FraisCalcul[];
-  const pensionRows = (peRes.data ?? []).filter(
-    (p: any) => p.procedure_id === procId
-  ) as PensionCalcul[];
 
   const tf = totauxFrais(fraisRows);
   const tp = totauxPension(pensionRows);

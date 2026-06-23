@@ -26,16 +26,15 @@ export async function chargerEtatDossier(
 ): Promise<DonneesControle> {
   const procId = await getProcedureActiveId();
 
-  // 1) Enfants de la procedure active.
-  let idsProc = new Set<string>();
+  // 1) Nombre d'enfants de la procedure active.
+  let nombreEnfants = 0;
   if (procId) {
     const { data: enfantsRows } = await supabase
       .from("children")
       .select("id")
       .eq("procedure_id", procId);
-    idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+    nombreEnfants = (enfantsRows ?? []).length;
   }
-  const garde = (cid: string | null) => cid === null || idsProc.has(cid);
 
   // 2) Declarant : socle global (/dossier).
   const { data: socleRow } = await supabase
@@ -61,20 +60,34 @@ export async function chargerEtatDossier(
     procRow = r.data;
   }
 
-  // 4) Compteurs, filtres ensuite sur la procedure (enfant de la procedure ou sans enfant).
-  const [preuvesRes, brouillonsRes, fraisRes] = await Promise.all([
-    supabase.from("preuves_photo").select("id, enfant_id").eq("horodatage_statut", "a_refaire"),
-    supabase.from("events").select("id, child_id").eq("statut", "brouillon"),
-    supabase
-      .from("expenses")
-      .select("id, child_id")
-      .is("document_id", null)
-      .eq("sans_justificatif", false),
-  ]);
-
-  const preuvesARefaire = (preuvesRes.data ?? []).filter((p) => garde(p.enfant_id)).length;
-  const brouillons = (brouillonsRes.data ?? []).filter((e) => garde(e.child_id)).length;
-  const fraisSansJustif = (fraisRes.data ?? []).filter((f) => garde(f.child_id)).length;
+  // 4) Compteurs : cloisonnement strict en base sur procedure_id.
+  //    Sans procedure active, aucun compteur (rien a afficher).
+  let preuvesARefaire = 0;
+  let brouillons = 0;
+  let fraisSansJustif = 0;
+  if (procId) {
+    const [preuvesRes, brouillonsRes, fraisRes] = await Promise.all([
+      supabase
+        .from("preuves_photo")
+        .select("id")
+        .eq("procedure_id", procId)
+        .eq("horodatage_statut", "a_refaire"),
+      supabase
+        .from("events")
+        .select("id")
+        .eq("procedure_id", procId)
+        .eq("statut", "brouillon"),
+      supabase
+        .from("expenses")
+        .select("id")
+        .eq("procedure_id", procId)
+        .is("document_id", null)
+        .eq("sans_justificatif", false),
+    ]);
+    preuvesARefaire = (preuvesRes.data ?? []).length;
+    brouillons = (brouillonsRes.data ?? []).length;
+    fraisSansJustif = (fraisRes.data ?? []).length;
+  }
 
   return {
     socle: {
@@ -85,7 +98,7 @@ export async function chargerEtatDossier(
       referenceJugementRenseignee:
         estRempli(procRow?.jugement_juridiction) && estRempli(procRow?.jugement_date),
     },
-    nombreEnfants: idsProc.size,
+    nombreEnfants,
     periode: { du, au },
     fraisSansJustificatif: fraisSansJustif,
     evenementsEnBrouillon: brouillons,

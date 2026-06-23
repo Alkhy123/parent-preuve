@@ -126,16 +126,21 @@ export default function ProchainesEcheances() {
       const now = new Date();
       const fin = new Date();
       fin.setDate(fin.getDate() + FENETRE_JOURS);
-      const { data: visitesData } = await supabase
-        .from("events")
-        .select("date_evenement, heure_evenement, child_id, children(prenom_ou_alias)")
-        .eq("categorie", "visite_mediatisee")
-        .eq("statut", "valide")
-        .gte("date_evenement", isoDate(now))
-        .lte("date_evenement", isoDate(fin));
+      const { data: visitesData } = procId
+        ? await supabase
+            .from("events")
+            .select("date_evenement, heure_evenement, child_id, children(prenom_ou_alias)")
+            .eq("procedure_id", procId)
+            .eq("categorie", "visite_mediatisee")
+            .eq("statut", "valide")
+            .gte("date_evenement", isoDate(now))
+            .lte("date_evenement", isoDate(fin))
+        : { data: null };
 
       if (visitesData) {
         for (const v of visitesData as VisiteRow[]) {
+          // Cloisonnement principal : procedure_id (filtre en base ci-dessus).
+          // Le filtre enfant reste un garde-fou secondaire d'affichage.
           if (!v.child_id || !idsProc.has(v.child_id)) continue;
           const debut = dateHeure(v.date_evenement, v.heure_evenement);
           const jours = Math.ceil(
