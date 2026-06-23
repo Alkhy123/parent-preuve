@@ -4,6 +4,20 @@
 // Un seul prompt, un seul validateur : une seule vérité. L'IA propose ; rien n'est écrit en base ici.
 
 import { MODELE_EXTRACTION } from "@/lib/modelesIA";
+import type { Champ } from "@/lib/regleConvertisseurs";
+
+// Forme d'une section extraite (après validation de la réponse Mistral).
+type SectionExtraite = {
+  champs: Record<string, Champ>;
+  avertissements: string[];
+  table?: string;
+};
+type SectionsExtraites = {
+  pension: SectionExtraite;
+  frais: SectionExtraite;
+  dvh: SectionExtraite;
+  decision: SectionExtraite;
+};
 
 const CONSIGNE = `Tu es un assistant qui lit la description libre d'un jugement du Juge aux affaires familiales (JAF), rédigée par un parent, et qui en extrait QUATRE règles : la règle de pension alimentaire, la règle de partage des frais, les modalités du droit de visite et d'hébergement (DVH), ET la nature/échéances de la décision (statut procédural).
 
@@ -169,36 +183,40 @@ function nettoyerJson(s: string): string {
   return s.replace(/```json/gi, "").replace(/```/g, "").trim();
 }
 
-function champsValides(champs: any, attendus: string[]): boolean {
+function champsValides(champs: unknown, attendus: string[]): boolean {
   if (!champs || typeof champs !== "object") return false;
+  const obj = champs as Record<string, unknown>;
   for (const cle of attendus) {
-    const champ = champs[cle];
+    const champ = obj[cle];
     if (!champ || typeof champ !== "object") return false;
-    if (!("valeur" in champ) || !("confiance" in champ) || !("citation" in champ)) return false;
-    if (!CONFIANCES.includes(champ.confiance)) return false;
-    if (champ.valeur === null && champ.confiance !== "absente") return false;
+    const c = champ as Record<string, unknown>;
+    if (!("valeur" in c) || !("confiance" in c) || !("citation" in c)) return false;
+    if (typeof c.confiance !== "string" || !CONFIANCES.includes(c.confiance)) return false;
+    if (c.valeur === null && c.confiance !== "absente") return false;
   }
   return true;
 }
 
-function structureValide(parsed: any): boolean {
+function structureValide(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== "object") return false;
-  const s = parsed.sections;
+  const s = (parsed as Record<string, unknown>).sections;
   if (!s || typeof s !== "object") return false;
-  if (!s.pension || typeof s.pension !== "object") return false;
-  if (!s.frais || typeof s.frais !== "object") return false;
-  if (!s.dvh || typeof s.dvh !== "object") return false;
-  if (!s.decision || typeof s.decision !== "object") return false;
-  if (!champsValides(s.pension.champs, CHAMPS_PENSION)) return false;
-  if (!champsValides(s.frais.champs, CHAMPS_FRAIS)) return false;
-  if (!champsValides(s.dvh.champs, CHAMPS_DVH)) return false;
-  if (!champsValides(s.decision.champs, CHAMPS_DECISION)) return false;
+  const sec = s as Record<string, unknown>;
+  const champsDe = (x: unknown): unknown =>
+    x && typeof x === "object" ? (x as Record<string, unknown>).champs : undefined;
+  for (const nom of ["pension", "frais", "dvh", "decision"]) {
+    if (!sec[nom] || typeof sec[nom] !== "object") return false;
+  }
+  if (!champsValides(champsDe(sec.pension), CHAMPS_PENSION)) return false;
+  if (!champsValides(champsDe(sec.frais), CHAMPS_FRAIS)) return false;
+  if (!champsValides(champsDe(sec.dvh), CHAMPS_DVH)) return false;
+  if (!champsValides(champsDe(sec.decision), CHAMPS_DECISION)) return false;
   return true;
 }
 
 // Résultat de l'analyse : soit les 4 sections, soit une erreur avec son code HTTP.
 export type ResultatAnalyse =
-  | { ok: true; sections: any }
+  | { ok: true; sections: SectionsExtraites }
   | { ok: false; status: number; erreur: string };
 
 // Envoie le texte (description libre OU dispositif déjà ciblé, <= 5000 caractères)
@@ -208,7 +226,7 @@ export async function analyserDispositif(
   texte: string,
   cle: string
 ): Promise<ResultatAnalyse> {
-  let data: any;
+  let data: unknown;
   try {
     const reponse = await fetch("https://api.mistral.ai/v1/chat/completions", {
       method: "POST",
@@ -234,12 +252,14 @@ export async function analyserDispositif(
     return { ok: false, status: 502, erreur: "Impossible de joindre le service Mistral." };
   }
 
-  const contenu = data?.choices?.[0]?.message?.content;
+  const contenu = (
+    data as { choices?: { message?: { content?: unknown } }[] } | null
+  )?.choices?.[0]?.message?.content;
   if (typeof contenu !== "string") {
     return { ok: false, status: 502, erreur: "Réponse Mistral inattendue." };
   }
 
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(nettoyerJson(contenu));
   } catch {
@@ -250,7 +270,7 @@ export async function analyserDispositif(
     return { ok: false, status: 502, erreur: "Le JSON renvoyé ne respecte pas le format attendu." };
   }
 
-  const s = parsed.sections;
+  const s = (parsed as { sections: SectionsExtraites }).sections;
   s.pension.table = "pension_regle";
   s.frais.table = "frais_regle";
   s.dvh.table = "dvh_regle";
@@ -260,5 +280,5 @@ export async function analyserDispositif(
   if (!Array.isArray(s.dvh.avertissements)) s.dvh.avertissements = [];
   if (!Array.isArray(s.decision.avertissements)) s.decision.avertissements = [];
 
-  return { ok: true, sections: parsed.sections };
+  return { ok: true, sections: s };
 }

@@ -11,63 +11,75 @@ export type PrechargeNote = {
 
 export const prechargeVide: PrechargeNote = { valeurs: {}, resumes: {} }
 
-function euros(n: number | null | undefined): string {
-  return n == null ? '' : `${n} €`
+// Une ligne lue en base, sans typage fort (colonnes variables selon la table).
+type Ligne = Record<string, unknown>
+
+// Coercition sûre d'une valeur inconnue en texte (vide si null/objet).
+function s(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  return ''
+}
+
+function euros(n: unknown): string {
+  if (n == null || n === '') return ''
+  const x = typeof n === 'number' ? n : Number(n)
+  return Number.isFinite(x) ? `${x} €` : ''
 }
 
 // Assemble les colonnes d'un même préfixe (ex. 'declarant_') sans en connaître les noms exacts.
-function concatPrefixe(row: Record<string, any>, prefixe: string): string {
+function concatPrefixe(row: Ligne, prefixe: string): string {
   return Object.keys(row)
     .filter((k) => k.startsWith(prefixe))
     .map((k) => row[k])
-    .filter((v) => typeof v === 'string' && v.trim() !== '')
+    .filter((v): v is string => typeof v === 'string' && v.trim() !== '')
     .join(' · ')
 }
 
-function resumeDecision(d: any): string {
+function resumeDecision(d: Ligne | null): string {
   if (!d) return ''
   const m: string[] = []
-  if (d.type_decision) m.push(d.type_decision)
-  if (d.date_decision) m.push(`prononcée le ${d.date_decision}`)
+  if (d.type_decision) m.push(s(d.type_decision))
+  if (d.date_decision) m.push(`prononcée le ${s(d.date_decision)}`)
   if (d.execution_provisoire) m.push('exécution provisoire')
   return m.join(' — ')
 }
 
-function resumePension(p: any): string {
+function resumePension(p: Ligne | null): string {
   if (!p) return ''
   const m: string[] = []
   const montant = p.montant_courant ?? p.montant_base
   if (montant != null) m.push(`Pension ${euros(montant)}/mois`)
   if (p.debiteur) m.push(`débiteur : ${p.debiteur === 'moi' ? 'vous' : "l'autre parent"}`)
-  if (p.jour_echeance) m.push(`échéance le ${p.jour_echeance}`)
+  if (p.jour_echeance) m.push(`échéance le ${s(p.jour_echeance)}`)
   if (p.intermediation) m.push('intermédiation financière')
   return m.join(' · ')
 }
 
-function resumeFrais(f: any): string {
+function resumeFrais(f: Ligne | null): string {
   if (!f) return ''
   const m: string[] = []
-  if (f.part_moi_pourcentage != null) m.push(`votre part : ${f.part_moi_pourcentage}%`)
-  if (f.part_autre_pourcentage != null) m.push(`autre parent : ${f.part_autre_pourcentage}%`)
+  if (f.part_moi_pourcentage != null) m.push(`votre part : ${s(f.part_moi_pourcentage)}%`)
+  if (f.part_autre_pourcentage != null) m.push(`autre parent : ${s(f.part_autre_pourcentage)}%`)
   if (f.accord_prealable_requis)
     m.push(`accord préalable${f.accord_prealable_seuil ? ` au-delà de ${euros(f.accord_prealable_seuil)}` : ''}`)
   return m.join(' · ')
 }
 
-function resumeDvh(d: any): string {
+function resumeDvh(d: Ligne | null): string {
   if (!d) return ''
   const m: string[] = []
-  if (d.type_dvh) m.push(`type : ${d.type_dvh}`)
-  if (d.frequence) m.push(d.frequence)
-  if (d.lieu_visite) m.push(`lieu : ${d.lieu_visite}`)
+  if (d.type_dvh) m.push(`type : ${s(d.type_dvh)}`)
+  if (d.frequence) m.push(s(d.frequence))
+  if (d.lieu_visite) m.push(`lieu : ${s(d.lieu_visite)}`)
   if (d.presence_tiers) m.push("présence d'un tiers")
   return m.join(' · ')
 }
 
-function resumeGarde(g: any): string {
+function resumeGarde(g: Ligne | null): string {
   if (!g) return ''
   const m: string[] = []
-  if (g.type_garde) m.push(g.type_garde === 'weekend_sur_deux' ? 'un week-end sur deux' : g.type_garde)
+  if (g.type_garde) m.push(g.type_garde === 'weekend_sur_deux' ? 'un week-end sur deux' : s(g.type_garde))
   if (g.parent_principal) m.push(`parent principal : ${g.parent_principal === 'moi' ? 'vous' : "l'autre parent"}`)
   return m.join(' · ')
 }
@@ -85,15 +97,15 @@ export async function prechargerNote(): Promise<PrechargeNote> {
   }
 
   // Autre parent + jugement : depuis la PROCÉDURE active.
-  let procRow: any = null
+  let procRow: Ligne | null = null
   if (procId) {
     const r = await supabase.from('procedures').select('*').eq('id', procId).maybeSingle()
     procRow = r.data
   }
   if (procRow) {
-    valeurs['juridiction'] = procRow.jugement_juridiction ?? ''
-    valeurs['numero_rg'] = procRow.jugement_numero_rg ?? ''
-    valeurs['intitule'] = procRow.jugement_intitule ?? ''
+    valeurs['juridiction'] = s(procRow.jugement_juridiction)
+    valeurs['numero_rg'] = s(procRow.jugement_numero_rg)
+    valeurs['intitule'] = s(procRow.jugement_intitule)
     valeurs['autre_parent'] = concatPrefixe(procRow, 'autre_parent_')
   }
 
@@ -121,7 +133,10 @@ export async function prechargerNote(): Promise<PrechargeNote> {
   const dvh = dvhRes.data
   // Garde : la table est par enfant ; on ne garde qu'une règle d'un enfant de la procédure active.
   const gardeListe = Array.isArray(gardeRes.data) ? gardeRes.data : []
-  const garde = gardeListe.find((g: any) => g.enfant_id && idsProc.has(g.enfant_id)) ?? null
+  const garde =
+    (gardeListe as Ligne[]).find(
+      (g) => typeof g.enfant_id === 'string' && idsProc.has(g.enfant_id),
+    ) ?? null
 
   if (decision) {
     valeurs['type_decision'] = decision.type_decision ?? ''
