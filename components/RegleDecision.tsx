@@ -385,7 +385,7 @@ export default function RegleDecision({
     >
       {valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l'IA — à vérifier</p>
+          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
           <p className="mt-1 text-[#1F2733]/70">
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             cliquez sur « Valider cette règle » ; sinon, corrigez puis enregistrez à nouveau.

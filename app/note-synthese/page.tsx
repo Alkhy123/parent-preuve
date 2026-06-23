@@ -76,7 +76,7 @@ export default function PageNoteSynthese() {
           <>
             {erreur && (
               <div className="rounded-lg border border-[#8A5A12]/30 bg-[#8A5A12]/5 px-3 py-2 text-sm text-[#8A5A12]">
-                Certaines données n'ont pas pu être chargées. Vous pouvez tout de même remplir la note manuellement.
+                Certaines données n&apos;ont pas pu être chargées. Vous pouvez tout de même remplir la note manuellement.
               </div>
             )}
 
@@ -102,8 +102,8 @@ export default function PageNoteSynthese() {
         )}
 
         <p className="text-xs text-[#1F2733]/60">
-          Ce document est une aide à l'organisation factuelle du dossier. Il ne constitue pas un
-          conseil juridique et ne garantit pas l'appréciation des pièces par le juge.
+          Ce document est une aide à l&apos;organisation factuelle du dossier. Il ne constitue pas un
+          conseil juridique et ne garantit pas l&apos;appréciation des pièces par le juge.
         </p>
       </div>
     </main>

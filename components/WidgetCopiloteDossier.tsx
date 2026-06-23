@@ -206,8 +206,8 @@ export default function WidgetCopiloteDossier() {
       </div>
 
       <p className="mt-3 text-xs leading-5 text-slate-500">
-        Aide à l'organisation factuelle uniquement : le copilote ne donne
-        pas de conseil juridique et n'enregistre rien automatiquement.
+        Aide à l&apos;organisation factuelle uniquement : le copilote ne donne
+        pas de conseil juridique et n&apos;enregistre rien automatiquement.
       </p>
     </div>
   );

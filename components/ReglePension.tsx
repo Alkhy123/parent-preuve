@@ -200,13 +200,13 @@ export default function ReglePension({
               value={form.debiteur}
               onChange={(e) => maj("debiteur", e.target.value)}
             >
-              <option value="autre">L'autre parent</option>
+              <option value="autre">L&apos;autre parent</option>
               <option value="moi">Moi</option>
             </select>
           </label>
 
           <label className="text-sm">
-            Jour d'échéance (ex. 5)
+            Jour d&apos;échéance (ex. 5)
             <input
               type="number"
               className={champ}
@@ -220,7 +220,7 @@ export default function ReglePension({
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={form.paiement_avance}
               onChange={(e) => maj("paiement_avance", e.target.checked)} />
-            Payable d'avance
+            Payable d&apos;avance
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={form.inclut_vacances}
@@ -333,7 +333,7 @@ export default function ReglePension({
     >
       {regle.valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l'IA — à vérifier</p>
+          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
           <p className="mt-1 text-[#1F2733]/70">
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             validez ; sinon, cliquez sur « Modifier ».

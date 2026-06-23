@@ -38,7 +38,7 @@ export default function SelecteurPieces({
         <h3 className="text-sm font-medium text-[#15233F] mb-2">Pièces disponibles</h3>
         {disponibles.length === 0 ? (
           <p className="text-sm text-[#1F2733]/60">
-            Aucune pièce. Ajoutez d'abord des documents ou des preuves dans le dossier.
+            Aucune pièce. Ajoutez d&apos;abord des documents ou des preuves dans le dossier.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -70,7 +70,7 @@ export default function SelecteurPieces({
 
       {/* Bordereau (ordre d'apparition) */}
       <div>
-        <h3 className="text-sm font-medium text-[#15233F] mb-2">Bordereau (ordre d'apparition)</h3>
+        <h3 className="text-sm font-medium text-[#15233F] mb-2">Bordereau (ordre d&apos;apparition)</h3>
         {choisies.length === 0 ? (
           <p className="text-sm text-[#1F2733]/60">Aucune pièce sélectionnée.</p>
         ) : (

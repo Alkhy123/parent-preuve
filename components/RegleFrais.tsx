@@ -232,7 +232,7 @@ export default function RegleFrais({
     >
       {valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l'IA — à vérifier</p>
+          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
           <p className="mt-1 text-[#1F2733]/70">
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             cliquez sur « Valider cette règle » ; sinon, corrigez puis enregistrez à nouveau.
@@ -283,7 +283,7 @@ export default function RegleFrais({
             />
           </div>
           <div>
-            <label className={label}>Part de l'autre parent (%)</label>
+            <label className={label}>Part de l&apos;autre parent (%)</label>
             <input
               className={champ}
               inputMode="decimal"
@@ -305,7 +305,7 @@ export default function RegleFrais({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className={label}>Seuil d'accord préalable (€)</label>
+            <label className={label}>Seuil d&apos;accord préalable (€)</label>
             <input
               className={champ}
               inputMode="decimal"
@@ -341,7 +341,7 @@ export default function RegleFrais({
             checked={form.s_ajoute_a_pension}
             onChange={(e) => maj('s_ajoute_a_pension', e.target.checked)}
           />
-          Ces frais s'ajoutent à la contribution (pension)
+          Ces frais s&apos;ajoutent à la contribution (pension)
         </label>
 
         <div>

@@ -53,7 +53,7 @@ export default function WidgetDossierPret() {
   if (erreur || problemes === null) {
     return (
       <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l'export</h2>
+        <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l&apos;export</h2>
         <p className="mt-2 text-sm text-slate-500">
           Contrôle indisponible pour le moment. Vous pouvez réessayer plus tard ou
           ouvrir la page Export.
@@ -62,7 +62,7 @@ export default function WidgetDossierPret() {
           href="/export"
           className="mt-3 inline-block text-sm text-[#15233F] underline underline-offset-2"
         >
-          Ouvrir l'export
+          Ouvrir l&apos;export
         </Link>
       </div>
     );
@@ -73,7 +73,7 @@ export default function WidgetDossierPret() {
   return (
     <div className="carte rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l'export</h2>
+        <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l&apos;export</h2>
         <Link
           href="/export"
           className="text-sm text-[#15233F] underline underline-offset-2"
@@ -85,7 +85,7 @@ export default function WidgetDossierPret() {
       {/* Bandeau d'etat global */}
       {resume.toutEstBon ? (
         <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✓ Dossier prêt à l'export.
+          ✓ Dossier prêt à l&apos;export.
         </div>
       ) : resume.peutExporter ? (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -94,7 +94,7 @@ export default function WidgetDossierPret() {
         </div>
       ) : (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          Votre dossier peut être complété avant l'export : {resume.bloquants.length} point
+          Votre dossier peut être complété avant l&apos;export : {resume.bloquants.length} point
           {resume.bloquants.length > 1 ? "s" : ""} à finaliser.
         </div>
       )}

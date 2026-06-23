@@ -69,7 +69,7 @@ export default function StatutConsentementIA({
             .
           </p>
           <p className="mt-1 text-sm text-[#1F2733]/70">
-            Vous pouvez retirer cet accord à tout moment. L'assistant cessera alors
+            Vous pouvez retirer cet accord à tout moment. L&apos;assistant cessera alors
             de fonctionner ; il vous redemandera votre accord avant tout nouvel usage.
           </p>
 
@@ -89,7 +89,7 @@ export default function StatutConsentementIA({
         </>
       ) : (
         <p className="mt-2 text-sm text-[#1F2733]/70">
-          Cette fonctionnalité IA n'est pas encore activée. Votre accord vous sera demandé
+          Cette fonctionnalité IA n&apos;est pas encore activée. Votre accord vous sera demandé
           lors de votre première utilisation.
         </p>
       )}

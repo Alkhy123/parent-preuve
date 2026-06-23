@@ -76,7 +76,7 @@ export default function ReformulationIA({
         onClick={ouvrir}
         className="mt-1 rounded-md border border-[#15233F]/25 px-2 py-1 text-xs text-[#15233F] hover:bg-[#F8F6F1]"
       >
-        Reformuler avec l'IA
+        Reformuler avec l&apos;IA
       </button>
     )
   }
@@ -90,8 +90,8 @@ export default function ReformulationIA({
           <p className="text-[#1F2733] leading-relaxed">
             Le texte de ce champ sera envoyé à <strong>Mistral AI</strong> (société française,
             serveurs en Union européenne) pour produire une version neutre. Seul ce texte est
-            transmis ; il n'est pas utilisé pour entraîner les modèles. N'y faites pas figurer de
-            données de santé ni d'extraits de jugement. L'IA propose, vous validez.
+            transmis ; il n&apos;est pas utilisé pour entraîner les modèles. N&apos;y faites pas figurer de
+            données de santé ni d&apos;extraits de jugement. L&apos;IA propose, vous validez.
           </p>
           {erreur && <p className="text-[#9B2C2C]">{erreur}</p>}
           <button

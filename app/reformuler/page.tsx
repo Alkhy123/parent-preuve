@@ -106,7 +106,7 @@ export default function ReformulerPage() {
         {consentement === false && (
           <div className="carte rounded-lg border border-[#C2A24C] bg-white p-6 space-y-4">
             <h2 className="font-display text-xl text-[#15233F]">
-              Avant d'utiliser cette aide
+              Avant d&apos;utiliser cette aide
             </h2>
             <p className="text-sm leading-relaxed text-[#1F2733]">
               Le texte que vous collez est envoyé à <strong>Mistral</strong> (société
@@ -115,7 +115,7 @@ export default function ReformulerPage() {
               le conserve pas durablement.
             </p>
             <p className="text-sm leading-relaxed text-[#1F2733]">
-              N'y faites pas figurer de données de santé ni d'extraits de jugement. L'IA
+              N&apos;y faites pas figurer de données de santé ni d&apos;extraits de jugement. L&apos;IA
               <strong> propose</strong> une reformulation ; vous restez responsable du
               contenu, que vous devez relire et valider. Cette aide ne constitue pas un
               conseil juridique.

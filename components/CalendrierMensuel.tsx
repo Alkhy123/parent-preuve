@@ -94,7 +94,7 @@ export default function CalendrierMensuel({ regle }: { regle: RegleGarde | null 
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "#F3F4F6" }} />
-              Chez l'autre parent
+              Chez l&apos;autre parent
             </span>
           </div>
         </>

@@ -70,7 +70,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
 
       {resume.toutEstBon && !erreur && (
         <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✓ Dossier prêt à l'export.
+          ✓ Dossier prêt à l&apos;export.
         </div>
       )}
 
@@ -102,7 +102,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
 
       {!resume.peutExporter && (
         <p className="mt-3 text-xs text-slate-500">
-          Vous pourrez générer l'export une fois ces points complétés.
+          Vous pourrez générer l&apos;export une fois ces points complétés.
         </p>
       )}
     </div>

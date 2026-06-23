@@ -291,7 +291,7 @@ export default function CoffreFortPage() {
         <p className="mt-8 text-xs text-slate-500">
           Les justificatifs sont des pièces que vous avez déposées. Les preuves scellées sont des
           preuves numériques renforcées (horodatées et scellées). Cette présentation organise vos
-          pièces ; leur portée reste soumise à l'appréciation du juge.
+          pièces ; leur portée reste soumise à l&apos;appréciation du juge.
         </p>
       </div>
     </main>

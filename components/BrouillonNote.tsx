@@ -116,7 +116,7 @@ export default function BrouillonNote({
         <>
           <p className="text-xs text-[#1F2733]/60">
             Modifiez librement ce brouillon, puis sauvegardez-le pour le retrouver plus tard. Le PDF
-            reprend le texte ci-dessous, suivi des pièces du bordereau dans l'ordre choisi.
+            reprend le texte ci-dessous, suivi des pièces du bordereau dans l&apos;ordre choisi.
           </p>
           <textarea
             value={brouillon}

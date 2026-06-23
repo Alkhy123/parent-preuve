@@ -123,16 +123,16 @@ export default function DossierPage() {
 
             {/* Renvoi vers l'édition de la procédure */}
             <section className="carte rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-6">
-              <h2 className="font-display text-xl text-[#15233F]">L'autre parent et le jugement</h2>
+              <h2 className="font-display text-xl text-[#15233F]">L&apos;autre parent et le jugement</h2>
               <p className="mt-2 text-sm text-[#1F2733]/80">
                 Ces informations dépendent de chaque procédure (un autre parent, un jugement).
-                Elles se saisissent maintenant dans l'écran dédié, pour la procédure active.
+                Elles se saisissent maintenant dans l&apos;écran dédié, pour la procédure active.
               </p>
               <Link
                 href="/procedure"
                 className="mt-4 inline-block rounded-md bg-[#15233F] px-5 py-2.5 text-sm font-medium text-[#F8F6F1] hover:bg-[#1d2f54]"
               >
-                Ouvrir l'édition de la procédure active
+                Ouvrir l&apos;édition de la procédure active
               </Link>
             </section>
 

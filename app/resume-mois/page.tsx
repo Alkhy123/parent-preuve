@@ -234,7 +234,7 @@ export default function ResumeMoisPage() {
 
               <p className="text-xs text-[#1F2733]/50">
                 Chiffres factuels issus de vos saisies, cloisonnés par la procédure
-                active. Aucune donnée n'est modifiée par cette page.
+                active. Aucune donnée n&apos;est modifiée par cette page.
               </p>
             </div>
           )}

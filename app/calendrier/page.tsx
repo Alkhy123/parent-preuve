@@ -152,7 +152,7 @@ export default function CalendrierPage() {
             </Link>
           </div>
         {enfants.length === 0 ? (
-          <p className="text-[#1F2733]">Ajoute d'abord un enfant dans la rubrique « Enfants ».</p>
+          <p className="text-[#1F2733]">Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».</p>
         ) : (
           <>
             <div>
@@ -174,14 +174,14 @@ export default function CalendrierPage() {
               <div className="space-y-4">
 
               <div>
-                <label className={labelCss}>Chez qui l'enfant vit-il principalement ?</label>
+                <label className={labelCss}>Chez qui l&apos;enfant vit-il principalement ?</label>
                 <select
                   value={parentPrincipal}
                   onChange={(e) => setParentPrincipal(e.target.value as "moi" | "autre")}
                   className={champ}
                 >
-                  <option value="autre">Chez l'autre parent (j'ai le DVH)</option>
-                  <option value="moi">Chez moi (l'autre parent a le DVH)</option>
+                  <option value="autre">Chez l&apos;autre parent (j&apos;ai le DVH)</option>
+                  <option value="moi">Chez moi (l&apos;autre parent a le DVH)</option>
                 </select>
               </div>
 
@@ -189,7 +189,7 @@ export default function CalendrierPage() {
                 <label className={labelCss}>Date de référence (un week-end de garde connu)</label>
                 <input type="date" value={dateReference} onChange={(e) => setDateReference(e.target.value)} className={champ} />
                 <p className="text-xs text-gray-500 mt-1">
-                  Indique un vendredi (ou samedi/dimanche) où l'enfant est en garde.
+                  Indique un vendredi (ou samedi/dimanche) où l&apos;enfant est en garde.
                   Les week-ends suivants seront calculés un sur deux.
                 </p>
               </div>
@@ -237,7 +237,7 @@ export default function CalendrierPage() {
             <section className="carte rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>
               {apercu.length === 0 ? (
-                <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l'aperçu.</p>
+                <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {apercu.map((p, i) => (

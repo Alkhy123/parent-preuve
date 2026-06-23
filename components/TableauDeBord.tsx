@@ -168,7 +168,7 @@ export default function TableauDeBord() {
           ) : preuves.total === 0 ? (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">0</p>
-              <p className="mt-1 text-sm text-[#5A6473]">Aucune preuve pour l'instant.</p>
+              <p className="mt-1 text-sm text-[#5A6473]">Aucune preuve pour l&apos;instant.</p>
             </>
           ) : (
             <>

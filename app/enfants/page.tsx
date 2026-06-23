@@ -203,7 +203,7 @@ export default function EnfantsPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Procédure concernée (l'autre parent)
+                Procédure concernée (l&apos;autre parent)
               </label>
               <select
                 value={procedureChoisie}

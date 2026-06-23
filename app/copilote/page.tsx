@@ -978,7 +978,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           <p className="mt-2 text-sm leading-6 text-[#5A6473]">
             Ce bloc permet de tester le pré-remplissage Agent utilisé par le
-            bouton flottant. Aucune donnée n'est créée automatiquement.
+            bouton flottant. Aucune donnée n&apos;est créée automatiquement.
           </p>
         </div>
 
@@ -1180,7 +1180,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
             Ce test ne crée aucune donnée. Il affiche seulement la proposition
-            structurée que l'utilisateur devra vérifier avant toute validation.
+            structurée que l&apos;utilisateur devra vérifier avant toute validation.
           </p>
         </section>
       )}
@@ -1198,8 +1198,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           <p className="mt-2 text-sm leading-6 text-[#5A6473]">
             Ce bloc teste la nouvelle route{" "}
             <span className="font-medium">/api/agent/question-dossier</span>{" "}
-            avant tout branchement du bouton flottant. La réponse s'appuie
-            uniquement sur le résumé factuel du dossier. Aucune donnée n'est
+            avant tout branchement du bouton flottant. La réponse s&apos;appuie
+            uniquement sur le résumé factuel du dossier. Aucune donnée n&apos;est
             modifiée.
           </p>
         </div>
@@ -1390,7 +1390,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           {reponseQuestionDossier.pointsAppui.length > 0 && (
             <div className="mt-4 rounded-xl border border-slate-200 p-4">
-              <h3 className="font-semibold text-[#15233F]">Points d'appui</h3>
+              <h3 className="font-semibold text-[#15233F]">Points d&apos;appui</h3>
 
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
                 {reponseQuestionDossier.pointsAppui.map((item, index) => (
@@ -1486,7 +1486,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
             Ce test ne crée aucune donnée. La réponse reste informative et doit
-            être vérifiée par l'utilisateur.
+            être vérifiée par l&apos;utilisateur.
           </p>
         </section>
       )}

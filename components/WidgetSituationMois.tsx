@@ -139,7 +139,7 @@ export default function WidgetSituationMois() {
           Aucun paiement de pension enregistré pour ce mois.
         </p>
         <p className="mt-3 text-xs text-[#1F2733]/50">
-          Chiffres issus de vos saisies, soumis à l'appréciation du juge.
+          Chiffres issus de vos saisies, soumis à l&apos;appréciation du juge.
         </p>
       </div>
     );
@@ -183,7 +183,7 @@ export default function WidgetSituationMois() {
       </p>
 
       <p className="mt-3 text-xs text-[#1F2733]/50">
-        Chiffres issus de vos saisies, soumis à l'appréciation du juge.
+        Chiffres issus de vos saisies, soumis à l&apos;appréciation du juge.
       </p>
     </div>
   );

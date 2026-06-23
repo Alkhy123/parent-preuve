@@ -40,7 +40,7 @@ export default function ApercuExtraction({
   if (remplis.length === 0) {
     return (
       <p className="px-1 text-sm text-[#1F2733]/50">
-        L'assistant n'a rien détecté pour cette règle dans votre description.
+        L&apos;assistant n&apos;a rien détecté pour cette règle dans votre description.
       </p>
     );
   }
@@ -48,7 +48,7 @@ export default function ApercuExtraction({
   return (
     <details open={moyenne > 0} className="carte rounded-xl border border-[#C2A24C]/30 bg-white p-3 text-sm">
       <summary className="cursor-pointer text-[#15233F]">
-        <span className="font-medium">Ce que l'assistant a lu</span>
+        <span className="font-medium">Ce que l&apos;assistant a lu</span>
         <span className="ml-2 rounded-full bg-[#0F6E56]/10 px-2 py-0.5 text-xs text-[#0F6E56]">
           confiance haute&nbsp;: {haute}
         </span>
@@ -107,7 +107,7 @@ export default function ApercuExtraction({
         </div>
       ) : (
         <p className="mt-3 text-sm text-[#1F2733]/60">
-          L'assistant n'a pas cité de passage précis pour cette règle. Vérifiez les
+          L&apos;assistant n&apos;a pas cité de passage précis pour cette règle. Vérifiez les
           valeurs proposées avec attention.
         </p>
       )}

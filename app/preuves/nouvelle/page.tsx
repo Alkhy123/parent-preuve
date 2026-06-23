@@ -303,7 +303,7 @@ export default function NouvellePreuvePage() {
                        hover:file:bg-[#15233F]/90"
           />
           <p className="mt-2 text-xs text-[#1F2733]/60">
-            Sur mobile, le bouton ouvre directement l'appareil photo.
+            Sur mobile, le bouton ouvre directement l&apos;appareil photo.
           </p>
         </div>
 
@@ -333,7 +333,7 @@ export default function NouvellePreuvePage() {
 
         {enCours && (
           <p className="text-sm text-[#1F2733]/70">
-            Calcul de l'empreinte en cours…
+            Calcul de l&apos;empreinte en cours…
           </p>
         )}
 
@@ -447,7 +447,7 @@ export default function NouvellePreuvePage() {
         )}
 
         <p className="text-xs leading-relaxed text-[#1F2733]/60">
-          L'empreinte identifie de façon unique le contenu exact du fichier : la moindre
+          L&apos;empreinte identifie de façon unique le contenu exact du fichier : la moindre
           modification la change entièrement. Cette preuve numérique renforcée ne constitue
           pas un constat de commissaire de justice.
         </p>

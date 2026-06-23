@@ -153,7 +153,7 @@ export default function ProcedurePage() {
           <p className="text-slate-600">Chargement…</p>
         ) : !procId ? (
           <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-            Aucune procédure active. Ajoutez d'abord un enfant dans{" "}
+            Aucune procédure active. Ajoutez d&apos;abord un enfant dans{" "}
             <a href="/enfants" className="font-semibold underline">Mes enfants</a>{" "}
             : une procédure sera créée et vous pourrez la compléter ici.
           </div>
@@ -180,7 +180,7 @@ export default function ProcedurePage() {
 
             {/* Autre parent */}
             <section className="carte rounded-lg border border-slate-200 bg-white p-6">
-              <h2 className="font-display text-xl text-[#15233F]">L'autre parent</h2>
+              <h2 className="font-display text-xl text-[#15233F]">L&apos;autre parent</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Champ label="Civilité" value={form.autre_parent_civilite} onChange={(v) => maj("autre_parent_civilite", v)} placeholder="M. ou Mme" />
                 <Champ label="Nom" value={form.autre_parent_nom} onChange={(v) => maj("autre_parent_nom", v)} />

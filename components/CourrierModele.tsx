@@ -154,7 +154,7 @@ ${corps(d, vals)}`;
               <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
                 Votre dossier semble incomplet. Renseignez vos informations dans{" "}
                 <a href="/dossier" className="font-semibold underline">Mon dossier</a>{" "}
-                pour qu'elles se reportent automatiquement.
+                pour qu&apos;elles se reportent automatiquement.
               </div>
             )}
 
@@ -211,7 +211,7 @@ ${corps(d, vals)}`;
                 <textarea value={brouillon} onChange={(e) => setBrouillon(e.target.value)} rows={20}
                   className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm leading-relaxed focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]" />
                 <p className="text-xs text-slate-500">
-                  Aide à la rédaction : relisez et adaptez librement. La portée juridique tient surtout au mode d'envoi (par ex. lettre recommandée avec accusé de réception).
+                  Aide à la rédaction : relisez et adaptez librement. La portée juridique tient surtout au mode d&apos;envoi (par ex. lettre recommandée avec accusé de réception).
                 </p>
               </section>
             )}

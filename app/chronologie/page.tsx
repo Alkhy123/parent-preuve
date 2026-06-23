@@ -222,8 +222,8 @@ export default function ChronologiePage() {
             <div className="carte mb-8 rounded-xl bg-[var(--surface)] p-5">
               <p className="text-sm text-texte-doux">
                 Exportez la frise en PDF ou en CSV. Choisissez une période
-                (facultatif) et les types à inclure. L'affichage ci-dessous
-                n'est pas modifié.
+                (facultatif) et les types à inclure. L&apos;affichage ci-dessous
+                n&apos;est pas modifié.
               </p>
 
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

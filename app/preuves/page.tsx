@@ -360,7 +360,7 @@ export default function PreuvesPage() {
                           onClick={() => voirOriginal(p.storage_path)}
                           className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5"
                         >
-                          Voir l'original
+                          Voir l&apos;original
                         </button>
                       )}
                     </div>
@@ -388,7 +388,7 @@ export default function PreuvesPage() {
                           : "non disponible"}
                       </dd>
 
-                      <dt className="text-[#1F2733]/60">Écart d'heure</dt>
+                      <dt className="text-[#1F2733]/60">Écart d&apos;heure</dt>
                       <dd className="text-[#1F2733]">
                         {p.ecart_heure_secondes != null
                           ? `${p.ecart_heure_secondes} s`

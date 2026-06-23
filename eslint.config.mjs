@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Artefact généré par l'outil gitnexus (CJS autonome, hors périmètre du lint).
+    ".gitnexus/**",
   ]),
 ]);
 
