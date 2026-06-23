@@ -6,7 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
 
@@ -159,15 +159,24 @@ export default function PreuvesPage() {
 
   useEffect(() => {
     async function charger() {
-      const [resPreuves, dataEnfants] = await Promise.all([
-        supabase
-          .from("preuves_photo")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        getEnfantsDeProcedureActive(),
-      ]);
-      if (resPreuves.data) setPreuves(resPreuves.data as Preuve[]);
+      // Cloisonnement strict en base sur procedure_id. Sans procédure active,
+      // rien à afficher.
+      const procId = await getProcedureActiveId();
+      const dataEnfants = await getEnfantsDeProcedureActive();
       setEnfants(dataEnfants);
+
+      if (!procId) {
+        setPreuves([]);
+        setChargement(false);
+        return;
+      }
+
+      const resPreuves = await supabase
+        .from("preuves_photo")
+        .select("*")
+        .eq("procedure_id", procId)
+        .order("created_at", { ascending: false });
+      if (resPreuves.data) setPreuves(resPreuves.data as Preuve[]);
       setChargement(false);
     }
     charger();
@@ -199,12 +208,8 @@ export default function PreuvesPage() {
     return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
   }
 
-  // Filtrage par procédure active : preuves d'un enfant de la procédure active,
-  // plus celles sans enfant rattaché (générales).
-  const idsProc = new Set(enfants.map((e) => e.id));
-  const preuvesProcedure = preuves.filter(
-    (p) => p.enfant_id === null || idsProc.has(p.enfant_id)
-  );
+  // Cloisonnement assuré en base (procedure_id) lors du chargement.
+  const preuvesProcedure = preuves;
 
   // Export CSV : bordereau léger des preuves de la procédure active.
   // Champs non sensibles uniquement (pas de GPS, pas de chemin de stockage).

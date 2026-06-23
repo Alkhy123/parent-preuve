@@ -52,9 +52,15 @@ export default function DocumentsPage() {
   }
 
   async function chargerDocuments() {
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setDocuments([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("documents")
       .select("id, libelle, categorie, chemin_fichier, date_document, child_id, implication_categorie")
+      .eq("procedure_id", procId)
       .eq("etat", "actif")
       .order("created_at", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
@@ -66,14 +72,10 @@ export default function DocumentsPage() {
     chargerDocuments();
   }, []);
 
-  // Classement : on filtre d'abord sur la procédure active (enfant de la procédure
-  // OU pièce sans enfant), puis on regroupe par enfant, par type, et on trie chaque
-  // type par date décroissante.
+  // Classement : pièces déjà cloisonnées en base (procedure_id), regroupées par
+  // enfant, par type, et triées par date décroissante dans chaque type.
   const groupes = useMemo(() => {
-    const idsProc = new Set(enfants.map((e) => e.id));
-    const docsProc = documents.filter(
-      (d) => d.child_id === null || idsProc.has(d.child_id)
-    );
+    const docsProc = documents;
 
     const parEnfant = new Map<string | null, Document[]>();
     for (const d of docsProc) {

@@ -15,16 +15,13 @@ import { getProcedureActiveId } from "@/lib/procedureActive";
 // ── Formes minimales des lignes chargées ────────────────────────────────────
 type FraisRow = FraisCalcul & {
   date_frais: string;
-  child_id: string | null;
 };
 type PensionRow = PensionCalcul & {
   mois_du: string;
-  procedure_id: string | null;
 };
 type EventRow = {
   categorie: string;
   date_evenement: string;
-  child_id: string | null;
 };
 
 // ── Helpers mois (chaînes "AAAA-MM", pas de souci de fuseau) ─────────────────
@@ -55,30 +52,37 @@ export default function ResumeMoisPage() {
     async function charger() {
       const procId = await getProcedureActiveId();
 
-      // Enfants de la procédure active (pour cloisonner frais & faits).
-      let idsProc = new Set<string>();
-      if (procId) {
-        const { data: enfantsRows } = await supabase
-          .from("children")
-          .select("id")
-          .eq("procedure_id", procId);
-        idsProc = new Set((enfantsRows ?? []).map((e) => e.id));
+      // Cloisonnement strict en base sur procedure_id. Sans procédure active,
+      // rien à afficher.
+      if (!procId) {
+        if (!annule) {
+          setFraisProc([]);
+          setPensionProc([]);
+          setEventsProc([]);
+        }
+        return;
       }
-      const garde = (cid: string | null) => cid === null || idsProc.has(cid);
 
       const [frRes, peRes, evRes] = await Promise.all([
-        supabase.from("expenses").select("part_autre, rembourse, date_frais, child_id"),
+        supabase
+          .from("expenses")
+          .select("part_autre, rembourse, date_frais")
+          .eq("procedure_id", procId),
         supabase
           .from("pension_payments")
-          .select("montant_du, montant_paye, mois_du, procedure_id"),
-        supabase.from("events").select("categorie, date_evenement, child_id"),
+          .select("montant_du, montant_paye, mois_du")
+          .eq("procedure_id", procId),
+        supabase
+          .from("events")
+          .select("categorie, date_evenement")
+          .eq("procedure_id", procId),
       ]);
 
       if (annule) return;
 
-      setFraisProc((frRes.data ?? []).filter((f: any) => garde(f.child_id ?? null)));
-      setPensionProc((peRes.data ?? []).filter((p: any) => p.procedure_id === procId));
-      setEventsProc((evRes.data ?? []).filter((e: any) => garde(e.child_id ?? null)));
+      setFraisProc((frRes.data ?? []) as FraisRow[]);
+      setPensionProc((peRes.data ?? []) as PensionRow[]);
+      setEventsProc((evRes.data ?? []) as EventRow[]);
     }
 
     charger();

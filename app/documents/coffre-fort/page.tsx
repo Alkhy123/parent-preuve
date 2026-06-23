@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 
 type Piece = {
   id: string;
@@ -43,28 +43,35 @@ export default function CoffreFortPage() {
     setChargement(true);
     setMessage("");
 
-    const [dataEnfants, resDocs, resPreuves] = await Promise.all([
-      getEnfantsDeProcedureActive(),
+    // Cloisonnement strict en base sur procedure_id. Sans procédure active,
+    // rien à afficher.
+    const procId = await getProcedureActiveId();
+    const dataEnfants = await getEnfantsDeProcedureActive();
+    setEnfants(dataEnfants);
+
+    if (!procId) {
+      setPieces([]);
+      setChargement(false);
+      return;
+    }
+
+    const [resDocs, resPreuves] = await Promise.all([
       supabase
         .from("documents")
         .select("id, libelle, categorie, chemin_fichier, date_document, child_id")
+        .eq("procedure_id", procId)
         .order("created_at", { ascending: false }),
       supabase
         .from("preuves_photo")
         .select("id, titre, enfant_id, storage_path, created_at")
+        .eq("procedure_id", procId)
         .order("created_at", { ascending: false }),
     ]);
-
-    setEnfants(dataEnfants);
-
-    // Pièces de la procédure active : enfant de la procédure OU sans enfant (générales).
-    const idsProc = new Set(dataEnfants.map((e) => e.id));
 
     const liste: Piece[] = [];
 
     if (resDocs.error) setMessage("Erreur de chargement des documents : " + resDocs.error.message);
     for (const d of resDocs.data ?? []) {
-      if (d.child_id !== null && !idsProc.has(d.child_id)) continue;
       liste.push({
         id: d.id,
         nature: "document",
@@ -79,7 +86,6 @@ export default function CoffreFortPage() {
 
     if (resPreuves.error) setMessage("Erreur de chargement des preuves : " + resPreuves.error.message);
     for (const p of resPreuves.data ?? []) {
-      if (p.enfant_id !== null && !idsProc.has(p.enfant_id)) continue;
       liste.push({
         id: p.id,
         nature: "preuve",

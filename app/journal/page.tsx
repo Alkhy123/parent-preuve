@@ -120,9 +120,16 @@ export default function JournalPage() {
   }
 
   async function chargerEvenements() {
+    // Cloisonnement strict en base sur la procédure active.
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setEvenements([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("events")
       .select("id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id, statut, implication_categorie, document_id")
+      .eq("procedure_id", procId)
       .order("date_evenement", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setEvenements(data ?? []);
@@ -130,9 +137,15 @@ export default function JournalPage() {
 
   // Pièces actives, pour afficher/ouvrir/lier une pièce sur chaque fait.
   async function chargerDocuments() {
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setDocuments([]);
+      return;
+    }
     const { data } = await supabase
       .from("documents")
       .select("id, libelle, categorie, chemin_fichier, child_id")
+      .eq("procedure_id", procId)
       .eq("etat", "actif")
       .order("created_at", { ascending: false });
     setDocuments((data ?? []) as DocLite[]);
@@ -288,17 +301,11 @@ export default function JournalPage() {
   const texte = (titre + " " + description).toLowerCase();
   const motsDetectes = MOTS_SENSIBLES.filter((mot) => texte.includes(mot));
 
-  // Filtrage par procédure active : on garde les événements d'un enfant de la
-  // procédure active, plus ceux sans enfant rattaché (généraux).
-  const idsEnfantsProc = new Set(enfants.map((e) => e.id));
-  const evenementsProcedure = evenements.filter(
-    (e) => e.child_id === null || idsEnfantsProc.has(e.child_id)
-  );
+  // Cloisonnement assuré en base (procedure_id) lors du chargement.
+  const evenementsProcedure = evenements;
 
   // Pièces de la procédure active proposables à la liaison sur un fait.
-  const documentsProcedure = documents.filter(
-    (d) => d.child_id === null || idsEnfantsProc.has(d.child_id)
-  );
+  const documentsProcedure = documents;
 
   const evenementsFiltres =
     filtreCategorie === "Toutes"

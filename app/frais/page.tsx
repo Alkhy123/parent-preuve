@@ -87,9 +87,15 @@ export default function FraisPage() {
   }
 
   async function chargerDocuments() {
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setDocuments([]);
+      return;
+    }
     const { data } = await supabase
       .from("documents")
       .select("id, libelle, categorie, chemin_fichier, child_id")
+      .eq("procedure_id", procId)
       .order("created_at", { ascending: false });
     setDocuments(
       (data ?? []).map((d) => ({
@@ -103,9 +109,15 @@ export default function FraisPage() {
   }
 
   async function chargerFrais() {
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setFrais([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("expenses")
       .select("id, libelle, categorie, montant, part_autre, date_frais, rembourse, child_id, document_id, sans_justificatif")
+      .eq("procedure_id", procId)
       .order("date_frais", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
     else setFrais(data ?? []);
@@ -378,15 +390,10 @@ export default function FraisPage() {
     return d ? `${d.categorie} · ${d.libelle}` : "Justificatif joint";
   }
 
-  // Filtrage par procédure active (frais/justificatifs d'un enfant de la procédure,
-  // ou sans enfant rattaché). Les totaux sont calculés sur ce périmètre.
-  const idsProc = new Set(enfants.map((e) => e.id));
-  const fraisProcedure = frais.filter(
-    (f) => f.child_id === null || idsProc.has(f.child_id)
-  );
-  const documentsProcedure = documents.filter(
-    (d) => d.childId === null || idsProc.has(d.childId)
-  );
+  // Cloisonnement assuré en base (procedure_id) lors du chargement.
+  // Les totaux sont calculés sur ce périmètre.
+  const fraisProcedure = frais;
+  const documentsProcedure = documents;
 
   // Les totaux, recalculés à chaque affichage (sur la procédure active)
   const resteAPercevoir = fraisProcedure
