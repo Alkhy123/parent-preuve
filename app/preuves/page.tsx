@@ -118,35 +118,44 @@ export default function PreuvesPage() {
   async function genererRapport(p: Preuve) {
     setGenEnCours(p.id);
     try {
+      // La liste ne porte que les colonnes d'affichage : on recharge la ligne
+      // complète (champs techniques du rapport) ; repli sur p en cas d'échec.
+      const { data: complet } = await supabase
+        .from("preuves_photo")
+        .select("*")
+        .eq("id", p.id)
+        .single();
+      const d = (complet ?? p) as Preuve;
+
       let image: { dataUrl: string; w: number; h: number } | null = null;
-      if (p.storage_path) {
+      if (d.storage_path) {
         const { data } = await supabase.storage
           .from("preuves")
-          .download(p.storage_path);
+          .download(d.storage_path);
         if (data) image = await blobVersImage(data);
       }
       exporterPreuvePdf(
         {
-          titre: p.titre,
-          description: p.description,
-          nom_enfant: nomEnfant(p.enfant_id),
-          created_at: p.created_at,
-          nom_fichier: p.nom_fichier,
-          type_fichier: p.type_fichier,
-          taille_octets: p.taille_octets,
-          empreinte_sha256: p.empreinte_sha256,
-          empreinte_sha256_serveur: p.empreinte_sha256_serveur,
-          hash_verifie: p.hash_verifie,
-          heure_appareil: p.heure_appareil,
-          ecart_heure_secondes: p.ecart_heure_secondes,
-          gps_latitude: p.gps_latitude,
-          gps_longitude: p.gps_longitude,
-          gps_precision_metres: p.gps_precision_metres,
-          horodatage_jeton: p.horodatage_jeton,
-          horodatage_date: p.horodatage_date,
-          horodatage_statut: p.horodatage_statut,
-          horodatage_prestataire: p.horodatage_prestataire,
-          horodatage_algorithme: p.horodatage_algorithme,
+          titre: d.titre,
+          description: d.description,
+          nom_enfant: nomEnfant(d.enfant_id),
+          created_at: d.created_at,
+          nom_fichier: d.nom_fichier,
+          type_fichier: d.type_fichier,
+          taille_octets: d.taille_octets,
+          empreinte_sha256: d.empreinte_sha256,
+          empreinte_sha256_serveur: d.empreinte_sha256_serveur,
+          hash_verifie: d.hash_verifie,
+          heure_appareil: d.heure_appareil,
+          ecart_heure_secondes: d.ecart_heure_secondes,
+          gps_latitude: d.gps_latitude,
+          gps_longitude: d.gps_longitude,
+          gps_precision_metres: d.gps_precision_metres,
+          horodatage_jeton: d.horodatage_jeton,
+          horodatage_date: d.horodatage_date,
+          horodatage_statut: d.horodatage_statut,
+          horodatage_prestataire: d.horodatage_prestataire,
+          horodatage_algorithme: d.horodatage_algorithme,
         },
         image
       );
@@ -171,9 +180,14 @@ export default function PreuvesPage() {
         return;
       }
 
+      // Colonnes d'affichage + CSV uniquement. Les champs lourds réservés au
+      // rapport PDF (empreinte serveur, jeton, métadonnées…) sont rechargés à la
+      // demande dans genererRapport, pour alléger la liste.
       const resPreuves = await supabase
         .from("preuves_photo")
-        .select("*")
+        .select(
+          "id, created_at, titre, description, enfant_id, nom_fichier, type_fichier, taille_octets, empreinte_sha256, horodatage_date, horodatage_statut, storage_path, gps_latitude, gps_longitude, gps_precision_metres, ecart_heure_secondes"
+        )
         .eq("procedure_id", procId)
         .order("created_at", { ascending: false });
       if (resPreuves.data) setPreuves(resPreuves.data as Preuve[]);
