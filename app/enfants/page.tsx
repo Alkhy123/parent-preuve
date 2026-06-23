@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { setProcedureActiveIdLocal } from "@/lib/procedureActive";
+import {
+  supprimerDonneesEnfant,
+  supprimerProcedureComplete,
+} from "@/lib/suppressionDonnees";
 
 type Enfant = {
   id: string;
@@ -27,6 +31,9 @@ export default function EnfantsPage() {
   const [procedureChoisie, setProcedureChoisie] = useState<string>(NOUVELLE);
   const [etiquetteNouvelle, setEtiquetteNouvelle] = useState("");
   const [message, setMessage] = useState("");
+  // Enfant en attente de confirmation de suppression (null = aucune demande).
+  const [aSupprimer, setASupprimer] = useState<Enfant | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
 
   function libelleProcedure(p: Procedure) {
     return p.etiquette?.trim() ? p.etiquette : "Procédure sans nom";
@@ -112,41 +119,48 @@ export default function EnfantsPage() {
     chargerTout();
   }
 
-  // Supprime une procédure devenue orpheline (plus d'enfant).
-  // Efface d'abord ses règles et paiements rattachés pour éviter tout fantôme.
-  async function supprimerProcedureSiSansEnfant(procId: string) {
-    // Vérifie qu'il ne reste vraiment aucun enfant
-    const { count, error } = await supabase
-      .from("children")
-      .select("id", { count: "exact", head: true })
-      .eq("procedure_id", procId);
-    if (error) return; // en cas de doute, on ne supprime rien
-    if ((count ?? 0) > 0) return; // encore des enfants → on garde
-
-    // Plus d'enfant → on nettoie tout ce qui est rattaché, puis la procédure elle-même
-    await supabase.from("pension_regle").delete().eq("procedure_id", procId);
-    await supabase.from("frais_regle").delete().eq("procedure_id", procId);
-    await supabase.from("dvh_regle").delete().eq("procedure_id", procId);
-    await supabase.from("decision_regle").delete().eq("procedure_id", procId);
-    await supabase.from("pension_payments").delete().eq("procedure_id", procId);
-    await supabase.from("procedures").delete().eq("id", procId);
-
-    // Si la procédure supprimée était la procédure active mémorisée, on remet à zéro :
-    // getProcedureActiveId retombera sur la première procédure restante au prochain chargement.
-    setProcedureActiveIdLocal(null);
+  // Vrai si l'enfant est le dernier (ou le seul) de sa procédure : sa suppression
+  // entraînera celle de la procédure entière.
+  function estDernierEnfantDeSaProcedure(enfant: Enfant): boolean {
+    if (!enfant.procedure_id) return false;
+    const memeProc = enfants.filter((e) => e.procedure_id === enfant.procedure_id);
+    return memeProc.length <= 1;
   }
 
-  async function supprimerEnfant(enfant: Enfant) {
-    const { error } = await supabase.from("children").delete().eq("id", enfant.id);
-    if (error) {
-      setMessage("Erreur : " + error.message);
+  // Confirmation effective : supprime l'enfant et ses données. Si c'est le
+  // dernier enfant de sa procédure, supprime la procédure entière.
+  async function confirmerSuppression() {
+    const enfant = aSupprimer;
+    if (!enfant) return;
+    setSuppressionEnCours(true);
+    setMessage("");
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setMessage("Vous devez être connecté.");
+      setSuppressionEnCours(false);
       return;
     }
 
-    if (enfant.procedure_id) {
-      await supprimerProcedureSiSansEnfant(enfant.procedure_id);
+    const dernier = estDernierEnfantDeSaProcedure(enfant);
+    const resultat =
+      dernier && enfant.procedure_id
+        ? await supprimerProcedureComplete(userId, enfant.procedure_id)
+        : await supprimerDonneesEnfant(userId, enfant.id);
+
+    if (!resultat.ok) {
+      setMessage("Suppression incomplète. " + resultat.erreurs.join(" · "));
+      setSuppressionEnCours(false);
+      return;
     }
 
+    // Si la procédure active a pu disparaître, on remet la sélection à zéro :
+    // getProcedureActiveId retombera sur une procédure restante au prochain chargement.
+    if (dernier) setProcedureActiveIdLocal(null);
+
+    setASupprimer(null);
+    setSuppressionEnCours(false);
     chargerTout();
   }
 
@@ -232,30 +246,81 @@ export default function EnfantsPage() {
           )}
           {enfants.map((enfant) => {
             const proc = procedures.find((p) => p.id === enfant.procedure_id);
+            const enConfirmation = aSupprimer?.id === enfant.id;
+            const dernier = estDernierEnfantDeSaProcedure(enfant);
             return (
               <div
                 key={enfant.id}
-                className="carte flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4"
+                className="carte rounded-xl border border-slate-200 bg-white p-4"
               >
-                <div>
-                  <p className="font-semibold text-[#15233F]">
-                    {enfant.prenom_ou_alias}
-                  </p>
-                  {enfant.date_naissance && (
-                    <p className="text-sm text-slate-500">
-                      Né(e) le {enfant.date_naissance}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-[#15233F]">
+                      {enfant.prenom_ou_alias}
                     </p>
+                    {enfant.date_naissance && (
+                      <p className="text-sm text-slate-500">
+                        Né(e) le {enfant.date_naissance}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">
+                      Procédure : {proc ? libelleProcedure(proc) : "non rattachée"}
+                    </p>
+                  </div>
+                  {!enConfirmation && (
+                    <button
+                      onClick={() => {
+                        setMessage("");
+                        setASupprimer(enfant);
+                      }}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Supprimer
+                    </button>
                   )}
-                  <p className="mt-1 text-xs text-slate-500">
-                    Procédure : {proc ? libelleProcedure(proc) : "non rattachée"}
-                  </p>
                 </div>
-                <button
-                  onClick={() => supprimerEnfant(enfant)}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Supprimer
-                </button>
+
+                {enConfirmation && (
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                    {dernier ? (
+                      <p className="text-sm text-[#9B2C2C]">
+                        <strong>{enfant.prenom_ou_alias}</strong> est le seul enfant de
+                        la procédure{" "}
+                        <strong>{proc ? libelleProcedure(proc) : "concernée"}</strong>.
+                        Le supprimer effacera <strong>toute la procédure</strong> : ses
+                        faits, frais, pièces, preuves, règles, paiements et fichiers.
+                        Action irréversible.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-[#9B2C2C]">
+                        Seules les données de <strong>{enfant.prenom_ou_alias}</strong>{" "}
+                        (faits, frais, pièces, preuves, règles de garde et fichiers)
+                        seront supprimées. Les données des autres enfants de la
+                        procédure sont conservées. Action irréversible.
+                      </p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={confirmerSuppression}
+                        disabled={suppressionEnCours}
+                        className="rounded-lg bg-[#9B2C2C] px-4 py-2 text-sm text-white hover:bg-[#822525] disabled:opacity-60"
+                      >
+                        {suppressionEnCours
+                          ? "Suppression…"
+                          : dernier
+                            ? "Supprimer la procédure entière"
+                            : "Supprimer cet enfant et ses données"}
+                      </button>
+                      <button
+                        onClick={() => setASupprimer(null)}
+                        disabled={suppressionEnCours}
+                        className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-[#1F2733] hover:bg-slate-100"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

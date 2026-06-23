@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { getProcedureActiveId, setProcedureActiveIdLocal } from "@/lib/procedureActive";
+import { supprimerProcedureComplete } from "@/lib/suppressionDonnees";
 import RegleDecision from "@/components/RegleDecision";
 
 type FormeProcedure = {
@@ -117,28 +118,19 @@ export default function ProcedurePage() {
     setSuppressionEnCours(true);
     setMessage("");
 
-    // Double vérification côté client (le count au chargement peut être périmé)
-    const { count } = await supabase
-      .from("children")
-      .select("id", { count: "exact", head: true })
-      .eq("procedure_id", procId);
-    if ((count ?? 0) > 0) {
-      setMessage("Impossible : cette procédure a encore des enfants. Supprimez-les d'abord dans « Mes enfants ».");
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setMessage("Vous devez être connecté.");
       setSuppressionEnCours(false);
-      setConfirmationSuppression(false);
       return;
     }
 
-    // Nettoyer les règles et paiements rattachés, puis la procédure
-    await supabase.from("pension_regle").delete().eq("procedure_id", procId);
-    await supabase.from("frais_regle").delete().eq("procedure_id", procId);
-    await supabase.from("dvh_regle").delete().eq("procedure_id", procId);
-    await supabase.from("decision_regle").delete().eq("procedure_id", procId);
-    await supabase.from("pension_payments").delete().eq("procedure_id", procId);
-
-    const { error } = await supabase.from("procedures").delete().eq("id", procId);
-    if (error) {
-      setMessage("Erreur de suppression : " + error.message);
+    // Suppression complète explicite : données métier, règles, paiements, enfants
+    // et fichiers Storage, dans un ordre compatible avec les contraintes FK.
+    const resultat = await supprimerProcedureComplete(userId, procId);
+    if (!resultat.ok) {
+      setMessage("Suppression incomplète. " + resultat.erreurs.join(" · "));
       setSuppressionEnCours(false);
       return;
     }
@@ -236,22 +228,22 @@ export default function ProcedurePage() {
               )}
             </div>
 
-            {/* Zone de suppression */}
+            {/* Zone de suppression : suppression complète explicite */}
             <section className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6">
               <h2 className="font-display text-lg text-[#9B2C2C]">Supprimer cette procédure</h2>
 
-              {nbEnfants > 0 ? (
-                <p className="mt-2 text-sm text-[#1F2733]/80">
-                  Cette procédure a encore <strong>{nbEnfants} enfant(s)</strong> rattaché(s).
-                  Supprimez-les d'abord dans{" "}
-                  <a href="/enfants" className="font-semibold text-[#15233F] underline">Mes enfants</a>,
-                  puis revenez ici.
-                </p>
-              ) : !confirmationSuppression ? (
+              {!confirmationSuppression ? (
                 <>
                   <p className="mt-2 text-sm text-[#1F2733]/80">
-                    Cette procédure n'a aucun enfant rattaché. La supprimer effacera aussi ses règles
-                    (pension, frais, DVH, décision) et ses paiements de pension. Cette action est irréversible.
+                    La suppression efface <strong>toute la procédure</strong> :
+                    {nbEnfants > 0 ? (
+                      <>
+                        {" "}ses <strong>{nbEnfants} enfant(s)</strong>,
+                      </>
+                    ) : null}{" "}
+                    ses faits, frais, pièces, preuves, règles (pension, frais, DVH,
+                    décision), paiements de pension et fichiers stockés. Cette action
+                    est irréversible.
                   </p>
                   <button
                     onClick={() => setConfirmationSuppression(true)}
@@ -263,7 +255,8 @@ export default function ProcedurePage() {
               ) : (
                 <>
                   <p className="mt-2 text-sm font-medium text-[#9B2C2C]">
-                    Êtes-vous certain(e) ? Cette action est irréversible.
+                    Êtes-vous certain(e) ? Toute la procédure et ses données seront
+                    définitivement supprimées. Cette action est irréversible.
                   </p>
                   <div className="mt-3 flex gap-3">
                     <button
