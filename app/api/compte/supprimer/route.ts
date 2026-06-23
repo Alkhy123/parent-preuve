@@ -39,26 +39,59 @@ const TABLES_UTILISATEUR = [
 
 const BUCKETS = ["preuves", "justificatifs"] as const;
 
-// Liste récursive de tous les fichiers situés sous un préfixe (gère 2 ou 3 niveaux).
+// Taille de page pour list() et de lot pour remove() (limite Storage = 1000).
+const TAILLE_PAGE = 1000;
+
+// Liste récursive de TOUS les fichiers sous un préfixe, avec pagination :
+// chaque niveau est parcouru par pages de 1000 jusqu'à épuisement (sinon un
+// dossier de plus de 1000 entrées laisserait des fichiers non supprimés).
 async function listerFichiers(
   client: SupabaseClient,
   bucket: string,
   prefixe: string
 ): Promise<string[]> {
-  const { data, error } = await client.storage.from(bucket).list(prefixe, { limit: 1000 });
-  if (error || !data) return [];
   const chemins: string[] = [];
-  for (const item of data) {
-    const cheminItem = `${prefixe}/${item.name}`;
-    if (item.id) {
-      // item avec id = fichier
-      chemins.push(cheminItem);
-    } else {
-      // item sans id = sous-dossier -> on descend
-      chemins.push(...(await listerFichiers(client, bucket, cheminItem)));
+  let offset = 0;
+  for (;;) {
+    const { data, error } = await client.storage
+      .from(bucket)
+      .list(prefixe, { limit: TAILLE_PAGE, offset });
+    if (error || !data || data.length === 0) break;
+    for (const item of data) {
+      const cheminItem = `${prefixe}/${item.name}`;
+      if (item.id) {
+        // item avec id = fichier
+        chemins.push(cheminItem);
+      } else {
+        // item sans id = sous-dossier -> on descend
+        chemins.push(...(await listerFichiers(client, bucket, cheminItem)));
+      }
     }
+    if (data.length < TAILLE_PAGE) break;
+    offset += TAILLE_PAGE;
   }
   return chemins;
+}
+
+// Supprime tous les fichiers de l'utilisateur dans un bucket, par lots de 1000,
+// puis vérifie qu'il n'en reste aucun. Renvoie un message d'erreur ou null.
+async function viderBucket(
+  client: SupabaseClient,
+  bucket: string,
+  userId: string
+): Promise<string | null> {
+  const chemins = await listerFichiers(client, bucket, userId);
+  for (let i = 0; i < chemins.length; i += TAILLE_PAGE) {
+    const lot = chemins.slice(i, i + TAILLE_PAGE);
+    const { error } = await client.storage.from(bucket).remove(lot);
+    if (error) return error.message;
+  }
+  // Vérification finale : plus aucun fichier ne doit subsister.
+  const restants = await listerFichiers(client, bucket, userId);
+  if (restants.length > 0) {
+    return `${restants.length} fichier(s) non supprimé(s)`;
+  }
+  return null;
 }
 
 export async function DELETE(request: Request) {
@@ -69,17 +102,15 @@ export async function DELETE(request: Request) {
   }
   const userId = utilisateur.id;
 
-  // 2. Effacer les fichiers Storage de l'utilisateur (préfixe = son id).
+  // 2. Effacer les fichiers Storage de l'utilisateur (préfixe = son id),
+  //    avec pagination, suppression par lots et vérification finale.
   for (const bucket of BUCKETS) {
-    const chemins = await listerFichiers(supabaseAdmin, bucket, userId);
-    if (chemins.length > 0) {
-      const { error } = await supabaseAdmin.storage.from(bucket).remove(chemins);
-      if (error) {
-        return Response.json(
-          { erreur: "Échec de l'effacement des fichiers. Réessayez." },
-          { status: 500 }
-        );
-      }
+    const erreur = await viderBucket(supabaseAdmin, bucket, userId);
+    if (erreur) {
+      return Response.json(
+        { erreur: "Échec de l'effacement des fichiers. Réessayez." },
+        { status: 500 }
+      );
     }
   }
 
