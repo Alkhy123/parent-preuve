@@ -84,6 +84,8 @@ export default function ImplicationParentalePage() {
   }
 
   useEffect(() => {
+    // Chargements async (setState après await, pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerEnfants();
     chargerFaits();
     chargerPieces();

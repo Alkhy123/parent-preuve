@@ -47,6 +47,8 @@ export function useDeplacable(cle: string, coinParDefaut: Coin, taille: number) 
     }
     const c = clamp(initial.x, initial.y);
     posRef.current = c;
+    // Position initiale calculée au montage / changement de clé (pas de cascade).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPos(c);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cle, taille]);

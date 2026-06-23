@@ -44,6 +44,8 @@ export default function EncartPliable({
     if (!pliable || !idPersistance) return;
     try {
       const v = localStorage.getItem(PREFIXE + idPersistance);
+      // Initialisation depuis le stockage local au montage (pas de cascade).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (v === 'true') setReplie(true);
       else if (v === 'false') setReplie(false);
     } catch {
@@ -58,6 +60,8 @@ export default function EncartPliable({
       premierRendu.current = false;
       return;
     }
+    // Réaction au signal du parent (ex. après enregistrement) ; pas de cascade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (pliable) appliquerEtat(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signalFermeture]);

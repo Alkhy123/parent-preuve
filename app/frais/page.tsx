@@ -124,6 +124,8 @@ export default function FraisPage() {
   }
 
   useEffect(() => {
+    // Chargements async (setState après await, pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerEnfants();
     chargerDocuments();
     chargerFrais();
@@ -154,6 +156,8 @@ export default function FraisPage() {
     if (proposition.type !== "frais") return;
 
     const c = proposition.champs;
+    // Pré-remplissage one-shot lu au montage (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c.libelle !== null) setLibelle(c.libelle);
     setCategorie(c.categorie); // toujours une valeur sûre (liste fermée)
     if (c.montant !== null) setMontant(String(c.montant));
@@ -173,6 +177,8 @@ export default function FraisPage() {
     const trouve = enfants.find(
       (e) => e.prenom_ou_alias.trim().toLowerCase() === cible
     );
+    // Rapprochement du prénom proposé une fois les enfants chargés.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (trouve) setChildId(trouve.id);
     setEnfantPropose(null);
   }, [enfants, enfantPropose]);

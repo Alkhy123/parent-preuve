@@ -71,6 +71,8 @@ export default function EnfantsPage() {
   }
 
   useEffect(() => {
+    // Chargement async (setState après await, pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerTout();
   }, []);
 

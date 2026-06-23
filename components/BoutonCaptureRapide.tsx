@@ -51,6 +51,8 @@ export default function BoutonCaptureRapide() {
   }, []);
 
   useEffect(() => {
+    // Réinitialisation d'UI au changement de route (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOuvert(false);
   }, [pathname]);
 

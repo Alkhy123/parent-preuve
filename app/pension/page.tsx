@@ -90,6 +90,8 @@ export default function PensionPage() {
   }
 
   useEffect(() => {
+    // Chargement async (setState après await, pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerPaiements();
   }, []);
 
@@ -118,6 +120,8 @@ export default function PensionPage() {
     if (proposition.type !== "pension") return;
 
     const c = proposition.champs;
+    // Pré-remplissage one-shot lu au montage (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c.mois !== null) setMois(c.mois);
     if (c.montant_du !== null) setMontantDu(String(c.montant_du));
     if (c.montant_paye !== null) setMontantPaye(String(c.montant_paye));

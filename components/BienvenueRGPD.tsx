@@ -25,6 +25,8 @@ export default function BienvenueRGPD() {
   // A-t-il déjà accepté la version courante ?
   useEffect(() => {
     if (!userId) {
+      // État dérivé de l'absence d'utilisateur (pas de cascade de rendu).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDoitAfficher(false);
       return;
     }

@@ -147,6 +147,8 @@ export default function AssistantFlottant() {
   }, []);
 
   useEffect(() => {
+    // Réinitialisation d'UI au changement de route (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOuvert(false);
   }, [pathname]);
 
@@ -157,6 +159,8 @@ export default function AssistantFlottant() {
 
     let annule = false;
 
+    // Réinitialisation avant un chargement asynchrone (pas de cascade synchrone).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResumePret(false);
     setResume("");
 

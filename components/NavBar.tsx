@@ -93,6 +93,8 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
+    // Réinitialisation d'UI au changement de route (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuOuvert(null);
     setMobileOuvert(false);
   }, [pathname]);

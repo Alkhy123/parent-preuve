@@ -184,6 +184,8 @@ export default function JournalPage() {
     if (proposition.type !== "journal") return;
 
     const c = proposition.champs;
+    // Pré-remplissage one-shot lu au montage (pas de cascade de rendu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c.titre !== null) setTitre(c.titre);
     setCategorie(c.categorie); // toujours une valeur sûre (liste fermée)
     if (c.date !== null) setDateEvenement(c.date);
@@ -203,6 +205,8 @@ export default function JournalPage() {
     const trouve = enfants.find(
       (e) => e.prenom_ou_alias.trim().toLowerCase() === cible
     );
+    // Rapprochement du prénom proposé une fois les enfants chargés.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (trouve) setChildId(trouve.id);
     setEnfantPropose(null);
   }, [enfants, enfantPropose]);
