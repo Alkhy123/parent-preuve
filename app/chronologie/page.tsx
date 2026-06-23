@@ -74,8 +74,17 @@ export default function ChronologiePage() {
         getEnfantsDeProcedureActive(),
       ]);
 
+      // Sans procédure active : rien à afficher (cloisonnement strict).
+      if (!procId) {
+        setEnfants(listeEnfants);
+        setEntrees([]);
+        setTimelineItems([]);
+        setChargement(false);
+        return;
+      }
+
       // Étiquette de la procédure active (pour l'en-tête du PDF).
-      if (procId) {
+      {
         const { data } = await supabase
           .from("procedures")
           .select("etiquette")
@@ -84,26 +93,32 @@ export default function ChronologiePage() {
         setEtiquette(data?.etiquette?.trim() || "Procédure sans nom");
       }
 
-      // On charge les 6 sources en lecture seule (la RLS limite déjà à l'utilisateur).
-      // Le cloisonnement par procédure est fait par fusionnerChronologie / collecterTimeline.
+      // Cloisonnement strict en base sur procedure_id pour les cinq sources
+      // directement rattachées. garde_regles n'a pas encore de procedure_id
+      // (étape E) : son cloisonnement reste par enfant dans collecterTimeline.
       const [evRes, frRes, peRes, prRes, docRes, gaRes] = await Promise.all([
         supabase
           .from("events")
           .select(
             "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id",
-          ),
+          )
+          .eq("procedure_id", procId),
         supabase
           .from("expenses")
-          .select("id, libelle, categorie, montant, date_frais, rembourse, child_id"),
+          .select("id, libelle, categorie, montant, date_frais, rembourse, child_id")
+          .eq("procedure_id", procId),
         supabase
           .from("pension_payments")
-          .select("id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id"),
+          .select("id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id")
+          .eq("procedure_id", procId),
         supabase
           .from("preuves_photo")
-          .select("id, titre, description, enfant_id, created_at, horodatage_statut"),
+          .select("id, titre, description, enfant_id, created_at, horodatage_statut")
+          .eq("procedure_id", procId),
         supabase
           .from("documents")
           .select("id, libelle, categorie, date_document, child_id")
+          .eq("procedure_id", procId)
           .eq("etat", "actif"),
         supabase
           .from("garde_regles")
