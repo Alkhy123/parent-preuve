@@ -14,6 +14,8 @@ export default function ComptePage() {
   const [confirmation, setConfirmation] = useState("");
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const [exportErreur, setExportErreur] = useState<string | null>(null);
 
   // Page réservée aux utilisateurs connectés.
   useEffect(() => {
@@ -50,6 +52,36 @@ export default function ComptePage() {
     }
   }
 
+  async function exporterDonnees() {
+    setExportErreur(null);
+    setExportEnCours(true);
+    try {
+      const reponse = await fetch("/api/compte/exporter", {
+        method: "GET",
+        headers: { ...(await enteteAuth()) },
+      });
+      if (!reponse.ok) {
+        const data = await reponse.json().catch(() => ({}));
+        setExportErreur(data.erreur ?? "L'export a échoué. Réessayez.");
+        return;
+      }
+      // Téléchargement du JSON renvoyé.
+      const blob = await reponse.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `parent-preuve-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportErreur("L'export a échoué. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setExportEnCours(false);
+    }
+  }
+
   if (chargement) {
     return <div className="mx-auto max-w-2xl px-4 py-10 text-[#1F2733]">Chargement…</div>;
   }
@@ -78,6 +110,28 @@ export default function ComptePage() {
             </Link>
             .
           </p>
+        </section>
+
+        {/* Export de portabilité (RGPD) */}
+        <section className="carte rounded-lg bg-white p-5">
+          <h2 className="font-display text-xl text-[#15233F]">Exporter mes données</h2>
+          <p className="mt-2 text-sm">
+            Téléchargez l&apos;intégralité de vos données personnelles dans un fichier
+            JSON (procédures, enfants, journal, frais, pension, règles, documents et
+            preuves), avec des liens de téléchargement temporaires pour vos fichiers.
+            C&apos;est votre droit à la portabilité ; ce fichier est distinct du dossier
+            pour l&apos;avocat.
+          </p>
+
+          {exportErreur && <p className="mt-3 text-sm text-[#9B2C2C]">{exportErreur}</p>}
+
+          <button
+            onClick={exporterDonnees}
+            disabled={exportEnCours}
+            className="mt-4 rounded bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1d2f52] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {exportEnCours ? "Préparation de l'export…" : "Exporter mes données (JSON)"}
+          </button>
         </section>
 
         {/* Zone de suppression */}
