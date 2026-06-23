@@ -25,13 +25,21 @@ export default function ExportPage() {
     setMessage("");
     setEnCours(true);
     try {
-      // Procédure active : tout l'export est cloisonné dessus.
+      // Procédure active : tout l'export est cloisonné dessus, en base.
       const procId = await getProcedureActiveId();
+      if (!procId) {
+        setMessage(
+          "Aucune procédure active. Sélectionnez ou créez une procédure avant d'exporter."
+        );
+        return;
+      }
 
-      // 1) On récupère les données, filtrées par période si elle est renseignée
+      // 1) On récupère les données, cloisonnées par procedure_id et filtrées par
+      //    période si elle est renseignée.
       let reqEvents = supabase
         .from("events")
         .select("titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id")
+        .eq("procedure_id", procId)
         .order("date_evenement", { ascending: true });
       if (du) reqEvents = reqEvents.gte("date_evenement", du);
       if (au) reqEvents = reqEvents.lte("date_evenement", au);
@@ -39,6 +47,7 @@ export default function ExportPage() {
       let reqFrais = supabase
         .from("expenses")
         .select("libelle, categorie, montant, part_autre, date_frais, rembourse, child_id")
+        .eq("procedure_id", procId)
         .order("date_frais", { ascending: true });
       if (du) reqFrais = reqFrais.gte("date_frais", du);
       if (au) reqFrais = reqFrais.lte("date_frais", au);
@@ -46,6 +55,7 @@ export default function ExportPage() {
       let reqPension = supabase
         .from("pension_payments")
         .select("mois_du, montant_du, montant_paye, date_paiement, procedure_id")
+        .eq("procedure_id", procId)
         .order("mois_du", { ascending: true });
       if (du) reqPension = reqPension.gte("mois_du", du);
       if (au) reqPension = reqPension.lte("mois_du", au);
@@ -54,15 +64,18 @@ export default function ExportPage() {
       let reqDocs = supabase
         .from("documents")
         .select("libelle, categorie, date_document, child_id")
+        .eq("procedure_id", procId)
         .order("date_document", { ascending: true });
       if (!toutesLesPieces) {
         if (du) reqDocs = reqDocs.gte("date_document", du);
         if (au) reqDocs = reqDocs.lte("date_document", au);
       }
 
-      // Les enfants DE LA PROCÉDURE ACTIVE, pour le bordereau et le filtrage.
-      let reqEnfants = supabase.from("children").select("id, prenom_ou_alias");
-      if (procId) reqEnfants = reqEnfants.eq("procedure_id", procId);
+      // Les enfants DE LA PROCÉDURE ACTIVE, pour le bordereau (résolution des noms).
+      const reqEnfants = supabase
+        .from("children")
+        .select("id, prenom_ou_alias")
+        .eq("procedure_id", procId);
 
       const [evRes, frRes, peRes, docRes, enRes] = await Promise.all([
         reqEvents,
@@ -73,15 +86,12 @@ export default function ExportPage() {
       ]);
 
       const enfants = enRes.data ?? [];
-      const idsProc = new Set(enfants.map((e) => e.id));
-      // Garde une ligne si elle est rattachée à un enfant de la procédure,
-      // ou si elle n'a aucun enfant (élément général).
-      const garde = (cid: string | null) => cid === null || idsProc.has(cid);
 
-      const events = (evRes.data ?? []).filter((e) => garde(e.child_id));
-      const frais = (frRes.data ?? []).filter((f) => garde(f.child_id));
-      const pension = (peRes.data ?? []).filter((p) => p.procedure_id === procId);
-      const pieces = (docRes.data ?? []).filter((d) => garde(d.child_id));
+      // Cloisonnement assuré en base (procedure_id) pour toutes les sources.
+      const events = evRes.data ?? [];
+      const frais = frRes.data ?? [];
+      const pension = peRes.data ?? [];
+      const pieces = docRes.data ?? [];
 
       const nomEnfant = (id: string | null) =>
         enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";

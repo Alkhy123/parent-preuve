@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
 import {
@@ -50,10 +50,16 @@ export default function ImplicationParentalePage() {
   }
 
   async function chargerFaits() {
-    // Faits du journal marqués comme implication parentale (catégorie non nulle).
+    // Faits du journal marqués comme implication parentale, cloisonnés en base.
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setFaits([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("events")
       .select("id, titre, date_evenement, child_id, implication_categorie")
+      .eq("procedure_id", procId)
       .not("implication_categorie", "is", null)
       .order("date_evenement", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
@@ -61,10 +67,16 @@ export default function ImplicationParentalePage() {
   }
 
   async function chargerPieces() {
-    // Pièces marquées comme implication parentale (catégorie non nulle).
+    // Pièces marquées comme implication parentale, cloisonnées en base.
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setPieces([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("documents")
       .select("id, libelle, date_document, child_id, implication_categorie")
+      .eq("procedure_id", procId)
       .not("implication_categorie", "is", null)
       .order("date_document", { ascending: false });
     if (error) setMessage("Erreur : " + error.message);
@@ -82,33 +94,24 @@ export default function ImplicationParentalePage() {
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
   }
 
-  // Cloisonnement procédure active : on garde les lignes d'un enfant de la
-  // procédure active OU sans enfant rattaché (générales). On fusionne ensuite
-  // faits + pièces en une seule liste d'éléments.
+  // Cloisonnement assuré en base (procedure_id). On fusionne faits + pièces
+  // en une seule liste d'éléments.
   const elements = useMemo<Element[]>(() => {
-    const idsProc = new Set(enfants.map((e) => e.id));
-    const garde = (childId: string | null) =>
-      childId === null || idsProc.has(childId);
+    const elFaits: Element[] = faits.map((f) => ({
+      nature: "Fait",
+      date: f.date_evenement ?? "",
+      intitule: f.titre,
+      enfant: nomEnfant(f.child_id),
+      categorie: f.implication_categorie ?? "",
+    }));
 
-    const elFaits: Element[] = faits
-      .filter((f) => garde(f.child_id))
-      .map((f) => ({
-        nature: "Fait",
-        date: f.date_evenement ?? "",
-        intitule: f.titre,
-        enfant: nomEnfant(f.child_id),
-        categorie: f.implication_categorie ?? "",
-      }));
-
-    const elPieces: Element[] = pieces
-      .filter((p) => garde(p.child_id))
-      .map((p) => ({
-        nature: "Pièce",
-        date: p.date_document ?? "",
-        intitule: p.libelle,
-        enfant: nomEnfant(p.child_id),
-        categorie: p.implication_categorie ?? "",
-      }));
+    const elPieces: Element[] = pieces.map((p) => ({
+      nature: "Pièce",
+      date: p.date_document ?? "",
+      intitule: p.libelle,
+      enfant: nomEnfant(p.child_id),
+      categorie: p.implication_categorie ?? "",
+    }));
 
     return [...elFaits, ...elPieces];
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -53,42 +53,49 @@ export async function collecterDossierAvocat(): Promise<DossierTransmissionAvoca
     procedureEtiquette = data?.etiquette?.trim() || "Procédure sans nom";
   }
 
-  // Chronologie : memes 4 sources que la page /chronologie (RLS limite a l'utilisateur),
-  // le cloisonnement par procedure est fait dans fusionnerChronologie.
-  const [evRes, frRes, peRes, prRes] = await Promise.all([
-    supabase
-      .from("events")
-      .select(
-        "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id"
-      ),
-    supabase
-      .from("expenses")
-      .select("id, libelle, categorie, montant, date_frais, rembourse, child_id"),
-    supabase
-      .from("pension_payments")
-      .select("id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id"),
-    supabase
-      .from("preuves_photo")
-      .select("id, titre, description, enfant_id, created_at, horodatage_statut"),
-  ]);
+  // Chronologie : memes 4 sources que la page /chronologie. Cloisonnement strict
+  // en base sur procedure_id. Sans procedure active, aucune source.
+  let evData: FaitSource[] = [];
+  let frData: FraisSource[] = [];
+  let peData: PensionSource[] = [];
+  let prData: PreuveSource[] = [];
+  if (procId) {
+    const [evRes, frRes, peRes, prRes] = await Promise.all([
+      supabase
+        .from("events")
+        .select(
+          "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id"
+        )
+        .eq("procedure_id", procId),
+      supabase
+        .from("expenses")
+        .select("id, libelle, categorie, montant, date_frais, rembourse, child_id")
+        .eq("procedure_id", procId),
+      supabase
+        .from("pension_payments")
+        .select("id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id")
+        .eq("procedure_id", procId),
+      supabase
+        .from("preuves_photo")
+        .select("id, titre, description, enfant_id, created_at, horodatage_statut")
+        .eq("procedure_id", procId),
+    ]);
+    evData = (evRes.data ?? []) as FaitSource[];
+    frData = (frRes.data ?? []) as FraisSource[];
+    peData = (peRes.data ?? []) as PensionSource[];
+    prData = (prRes.data ?? []) as PreuveSource[];
+  }
 
   const enfantIds = enfantsProc.map((e) => e.id);
-  const idsProc = new Set(enfantIds);
 
   const chronologie = fusionnerChronologie(
-    {
-      faits: (evRes.data ?? []) as FaitSource[],
-      frais: (frRes.data ?? []) as FraisSource[],
-      pensions: (peRes.data ?? []) as PensionSource[],
-      preuves: (prRes.data ?? []) as PreuveSource[],
-    },
+    { faits: evData, frais: frData, pensions: peData, preuves: prData },
     { procedureId: procId, enfantIds }
   );
 
-  // Expose factuel par theme : faits regroupes par categorie (cloisonnes procedure).
+  // Expose factuel par theme : faits regroupes par categorie (deja cloisonnes en base).
   const parTheme = new Map<string, FaitFactuel[]>();
-  for (const f of (evRes.data ?? []) as FaitSource[]) {
-    if (!(f.child_id === null || idsProc.has(f.child_id))) continue;
+  for (const f of evData) {
     const theme = f.categorie?.trim() || "Autre";
     const arr = parTheme.get(theme) ?? [];
     arr.push({

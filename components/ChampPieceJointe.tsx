@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
+import { getProcedureActiveId } from "@/lib/procedureActive";
 import FormMessage from "@/components/ui/FormMessage";
 
 // Vue allégée d'une pièce existante, pour la proposer à la sélection.
@@ -42,7 +42,6 @@ export default function ChampPieceJointe({
   question = "Souhaitez-vous ajouter une pièce ?",
 }: Props) {
   const [documents, setDocuments] = useState<DocLite[]>([]);
-  const [idsProc, setIdsProc] = useState<Set<string>>(new Set());
   // L'option d'ajout n'apparaît que si l'utilisateur le souhaite (case cochée).
   // Pas de pièce = aucun blocage : l'élément reste valable et exportable.
   const [souhaite, setSouhaite] = useState(value !== "");
@@ -52,27 +51,29 @@ export default function ChampPieceJointe({
   const champFichierRef = useRef<HTMLInputElement>(null);
 
   async function chargerDocuments() {
+    // Cloisonnement strict en base : pièces de la procédure active uniquement.
+    const procId = await getProcedureActiveId();
+    if (!procId) {
+      setDocuments([]);
+      return;
+    }
     const { data } = await supabase
       .from("documents")
       .select("id, libelle, categorie, child_id")
+      .eq("procedure_id", procId)
       .eq("etat", "actif")
       .order("created_at", { ascending: false });
     setDocuments((data ?? []) as DocLite[]);
   }
 
   useEffect(() => {
-    // Chargements async (les setState surviennent après await, pas de cascade synchrone).
+    // Chargement async (les setState surviennent après await, pas de cascade synchrone).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     chargerDocuments();
-    getEnfantsDeProcedureActive().then((es) =>
-      setIdsProc(new Set(es.map((e) => e.id))),
-    );
   }, []);
 
-  // Pièces de la procédure active : enfant de la procédure OU sans enfant.
-  const documentsProc = documents.filter(
-    (d) => d.child_id === null || idsProc.has(d.child_id),
-  );
+  // Pièces déjà cloisonnées en base (procedure_id).
+  const documentsProc = documents;
   const docChoisi = documents.find((d) => d.id === value);
 
   // Téléverse un fichier puis crée la pièce dans `documents` et la sélectionne.
