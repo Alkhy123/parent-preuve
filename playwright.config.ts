@@ -43,7 +43,7 @@ export default defineConfig({
   // Un seul worker : le seed est séquentiel (création procédures puis données).
   workers: 1,
   fullyParallel: false,
-  timeout: 60_000,
+  timeout: 180_000,
   expect: { timeout: 15_000 },
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
@@ -60,6 +60,9 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/user.json",
+        // Géoloc accordée pour les preuves photo (relevé de position optionnel).
+        permissions: ["geolocation"],
+        geolocation: { latitude: 48.8566, longitude: 2.3522 },
       },
       dependencies: ["setup"],
     },

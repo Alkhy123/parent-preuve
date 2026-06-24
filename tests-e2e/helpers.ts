@@ -4,6 +4,9 @@
 // des pages (placeholders / libellés / boutons). Aucun appel direct à la base :
 // tout passe par l'interface, comme un utilisateur.
 
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type Page, expect } from "@playwright/test";
 
 // Date du jour au format "YYYY-MM-DD" (valeur des <input type="date">).
@@ -12,6 +15,16 @@ export function aujourdhuiIso(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
     d.getDate()
   ).padStart(2, "0")}`;
+}
+
+// Écrit un PNG 1×1 valide dans un fichier temporaire et renvoie son chemin.
+// Sert de fichier de test pour les uploads (preuve photo, justificatif).
+const PNG_1x1 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+export function creerImageTest(): string {
+  const chemin = join(tmpdir(), "parent-preuve-test.png");
+  writeFileSync(chemin, Buffer.from(PNG_1x1, "base64"));
+  return chemin;
 }
 
 // Crée une NOUVELLE procédure (autre parent différent) + un premier enfant,
@@ -158,6 +171,8 @@ export async function ajouterReglePension(
   regle: { montant: string; debiteur: "moi" | "autre"; jourEcheance: string }
 ): Promise<void> {
   await page.goto("/pension");
+  // La procédure active de la page se charge en async : sans elle, l'enregistrement est refusé.
+  await page.waitForLoadState("networkidle");
   const carte = page
     .locator("div.carte")
     .filter({ has: page.getByRole("heading", { name: "Règle de pension" }) });
@@ -205,4 +220,64 @@ export async function configurerCalendrier(
   await expect(carte.getByRole("button", { name: /Afficher/ })).toBeVisible();
   // Sélecteur de zone (options A/B/C), au niveau page.
   await page.locator('select:has(option[value="A"])').selectOption(config.zone);
+}
+
+// Ajoute un justificatif au coffre-fort (procédure active).
+export async function ajouterDocument(
+  page: Page,
+  doc: { libelle: string; fichierPath: string }
+): Promise<void> {
+  await page.goto("/documents");
+  await page
+    .getByPlaceholder("Ex : Facture orthodontiste mars")
+    .fill(doc.libelle);
+  await page.locator("#champ-fichier").setInputFiles(doc.fichierPath);
+  await page.getByRole("button", { name: "Envoyer le document" }).click();
+  await expect(page.getByText(doc.libelle).first()).toBeVisible();
+}
+
+// Ajoute un paiement de pension pour un mois (procédure active).
+export async function ajouterPaiementPension(
+  page: Page,
+  paiement: { mois: string; montantDu: string; montantPaye: string }
+): Promise<void> {
+  await page.goto("/pension");
+  await page.waitForLoadState("networkidle");
+  await ouvrirEncart(page, "Ajouter un paiement");
+  const encart = page
+    .locator("div.carte")
+    .filter({ has: page.getByRole("heading", { name: "Ajouter un paiement" }) });
+  await encart.locator('input[type="month"]').fill(paiement.mois);
+  await page.getByPlaceholder("300").fill(paiement.montantDu);
+  await page.getByPlaceholder("0 si rien reçu").fill(paiement.montantPaye);
+  await page.getByRole("button", { name: "Enregistrer le mois" }).click();
+  // L'encart se replie à l'enregistrement : on attend ce repli (succès).
+  await expect(encart.getByRole("button", { name: /Afficher/ })).toBeVisible();
+}
+
+// Crée une preuve photo scellée (procédure active) : upload, empreinte calculée
+// côté client, horodatage + vérification d'intégrité côté serveur. La géoloc est
+// accordée via la config (permissions + geolocation).
+export async function ajouterPreuve(
+  page: Page,
+  preuve: { titre: string; description: string; fichierPath: string }
+): Promise<void> {
+  await page.goto("/preuves/nouvelle");
+  await page.locator('input[type="file"]').setInputFiles(preuve.fichierPath);
+  const bouton = page.getByRole("button", {
+    name: "Enregistrer et sceller la preuve",
+  });
+  // Le bouton n'apparaît qu'après lecture du fichier ; il reste désactivé tant
+  // que l'empreinte SHA-256 n'est pas calculée.
+  await bouton.waitFor({ state: "visible" });
+  await page
+    .getByPlaceholder("Ex. État du logement, document remis…")
+    .fill(preuve.titre);
+  await page.getByPlaceholder(/Décris les faits/).fill(preuve.description);
+  await expect(bouton).toBeEnabled();
+  await bouton.click();
+  // Scellement + horodatage + vérif hash = appels serveur : laisser le temps.
+  await expect(page.getByText("Preuve enregistrée et scellée.")).toBeVisible({
+    timeout: 30_000,
+  });
 }

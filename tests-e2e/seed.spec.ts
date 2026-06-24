@@ -9,11 +9,9 @@
 // Préfixe [TEST] partout pour repérer/nettoyer (le nettoyage se fait via
 // `npm run e2e:compte -- --delete`, qui supprime le compte de test et ses données).
 //
-// Couvre aussi : règle de pension (pour la question IA) + calendrier de garde
-// (date de référence + zone de vacances) par procédure.
-//
-// NON couvert ici (à faire à la main ou à étendre plus tard) :
-//   - preuves photo (upload de fichier + GPS + horodatage).
+// Couvre par procédure : détails/jugement, fait, frais, règle de pension,
+// paiement de pension, calendrier de garde + zone vacances, justificatif
+// (coffre-fort) et preuve photo (upload + empreinte + horodatage + GPS).
 
 import { test } from "@playwright/test";
 import {
@@ -25,11 +23,17 @@ import {
   ajouterFrais,
   ajouterReglePension,
   configurerCalendrier,
+  ajouterDocument,
+  ajouterPaiementPension,
+  ajouterPreuve,
+  creerImageTest,
 } from "./helpers";
 
 const P = "[TEST]";
 
 test("seed : deux procédures avec données distinctes", async ({ page }) => {
+  const image = creerImageTest();
+
   // 1) Création des deux procédures + un enfant chacune.
   await creerProcedureEtEnfant(page, `${P} Parent A`, `${P} Enfant A`);
   await creerProcedureEtEnfant(page, `${P} Parent B`, `${P} Enfant B`);
@@ -55,7 +59,21 @@ test("seed : deux procédures avec données distinctes", async ({ page }) => {
     debiteur: "autre",
     jourEcheance: "5",
   });
+  await ajouterPaiementPension(page, {
+    mois: "2026-05",
+    montantDu: "300",
+    montantPaye: "150",
+  });
   await configurerCalendrier(page, { dateReference: "2026-06-05", zone: "A" });
+  await ajouterDocument(page, {
+    libelle: `${P} Facture A`,
+    fichierPath: image,
+  });
+  await ajouterPreuve(page, {
+    titre: `${P} Photo A`,
+    description: "État du logement, procédure A.",
+    fichierPath: image,
+  });
 
   // 3) Procédure B : détails + un fait + un frais différents.
   await activerProcedure(page, idB);
@@ -75,5 +93,19 @@ test("seed : deux procédures avec données distinctes", async ({ page }) => {
     debiteur: "autre",
     jourEcheance: "10",
   });
+  await ajouterPaiementPension(page, {
+    mois: "2026-05",
+    montantDu: "450",
+    montantPaye: "450",
+  });
   await configurerCalendrier(page, { dateReference: "2026-06-12", zone: "C" });
+  await ajouterDocument(page, {
+    libelle: `${P} Facture B`,
+    fichierPath: image,
+  });
+  await ajouterPreuve(page, {
+    titre: `${P} Photo B`,
+    description: "État du logement, procédure B.",
+    fichierPath: image,
+  });
 });
