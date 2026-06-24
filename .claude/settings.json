@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(echo \"TSC_EXIT=$?\")",
+      "Bash(node -e \"const s=require\\('./package.json'\\).scripts; console.log\\(JSON.stringify\\(s,null,2\\)\\)\")",
+      "Bash(git commit -m 'feat\\(procedures\\): enregistrer la procedure active sur les ecritures metier *)",
+      "Bash(git commit -m 'docs: acter le bloc 4 \\(ecritures cloisonnees\\) et la 009 distante *)",
+      "PowerShell(git add lib/etatDossier.ts lib/resumeDossier.ts components/TableauDeBord.tsx components/ProchainesEcheances.tsx)",
+      "PowerShell(npx eslint lib/suppressionDonnees.ts app/enfants/page.tsx app/procedure/page.tsx 2>&1)",
+      "PowerShell(npx eslint app/rattacher/page.tsx components/NavBar.tsx 2>&1)",
+      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npm run check:agent-boundaries; npm run build 2>&1 | Select-Object -Last 4)",
+      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; node scripts/fix-jsx-entities.mjs)",
+      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npm run build 2>&1 | Select-Object -Last 4)",
+      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npx tsc --noEmit; if \\($?\\) { Write-Output \"TSC_OK\" })"
+    ],
+    "additionalDirectories": [
+      "C:\\projets\\parent-preuve\\.git"
+    ]
+  }
+}
