@@ -11,7 +11,10 @@
     "build": "npm run check && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --import ./tests/setup.ts --test \"tests/**/*.test.ts\""
+    "test": "node --import tsx --import ./tests/setup.ts --test \"tests/**/*.test.ts\"",
+    "e2e:compte": "node scripts/creer-compte-test.mjs",
+    "e2e:install": "playwright install chromium",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

@@ -78,3 +78,10 @@ Thumbs.db
 # Uploads locaux éventuels
 uploads/
 cleapi.txt
+
+# playwright (tests e2e)
+/playwright/.auth
+/playwright-report/
+/test-results/
+/blob-report/
+.last-run.json

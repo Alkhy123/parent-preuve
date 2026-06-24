@@ -14,6 +14,12 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Artefact généré par l'outil gitnexus (CJS autonome, hors périmètre du lint).
     ".gitnexus/**",
+    // Tests end-to-end Playwright : hors périmètre du lint applicatif (dépendance
+    // @playwright/test installée à la demande, voir tests-e2e/README.md).
+    "tests-e2e/**",
+    "playwright.config.ts",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 
