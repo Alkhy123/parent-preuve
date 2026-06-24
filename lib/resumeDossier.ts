@@ -28,6 +28,15 @@ export type ResumeDossier = {
   socleComplet: boolean;
   nombreEnfants: number;
   pensionSolde: number; // > 0 impaye, = 0 a jour, < 0 trop-percu
+  // Regle de pension de la procedure active. Optionnel pour compat ascendante :
+  //   undefined => non charge (ex. tests purs) ;
+  //   null      => charge, aucune regle active ;
+  //   objet     => regle active trouvee.
+  pensionRegle?: {
+    montant: number | null; // montant courant si dispo, sinon montant de base
+    debiteur: string | null;
+    jourEcheance: number | null;
+  } | null;
   fraisResteDu: number; // euros restant a rembourser
   fraisSansJustificatif: number;
   evenementsEnBrouillon: number;
@@ -57,6 +66,23 @@ export function formaterResumeTexte(r: ResumeDossier): string {
     lignes.push(`Pension : trop-percu ${euros(-r.pensionSolde)}.`);
   } else {
     lignes.push("Pension : a jour.");
+  }
+
+  // Regle de pension (montant prevu par le jugement, saisi/valide par l'utilisateur).
+  // Distinct du solde ci-dessus : aide l'IA a repondre aux questions sur la regle.
+  if (r.pensionRegle === null) {
+    lignes.push("Regle de pension : non renseignee.");
+  } else if (r.pensionRegle && r.pensionRegle.montant != null) {
+    const qui = r.pensionRegle.debiteur
+      ? ` (debiteur : ${r.pensionRegle.debiteur})`
+      : "";
+    const echeance =
+      r.pensionRegle.jourEcheance != null
+        ? `, echeance le ${r.pensionRegle.jourEcheance} du mois`
+        : "";
+    lignes.push(
+      `Regle de pension : ${euros(r.pensionRegle.montant)} par mois${qui}${echeance}.`
+    );
   }
 
   // Frais
@@ -110,16 +136,34 @@ export async function chargerResumeDossier(): Promise<ResumeDossier> {
 
   let fraisRows: FraisCalcul[] = [];
   let pensionRows: PensionCalcul[] = [];
+  // null = procedure active mais aucune regle de pension active trouvee.
+  let pensionRegle: ResumeDossier["pensionRegle"] = procId ? null : undefined;
   if (procId) {
-    const [frRes, peRes] = await Promise.all([
+    const [frRes, peRes, prRes] = await Promise.all([
       supabase.from("expenses").select("part_autre, rembourse").eq("procedure_id", procId),
       supabase
         .from("pension_payments")
         .select("montant_du, montant_paye")
         .eq("procedure_id", procId),
+      supabase
+        .from("pension_regle")
+        .select("montant_base, montant_courant, debiteur, jour_echeance")
+        .eq("procedure_id", procId)
+        .eq("actif", true)
+        .eq("valide", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     fraisRows = (frRes.data ?? []) as FraisCalcul[];
     pensionRows = (peRes.data ?? []) as PensionCalcul[];
+    if (prRes.data) {
+      pensionRegle = {
+        montant: prRes.data.montant_courant ?? prRes.data.montant_base ?? null,
+        debiteur: prRes.data.debiteur ?? null,
+        jourEcheance: prRes.data.jour_echeance ?? null,
+      };
+    }
   }
 
   const tf = totauxFrais(fraisRows);
@@ -136,6 +180,7 @@ export async function chargerResumeDossier(): Promise<ResumeDossier> {
     socleComplet,
     nombreEnfants: donnees.nombreEnfants,
     pensionSolde: tp.solde,
+    pensionRegle,
     fraisResteDu: tf.resteDu,
     fraisSansJustificatif: donnees.fraisSansJustificatif,
     evenementsEnBrouillon: donnees.evenementsEnBrouillon,
