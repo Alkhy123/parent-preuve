@@ -71,17 +71,31 @@ export default function ExportPage() {
         if (au) reqDocs = reqDocs.lte("date_document", au);
       }
 
+      // Preuves photo : même logique de période que le bordereau (created_at =
+      // date de scellement). Champs non sensibles uniquement (pas de GPS ni de
+      // chemin de stockage) : bordereau factuel, sans image.
+      let reqPreuves = supabase
+        .from("preuves_photo")
+        .select("titre, created_at, enfant_id, empreinte_sha256, horodatage_statut, horodatage_date")
+        .eq("procedure_id", procId)
+        .order("created_at", { ascending: true });
+      if (!toutesLesPieces) {
+        if (du) reqPreuves = reqPreuves.gte("created_at", du);
+        if (au) reqPreuves = reqPreuves.lte("created_at", `${au}T23:59:59`);
+      }
+
       // Les enfants DE LA PROCÉDURE ACTIVE, pour le bordereau (résolution des noms).
       const reqEnfants = supabase
         .from("children")
         .select("id, prenom_ou_alias")
         .eq("procedure_id", procId);
 
-      const [evRes, frRes, peRes, docRes, enRes] = await Promise.all([
+      const [evRes, frRes, peRes, docRes, prRes, enRes] = await Promise.all([
         reqEvents,
         reqFrais,
         reqPension,
         reqDocs,
+        reqPreuves,
         reqEnfants,
       ]);
 
@@ -92,9 +106,20 @@ export default function ExportPage() {
       const frais = frRes.data ?? [];
       const pension = peRes.data ?? [];
       const pieces = docRes.data ?? [];
+      const preuves = prRes.data ?? [];
 
       const nomEnfant = (id: string | null) =>
         enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";
+
+      const dateFr = (iso: string | null) =>
+        iso ? new Date(iso).toLocaleDateString("fr-FR") : "—";
+
+      const libelleHorodatage = (statut: string | null) => {
+        if (statut === "non_qualifie") return "horodaté (non qualifié)";
+        if (statut === "qualifie") return "horodaté (qualifié)";
+        if (statut === "a_refaire") return "à refaire";
+        return "—";
+      };
 
       // Totaux calculés une seule fois (mêmes fonctions que l'accueil).
       const calculFrais = totauxFrais(frais);
@@ -207,6 +232,7 @@ export default function ExportPage() {
         doc.setTextColor(120);
         doc.text("Aucune pièce pour cette sélection.", 14, y + 8);
         doc.setTextColor(0);
+        y = y + 8;
       } else {
         autoTable(doc, {
           startY: y + 5,
@@ -221,10 +247,49 @@ export default function ExportPage() {
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [51, 65, 85] },
         });
+        y = (doc as DocAutoTable).lastAutoTable.finalY;
+      }
+
+      // --- Preuves photo ---
+      y = y + 15;
+      doc.setFontSize(13);
+      doc.text("5. Preuves photo", 14, y);
+
+      if (preuves.length === 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text("Aucune preuve photo pour cette sélection.", 14, y + 8);
+        doc.setTextColor(0);
+        y = y + 8;
+      } else {
+        autoTable(doc, {
+          startY: y + 5,
+          head: [["Preuve n°", "Scellée le", "Titre", "Enfant", "Horodatage", "Empreinte SHA-256"]],
+          body: preuves.map((p, i) => [
+            String(i + 1),
+            dateFr(p.created_at),
+            p.titre ?? "—",
+            nomEnfant(p.enfant_id),
+            libelleHorodatage(p.horodatage_statut),
+            p.empreinte_sha256 ?? "—",
+          ]),
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [51, 65, 85] },
+          columnStyles: { 5: { fontSize: 6 } },
+        });
+        y = (doc as DocAutoTable).lastAutoTable.finalY + 6;
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        const noticePreuves =
+          "Preuves numériques renforcées, scellées et horodatées (horodatage non qualifié au sens eIDAS). Elles ne constituent pas un constat de commissaire de justice. Le rapport détaillé et l'image originale de chaque preuve sont disponibles individuellement dans l'application.";
+        const lignesNotice = doc.splitTextToSize(noticePreuves, 180);
+        doc.text(lignesNotice, 14, y);
+        doc.setTextColor(0);
+        y = y + lignesNotice.length * 4;
       }
 
       // --- Avertissement ---
-      y = (doc as DocAutoTable).lastAutoTable.finalY + 15;
+      y = y + 15;
       doc.setFontSize(8);
       doc.setTextColor(120);
       const avertissement =
@@ -299,8 +364,10 @@ export default function ExportPage() {
             <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 3</p>
             <h2 className="font-display text-lg text-[#15233F]">Générer l&apos;export PDF</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Le PDF est une organisation factuelle de vos données, à relire avant
-              toute transmission. Il ne constitue pas un avis juridique.
+              Le PDF réunit chronologie, frais, pension, bordereau de pièces et
+              bordereau des preuves photo. C&apos;est une organisation factuelle de vos
+              données, à relire avant toute transmission. Il ne constitue pas un avis
+              juridique.
             </p>
           </div>
           <button
