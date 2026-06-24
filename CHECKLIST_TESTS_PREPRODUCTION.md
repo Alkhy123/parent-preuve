@@ -9,11 +9,44 @@ Dépôt : `Alkhy123/parent-preuve` — branche `main`.
 
 ## 0. Prérequis avant de tester
 
-- [ ] Pousser la migration **014** : `supabase db push` (table `audit_log`).
-      Tant qu'elle n'est pas appliquée, l'audit échoue silencieusement (pas de
-      casse d'UX, mais rien n'est tracé).
+- [x] Migration **014** poussée (`supabase db push`, table `audit_log`). FAIT.
 - [ ] Vérifier que le déploiement Vercel est **vert** sur le dernier commit `main`.
 - [ ] Se connecter avec un compte de test (pas un vrai dossier).
+
+---
+
+## 0bis. Correctifs de la 1re session de tests (à revérifier)
+
+Suite aux retours : cloisonnement OK (rien à refaire), 4 correctifs livrés.
+
+### Item 6 — Orientation du copilote (bouton flottant, onglet « M'orienter »)
+- [ ] Saisir « Je veux ajouter un fait pour <enfant> » → propose **le journal**
+      (et non plus le tableau de bord).
+- [ ] « un fait », « consigner », « non-représentation » → orientent vers le journal.
+- [ ] Vérifier qu'une phrase contenant « j'ai fait un paiement » n'est PAS
+      détournée à tort vers le journal.
+
+### Item 2 — L'IA trouve la règle de pension (bouton flottant, « Question dossier »)
+- [ ] Avoir une règle de pension validée (page Pension), puis demander au copilote
+      « Quelle est la règle de pension ? » → la réponse cite le montant / l'échéance.
+- [ ] Sans règle de pension : la réponse indique « non renseignée », sans inventer.
+
+### Item 4 — Résumé onboarding jugement/calendrier (assistant d'accueil)
+- [ ] Avec un jugement dont les **règles sont validées** (sans avoir saisi la
+      référence) : le résumé final affiche « Jugement : Renseigné ».
+- [ ] Avec un calendrier configuré via le **calendrier avancé** : le résumé final
+      affiche « Calendrier de garde : Configuré ».
+- [ ] L'assistant de démarrage **ne reste plus actif** sur l'accueil une fois le
+      dossier configuré (déclarant + autre parent + enfant + jugement OU règles).
+
+### Item 3 — Vacances dans le calendrier de garde (`/calendrier`)
+- [ ] Sélecteur **Zone A/B/C** présent ; le choix est mémorisé après rechargement.
+- [ ] Un prochain week-end tombant en vacances scolaires affiche le repère
+      « ⚠ Vacances … — répartition selon le jugement » + la note prudente.
+- [ ] Le calendrier mensuel marque les jours de vacances (point ambre) + légende.
+- [ ] Vérifier qu'aucune garde n'est **réattribuée automatiquement** pendant les
+      vacances (l'app annote seulement, le jugement fixe la répartition).
+- [ ] Changer de zone met à jour les vacances affichées.
 
 ---
 
@@ -65,6 +98,9 @@ Basculer sur **procédure A** puis contrôler chaque écran ; recommencer sur B.
 - [ ] Écran `/rattacher` : liste bien les éléments orphelins (`procedure_id` null) s'il y en a
 
 **Critère de réussite : zéro fuite entre A et B sur tous les écrans et exports.**
+
+> Statut : **validé** lors de la 1re session de tests (aucun mélange constaté).
+> À re-tester seulement après une modification touchant le cloisonnement.
 
 ---
 
