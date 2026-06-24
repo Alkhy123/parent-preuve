@@ -1,11 +1,13 @@
 // app/api/agent/pre-remplir/route.ts
 //
-// Agent Parent Preuve — pré-remplissage expérimental.
+// Agent Parent Preuve — pré-remplissage structuré.
 //
-// Cette route prépare la migration progressive de l'ancien assistant
-// /api/assistant/pre-remplir vers l'architecture Agent.
+// Cette route remplace l'ancien assistant /api/assistant/pre-remplir
+// (supprimé après migration vers l'architecture Agent).
 //
-// Elle n'est pas branchée au bouton flottant.
+// Elle est branchée au bouton flottant : usage « pré-remplissage » de
+// components/AssistantFlottant.tsx. Elle propose une structure à valider et
+// n'enregistre jamais automatiquement (validation humaine obligatoire).
 //
 // Sécurité :
 // - authentification obligatoire ;

@@ -134,7 +134,7 @@ verifierPresences(
 verifierPresences(
   fichiers.agentPreRemplir,
   [
-    "Agent Parent Preuve — pré-remplissage expérimental",
+    "Agent Parent Preuve — pré-remplissage structuré",
     "ENDPOINT_MISTRAL_CHAT_COMPLETIONS",
     "verifierQuotaIa",
     "MISTRAL_API_KEY",

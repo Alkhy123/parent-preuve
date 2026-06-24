@@ -1,9 +1,10 @@
 // app/api/agent/repondre/route.ts
 //
-// Agent Parent Preuve — route expérimentale IA.
+// Agent Parent Preuve — route Copilote IA avancée (Mistral).
 //
-// Cette route prépare le futur Copilote IA avec Mistral.
-// Elle n'est pas encore branchée à l'interface principale.
+// Elle reste réservée au test avancé via /copilote tant qu'une étape dédiée
+// de mise en production n'a pas été validée. Elle ne doit jamais être appelée
+// par le bouton flottant (components/AssistantFlottant.tsx).
 //
 // Sécurité :
 // - authentification obligatoire ;

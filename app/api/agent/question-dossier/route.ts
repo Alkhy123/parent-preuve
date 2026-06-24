@@ -1,13 +1,13 @@
 // app/api/agent/question-dossier/route.ts
 //
-// Agent Parent Preuve — question sur le dossier (expérimental).
+// Agent Parent Preuve — question sur le dossier.
 //
-// Cette route prépare la migration progressive de l'ancien assistant
-// /api/assistant/repondre vers l'architecture Agent.
+// Cette route remplace l'ancien assistant /api/assistant/repondre
+// (supprimé après migration vers l'architecture Agent).
 //
-// Elle n'est pas branchée au bouton flottant.
-// Elle est testée uniquement dans /copilote tant que la mise en production
-// n'a pas été validée.
+// Elle est branchée au bouton flottant : usage « question dossier » de
+// components/AssistantFlottant.tsx. Elle répond uniquement à partir des
+// données factuelles du dossier et n'écrit rien en base métier.
 //
 // Contrat de réponse : agent-question-dossier-v1.
 //
