@@ -410,6 +410,11 @@ Format recommandé par champ :
 * Erreur de comptage = refus.
 * Jamais de permission implicite en cas d'erreur.
 * `ConsentementIA.tsx` est la porte réutilisable qui enveloppe toute fonctionnalité IA.
+* Contrôle **côté serveur** imposé : le consentement est revérifié en base avant
+  tout appel Mistral, après authentification et avant le quota (helper
+  `lib/consentementIaServeur.ts`, fail-closed HTTP 403). Couvre `/api/ia/reformuler`,
+  `/api/ia/extraire`, `/api/ia/extraire-pdf` ; protégé par
+  `scripts/check-ia-consent-boundaries.mjs` dans le build.
 
 ## 4.7. Déterministe d'abord
 
@@ -631,16 +636,11 @@ Autre parent différent = procédure séparée.
 
 ## 6.2. Granularité conservée
 
-Documents, preuves, événements et frais restent rattachés à l'enfant.
+Documents, preuves, événements et frais peuvent rester rattachés à l'enfant,
+mais le rattachement à la procédure est désormais **direct** (`procedure_id`),
+plus déduit de l'enfant.
 
-État hérité observé : comme un enfant appartient à une procédure, le filtrage par
-procédure est actuellement déduit de l'enfant.
-
-Dette P0 confirmée par l'audit du 22 juin 2026 : les lignes sans enfant sont
-traitées comme générales et visibles dans toutes les procédures. Ce comportement
-peut mélanger plusieurs dossiers et ne constitue plus la cible produit.
-
-Cible validée :
+Cible (atteinte) :
 
 ```text
 Chaque donnée métier appartient directement à une procédure via procedure_id.
@@ -649,20 +649,34 @@ Une donnée sans enfant reste visible uniquement dans sa procédure.
 Une donnée ambiguë héritée n'est jamais dupliquée ni attribuée automatiquement.
 ```
 
-Le plan détaillé de migration est documenté dans
+État au 23 juin 2026 : le chantier de cloisonnement P0/P1 est **terminé côté
+code**. Le plan et l'historique détaillés sont dans
 `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md`.
 
-La structure cible est versionnée dans la migration 009 : `events`, `expenses`,
-`documents` et `preuves_photo` disposent désormais d'un `procedure_id` direct,
-nullable pendant la transition. Le backfill n'attribue jamais arbitrairement
-les lignes héritées ambiguës.
+* Structure : migration `009` ajoute `procedure_id` direct sur `events`,
+  `expenses`, `documents`, `preuves_photo` (nullable pendant la transition),
+  avec backfill déterministe (jamais d'attribution arbitraire) et contraintes
+  composites garantissant que procédure, enfant et document liés appartiennent
+  au même utilisateur et à la même procédure (`procedure_id` en
+  `ON DELETE RESTRICT`).
+* Écritures : chaque création enregistre `procedure_id` (procédure active, ou
+  héritée de l'enfant pour le calendrier de visites).
+* Lectures, résumés et exports : filtrés **en base** par `procedure_id`. La
+  règle héritée `child_id === null || idsProc.has(child_id)` a été retirée comme
+  mécanisme de cloisonnement ; le filtre enfant ne reste qu'un garde-fou
+  secondaire. Sans procédure active, aucune donnée métier n'est remontée.
+* Lignes héritées ambiguës (`procedure_id = null`) : exclues des vues strictes et
+  récupérables via l'écran de rattachement manuel `app/rattacher`. Le passage des
+  colonnes en `NOT NULL` reste à faire après résolution de ces lignes.
+* Suppressions (enfant / procédure) : explicites, confirmées et robustes
+  (helper `lib/suppressionDonnees.ts`), sans transformation silencieuse en
+  donnée « générale » ni nettoyage partiel.
+* Intégrité : migration `012` ajoute `WITH CHECK (auth.uid() = user_id)` sur les
+  UPDATE qui en manquaient.
 
-État au 22 juin 2026 (soir) : la migration 009 est appliquée en distant et les
-écritures sont adaptées (bloc 4, commit `b59b359`) : chaque création enregistre
-`procedure_id`. Reste à faire : adapter les **lectures, résumés et exports**
-(bloc 5) pour filtrer en base par `procedure_id` et retirer la règle
-`child_id === null || idsProc.has(child_id)`. Les lignes héritées ambiguës
-(`procedure_id = null`) attendent encore l'écran de rattachement.
+`garde_regles` reste cloisonné par enfant (pas encore de `procedure_id` direct ;
+étape secondaire). La pension est cloisonnée par `procedure_id` (jamais par
+enfant).
 
 ## 6.3. Procédure active
 

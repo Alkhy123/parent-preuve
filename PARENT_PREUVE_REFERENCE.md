@@ -773,6 +773,8 @@ Fichiers :
 009_cloisonnement_donnees_metier.sql
 010_calendar_advanced_rules.sql
 011_calendar_exceptions.sql
+012_rls_update_with_check.sql
+013_storage_limites_buckets.sql
 ```
 
 Rappel :
@@ -782,7 +784,9 @@ Rappel :
 004 à 008 : idempotentes
 009 : additive, appliquée en distant le 22/06/2026 (procedure_id sur 4 tables métier)
 010 / 011 : calendrier avancé (règles + exceptions)
-prochain numéro libre : 012
+012 : RLS, with check (auth.uid()=user_id) sur les UPDATE manquants ; appliquée en distant le 23/06/2026
+013 : limites Storage (taille + types MIME des buckets) ; À POUSSER en distant (supabase db push)
+prochain numéro libre : 014
 ```
 
 Historique de migration distant aligné via `supabase migration repair --status applied 001 … 007`
@@ -827,11 +831,12 @@ justificatifs
 Règles générales :
 
 ```text
-RLS active
+RLS active (with check sur INSERT et UPDATE depuis la migration 012)
 user_id = auth.uid()
-procédure active filtrée côté application
+procédure active filtrée EN BASE (.eq procedure_id) sur lectures/exports
 pas de policy UPDATE sur preuves originales
 URLs signées temporaires pour lecture de fichiers
+buckets : taille max + types MIME (migration 013)
 ```
 
 ---
@@ -878,8 +883,8 @@ Règle :
 
 ```text
 La RLS protège par utilisateur.
-Le cloisonnement écriture par procédure est appliqué directement (procedure_id).
-Le cloisonnement lecture reste partiellement applicatif jusqu'au bloc 5.
+Le cloisonnement écriture ET lecture par procédure est appliqué directement
+(procedure_id), en base. Le filtre enfant n'est plus qu'un garde-fou secondaire.
 ```
 
 La migration 009 ajoute un `procedure_id` direct, nullable et indexé à `events`,
@@ -895,20 +900,20 @@ Contrôle statique :
 npm run check:multi-procedure-migration
 ```
 
-État au 22 juin 2026 (soir) :
+État au 23 juin 2026 — chantier de cloisonnement TERMINÉ côté code :
 
 ```text
 migration 009 : appliquée en distant
-écritures (bloc 4, commit b59b359) : TERMINÉ
-  -> les 6 créateurs enregistrent procedure_id :
-     journal, frais (documents + expenses), documents, preuves/nouvelle,
-     ChampPieceJointe, onboarding/CalendrierVisites (hérité de l'enfant)
-  -> refus propre si aucune procédure active ; résolution avant upload
-  -> édition d'un frais : procedure_id non modifié
-lectures / résumés / exports (bloc 5) : À FAIRE
-  -> filtrer en base par procedure_id, retirer child_id === null || idsProc.has(child_id)
-limite connue : lier une pièce héritée (procedure_id null) à une nouvelle ligne
-  est rejeté par la contrainte composite -> écran de rattachement à venir (étape D)
+écritures (bloc 4) : chaque création enregistre procedure_id ; refus propre si
+  aucune procédure active ; résolution avant upload ; édition frais ne déplace pas
+lectures / résumés / exports (bloc 5) : filtrés en base par procedure_id ;
+  règle child_id === null || idsProc.has(child_id) retirée
+suppressions enfant/procédure (bloc 6) : explicites et robustes
+  (lib/suppressionDonnees.ts), pas de nettoyage partiel ni de donnée orpheline
+écran de rattachement (étape D) : app/rattacher (lignes procedure_id = null)
+RLS with check (bloc 7) : migration 012 appliquée en distant
+RESTE : passer les colonnes procedure_id en NOT NULL une fois les lignes
+  héritées résolues ; garde_regles -> procedure_id direct (étape secondaire)
 ```
 
 ---
@@ -1136,6 +1141,7 @@ app/compte/
 app/dossier/
 app/procedure/
 app/enfants/
+app/rattacher/        -- éléments à rattacher (lignes procedure_id null)
 app/journal/
 app/frais/
 app/pension/
@@ -1154,6 +1160,7 @@ Routes API principales :
 ```text
 app/api/horodatage/route.ts
 app/api/compte/supprimer/route.ts
+app/api/compte/exporter/route.ts   -- export de portabilité RGPD (JSON + liens)
 app/api/preuves/verifier-hash/route.ts
 
 app/api/ia/reformuler/route.ts
@@ -1223,6 +1230,7 @@ lib/authServeur.ts
 lib/enteteAuth.ts
 lib/consentementIaServeur.ts
 lib/procedureActive.ts
+lib/suppressionDonnees.ts          -- suppressions enfant/procédure contrôlées
 lib/etatDossier.ts
 lib/etatConfiguration.ts
 lib/quotaIa.ts
@@ -1237,6 +1245,16 @@ Scripts :
 
 ```text
 scripts/check-agent-boundaries.mjs
+scripts/check-ia-consent-boundaries.mjs
+scripts/check-multi-procedure-migration.mjs
+```
+
+Tests (runner natif node:test + tsx) :
+
+```text
+tests/                              -- fonctions pures (dossierCalculs, preRemplissage,
+                                       chronologie, chronologieExport, resumeDossier)
+commande : npm test
 ```
 
 ---
@@ -1403,15 +1421,43 @@ lib/authServeur.ts
 lib/enteteAuth.ts
 ```
 
-Suppression RGPD :
+En-têtes de sécurité (bloc 12, `next.config.ts`) :
+
+```text
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: DENY
+Permissions-Policy: camera=(), microphone=(), geolocation=(self), browsing-topics=()
+Strict-Transport-Security: max-age=63072000; includeSubDomains
+Content-Security-Policy-Report-Only : CSP non bloquante (autorise Supabase https/wss,
+  blob:/data:, unsafe-inline styles+scripts) -> À PROMOUVOIR en CSP bloquante après vérif navigateur
+```
+
+Uploads (bloc 8) :
+
+```text
+limites base : migration 013 (justificatifs images+PDF 15 Mio ; preuves images 25 Mio)
+nettoyage compensatoire : fichier retiré si l'insert métier échoue après upload
+(app/documents, app/frais, components/ChampPieceJointe, app/preuves/nouvelle)
+```
+
+Suppression RGPD (bloc 9) :
 
 ```text
 app/api/compte/supprimer/route.ts
-supabaseAdmin
-service_role
-Storage effacé
-tables effacées
+supabaseAdmin / service_role
+Storage effacé avec PAGINATION (offset) + suppression par lots de 1000 + vérif finale
+tables effacées (filtrées user_id)
 Auth supprimé en dernier
+opération rejouable
+```
+
+Portabilité RGPD (bloc 9) :
+
+```text
+app/api/compte/exporter/route.ts (GET)
+export JSON de toutes les tables (filtrées user_id) + liens signés 1 h des fichiers
+bouton sur app/compte/page.tsx ; distinct du dossier avocat
 ```
 
 Pages légales :
@@ -1517,11 +1563,20 @@ Résolu :
 
 ```text
 HORODATAGE_SECRET remplace HMAC_SECRET
-migrations Supabase 001 à 011 versionnées (009 appliquée en distant le 22/06/2026)
+migrations Supabase 001 à 013 versionnées (009 + 012 appliquées en distant ; 013 à pousser)
 cloisonnement écritures par procedure_id (bloc 4, commit b59b359)
+cloisonnement lectures / résumés / exports en base par procedure_id (bloc 5)
+suppressions enfant / procédure explicites et robustes (bloc 6, lib/suppressionDonnees.ts)
+écran de rattachement des lignes héritées procedure_id null (app/rattacher, étape D)
+RLS with check sur les UPDATE manquants (bloc 7, migration 012)
+uploads : limites buckets (migration 013) + nettoyage des fichiers orphelins (bloc 8)
+suppression RGPD fiabilisée (pagination Storage) + export de portabilité (bloc 9)
+tests automatisés des fonctions pures (bloc 10, `npm test`, 22 tests)
+lint ESLint 100% vert sans désactivation globale (bloc 11)
+en-têtes de sécurité HTTP + CSP report-only (bloc 12, next.config.ts)
+perf : liste preuves allégée (colonnes minimales) (bloc 14)
 quota IA fail-closed
 consentement IA vérifié côté serveur avant quota sur reformulation et extraction
-suppression RGPD complète
 hash preuve recalculé serveur
 README dégénéricisé
 favicon PP
@@ -1538,19 +1593,36 @@ documentation Agent
 
 # 20. Backlog prioritaire
 
-## 20.0. Cloisonnement multi-procédures (chantier P0 en cours)
+## 20.0. Cloisonnement multi-procédures + stabilisation (chantier P0/P1 terminé)
 
-Point de reprise au 22 juin 2026 (soir) :
+État au 23 juin 2026 — chantier terminé côté code :
 
 ```text
-FAIT  bloc 1 : consentement IA serveur
-FAIT  bloc 2 : plan de migration multi-procédures
-FAIT  bloc 3 : migration 009 (procedure_id + backfill + contraintes), appliquée en distant
-FAIT  bloc 4 : écritures adaptées (commit b59b359), validé en production
-SUITE bloc 5 : lectures, résumés et exports filtrés en base par procedure_id
-      bloc 6 : suppressions enfant / procédure explicites
-      étape D : écran de rattachement des lignes héritées (procedure_id null) puis NOT NULL
-      étape E : garde_regles + note_brouillon par procédure
+FAIT  bloc 1  : consentement IA serveur
+FAIT  bloc 2  : plan de migration multi-procédures
+FAIT  bloc 3  : migration 009 (procedure_id + backfill + contraintes), distant
+FAIT  bloc 4  : écritures adaptées (commit b59b359)
+FAIT  bloc 5  : lectures, résumés et exports filtrés en base par procedure_id
+FAIT  bloc 6  : suppressions enfant / procédure explicites + écran rattachement (étape D)
+FAIT  bloc 7  : RLS with check (migration 012, distant)
+FAIT  bloc 8  : uploads (limites buckets migration 013, fichiers orphelins)
+FAIT  bloc 9  : RGPD (effacement paginé + export portabilité)
+FAIT  bloc 10 : tests automatisés (npm test)
+FAIT  bloc 11 : lint ESLint 100% vert
+FAIT  bloc 12 : en-têtes de sécurité (CSP report-only)
+FAIT  bloc 14 : perf (colonnes liste preuves)
+```
+
+Reste (hors code / dépend du user) :
+
+```text
+pousser la migration 013 en distant (supabase db push)
+promouvoir la CSP report-only en CSP bloquante après vérif navigateur
+passer les colonnes procedure_id en NOT NULL après résolution des lignes héritées
+étape E : garde_regles + note_brouillon par procédure (secondaire)
+bloc 13 : cohérence textes RGPD vs contrats réels (vérif externe : régions, DPA, ZDR)
+bloc 15 : UX (chevauche le chantier pack-UX)
+tests fonctionnels réels multi-comptes / multi-procédures (base requise)
 ```
 
 Détail complet : `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md` et
@@ -1728,11 +1800,38 @@ Vérifier séparation Agent :
 npm run check:agent-boundaries
 ```
 
+Vérifier le consentement IA serveur :
+
+```bash
+npm run check:ia-consent
+```
+
+Vérifier la migration multi-procédures :
+
+```bash
+npm run check:multi-procedure-migration
+```
+
+Tests unitaires (fonctions pures) :
+
+```bash
+npm test
+```
+
+Lint :
+
+```bash
+npm run lint
+```
+
 Build :
 
 ```bash
 npm run build
 ```
+
+Note poste local : `npm install` requiert `NODE_OPTIONS=--use-system-ca`
+(certificat TLS). Le script `dev` le positionne déjà.
 
 Vérifier que le bouton flottant ne branche pas l'Agent général :
 
@@ -1806,6 +1905,17 @@ Agent pré-remplissage = validé et branché dans le bouton flottant.
 Bouton flottant = Agent pour orientation/pré-remplissage, assistant historique pour question dossier.
 Script anti-régression = actif dans le build.
 Documentation Agent = présente.
+```
+
+Chantier de stabilisation P0/P1 (23 juin 2026) = terminé côté code :
+
+```text
+cloisonnement direct par procedure_id (écritures, lectures, exports, suppressions)
+écran de rattachement des lignes héritées + RLS with check (012)
+uploads limités (013) + RGPD effacement paginé + export portabilité
+tests (npm test), lint 100% vert, en-têtes de sécurité (CSP report-only)
+RESTE côté user : push migration 013, CSP bloquante, NOT NULL procedure_id,
+  bloc 13 (textes RGPD vs contrats), bloc 15 (UX), tests fonctionnels multi-comptes
 ```
 
 Règle finale :

@@ -62,6 +62,21 @@ Reste à faire (progressif, non bloquant) : adoption des classes `.btn-*` / `.ba
 
 ---
 
+## 0.2. Socle technique stabilisé (chantier P0/P1, 23 juin 2026)
+
+Chantier de stabilisation terminé côté code (le code et les migrations versionnées font foi). Détail dans `PARENT_PREUVE_CONTEXTE_AUDIT_ETAT_ACTUEL.md` et `PROMPT_CLAUDE_CURSOR_STABILISATION_PARENT_PREUVE.md`.
+
+- **Cloisonnement multi-procédures** : chaque donnée métier appartient désormais directement à une procédure (`procedure_id`), filtrée **en base** sur les écritures, lectures, résumés et exports (fini le « sans enfant = visible partout »). Écran de rattachement manuel des lignes héritées ambiguës (`app/rattacher`).
+- **Suppressions** enfant / procédure explicites, confirmées et robustes (plus de nettoyage partiel ni de donnée orpheline).
+- **Sécurité** : consentement IA revérifié côté serveur avant tout appel Mistral ; RLS `with check` complétée (migration 012) ; en-têtes de sécurité HTTP + CSP en report-only (à promouvoir en bloquante après vérif navigateur).
+- **Uploads** : limites de taille / types MIME au niveau base (migration 013, à pousser) + nettoyage des fichiers orphelins.
+- **RGPD** : suppression de compte fiabilisée (Storage paginé) + **export de portabilité** JSON distinct du dossier avocat.
+- **Qualité** : tests automatisés des fonctions pures (`npm test`), lint ESLint 100% vert.
+
+Reste hors code (dépend du propriétaire) : pousser la migration 013 ; promouvoir la CSP en bloquante ; passer `procedure_id` en `NOT NULL` après résolution des lignes héritées ; cohérence des textes RGPD avec les contrats réels (régions, DPA, ZDR) ; tests fonctionnels multi-comptes.
+
+---
+
 # 1. Vision produit
 
 ## 1.1. Boussole
