@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
+import { enteteAuth } from "@/lib/enteteAuth";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
@@ -114,6 +115,84 @@ export default function PreuvesPage() {
   const [chargement, setChargement] = useState(true);
 
   const [genEnCours, setGenEnCours] = useState<string | null>(null);
+
+  // Action technique en cours (clé "id:horodatage" ou "id:hash") + retour par preuve.
+  const [actionEnCours, setActionEnCours] = useState<string | null>(null);
+  const [retour, setRetour] = useState<Record<string, string>>({});
+
+  // Relancer l'horodatage interne (non qualifié) d'une preuve marquée "à refaire".
+  // /api/horodatage signe l'empreinte mais n'écrit rien : on persiste les champs ici.
+  async function relancerHorodatage(p: Preuve) {
+    if (!p.empreinte_sha256) return;
+    setActionEnCours(`${p.id}:horodatage`);
+    setRetour((r) => ({ ...r, [p.id]: "" }));
+    try {
+      const reponse = await fetch("/api/horodatage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
+        body: JSON.stringify({ empreinte: p.empreinte_sha256 }),
+      });
+      if (!reponse.ok) throw new Error("réponse non OK");
+      const h = await reponse.json();
+      const { error } = await supabase
+        .from("preuves_photo")
+        .update({
+          horodatage_jeton: h.jeton,
+          horodatage_date: h.date,
+          horodatage_statut: h.statut,
+          horodatage_prestataire: h.prestataire,
+          horodatage_algorithme: h.algorithme,
+        })
+        .eq("id", p.id);
+      if (error) throw error;
+      // Reflète le nouvel état dans la liste (pastille + colonnes affichées).
+      setPreuves((liste) =>
+        liste.map((x) =>
+          x.id === p.id
+            ? { ...x, horodatage_statut: h.statut, horodatage_date: h.date }
+            : x
+        )
+      );
+      setRetour((r) => ({ ...r, [p.id]: "Horodatage refait." }));
+    } catch {
+      setRetour((r) => ({
+        ...r,
+        [p.id]: "Échec de l'horodatage. Réessayez plus tard.",
+      }));
+    } finally {
+      setActionEnCours(null);
+    }
+  }
+
+  // Relancer la vérification serveur de l'empreinte (intégrité technique).
+  // /api/preuves/verifier-hash recharge le fichier, recalcule et enregistre lui-même.
+  async function relancerVerificationHash(p: Preuve) {
+    if (!p.storage_path || !p.empreinte_sha256) return;
+    setActionEnCours(`${p.id}:hash`);
+    setRetour((r) => ({ ...r, [p.id]: "" }));
+    try {
+      const reponse = await fetch("/api/preuves/verifier-hash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await enteteAuth()) },
+        body: JSON.stringify({ id: p.id }),
+      });
+      if (!reponse.ok) throw new Error("réponse non OK");
+      const v = await reponse.json();
+      setRetour((r) => ({
+        ...r,
+        [p.id]: v.hash_verifie
+          ? "Intégrité vérifiée : empreinte recalculée concordante."
+          : "Écart constaté entre l'empreinte d'origine et l'empreinte recalculée.",
+      }));
+    } catch {
+      setRetour((r) => ({
+        ...r,
+        [p.id]: "Vérification indisponible. Réessayez plus tard.",
+      }));
+    } finally {
+      setActionEnCours(null);
+    }
+  }
 
   async function genererRapport(p: Preuve) {
     setGenEnCours(p.id);
@@ -379,6 +458,35 @@ export default function PreuvesPage() {
                       )}
                     </div>
                   </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {p.horodatage_statut === "a_refaire" && p.empreinte_sha256 && (
+                      <button
+                        onClick={() => relancerHorodatage(p)}
+                        disabled={actionEnCours === `${p.id}:horodatage`}
+                        className="rounded-md border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+                      >
+                        {actionEnCours === `${p.id}:horodatage`
+                          ? "Horodatage…"
+                          : "Relancer l'horodatage"}
+                      </button>
+                    )}
+                    {p.storage_path && p.empreinte_sha256 && (
+                      <button
+                        onClick={() => relancerVerificationHash(p)}
+                        disabled={actionEnCours === `${p.id}:hash`}
+                        className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
+                      >
+                        {actionEnCours === `${p.id}:hash`
+                          ? "Vérification…"
+                          : "Vérifier l'intégrité"}
+                      </button>
+                    )}
+                  </div>
+
+                  {retour[p.id] && (
+                    <p className="text-xs text-[#1F2733]/70">{retour[p.id]}</p>
+                  )}
 
                   {p.description && (
                     <p className="text-sm text-[#1F2733]/80 whitespace-pre-wrap">
