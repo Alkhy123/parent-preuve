@@ -29,5 +29,16 @@ setup("se connecter", async ({ page }) => {
   // La page de connexion affiche « Vous êtes connecté » une fois la session ouverte.
   await expect(page.getByText("Vous êtes connecté")).toBeVisible();
 
+  // Accepte la politique RGPD (modale bloquante pour un compte neuf). L'acceptation
+  // est enregistrée en base : elle ne réapparaîtra plus pour les autres pages.
+  await page.goto("/");
+  const accepter = page.getByRole("button", { name: "J'ai lu et j'accepte" });
+  try {
+    await accepter.click({ timeout: 10000 });
+    await expect(accepter).toBeHidden();
+  } catch {
+    // Déjà acceptée (ou non affichée) : rien à faire.
+  }
+
   await page.context().storageState({ path: fichierAuth });
 });

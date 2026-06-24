@@ -12,7 +12,28 @@
 //
 // L'URL cible vient de PARENT_PREUVE_URL (défaut : l'app Vercel de prod).
 
+import { existsSync, readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+// Charge .env.local (TEST_EMAIL / TEST_PASSWORD / PARENT_PREUVE_URL) sans
+// dépendance dotenv : Playwright ne lit pas .env.local tout seul.
+function chargerEnvLocal() {
+  if (!existsSync(".env.local")) return;
+  for (const ligne of readFileSync(".env.local", "utf8").split("\n")) {
+    const m = ligne.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+    if (!m) continue;
+    let val = m[2].trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (process.env[m[1]] === undefined) process.env[m[1]] = val;
+  }
+}
+
+chargerEnvLocal();
 
 const BASE_URL =
   process.env.PARENT_PREUVE_URL ?? "https://parent-preuve.vercel.app";
