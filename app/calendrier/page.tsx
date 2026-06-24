@@ -9,6 +9,13 @@ import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
 import EncartPliable from "@/components/EncartPliable";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import {
+  isoJourLocal,
+  vacancesQuiChevauchent,
+} from "@/lib/calendrier/chevauchementVacances";
+import type { PeriodeVacances } from "@/lib/calendrier/types";
+
+const CLE_ZONE = "zone_vacances";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -29,6 +36,20 @@ export default function CalendrierPage() {
   const [signalFermeture, setSignalFermeture] = useState(0);
   const [chargement, setChargement] = useState(false);
 
+  // Zone de vacances scolaires (A/B/C), memorisee en local. Sert UNIQUEMENT a
+  // annoter le calendrier : on n'attribue jamais la garde des vacances (le
+  // jugement la fixe). Lecture paresseuse au 1er rendu (garde SSR).
+  const [zoneVacances, setZoneVacances] = useState<string>(() => {
+    if (typeof window === "undefined") return "A";
+    try {
+      const z = window.localStorage.getItem(CLE_ZONE);
+      return z === "A" || z === "B" || z === "C" ? z : "A";
+    } catch {
+      return "A";
+    }
+  });
+  const [vacances, setVacances] = useState<PeriodeVacances[]>([]);
+
   // 1) charger les enfants DE LA PROCÉDURE ACTIVE
   useEffect(() => {
     (async () => {
@@ -37,6 +58,39 @@ export default function CalendrierPage() {
       if (data.length > 0) setEnfantId(data[0].id);
     })();
   }, []);
+
+  function changerZone(z: string) {
+    setZoneVacances(z);
+    try {
+      window.localStorage.setItem(CLE_ZONE, z);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Vacances scolaires de la zone, sur ~1 an : annotations seulement.
+  // Tout echec est silencieux (fallback []) : le calendrier reste fonctionnel.
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      const du = new Date();
+      du.setHours(0, 0, 0, 0);
+      const au = new Date(du);
+      au.setFullYear(au.getFullYear() + 1);
+      try {
+        const r = await fetch(
+          `/api/calendrier/vacances?zone=${zoneVacances}&du=${isoJourLocal(du)}&au=${isoJourLocal(au)}`
+        );
+        const j = r.ok ? await r.json() : { data: [] };
+        if (!annule) setVacances(Array.isArray(j.data) ? j.data : []);
+      } catch {
+        if (!annule) setVacances([]);
+      }
+    })();
+    return () => {
+      annule = true;
+    };
+  }, [zoneVacances]);
 
   // 2) à chaque changement d'enfant, charger sa règle (ou remettre les défauts)
   useEffect(() => {
@@ -234,31 +288,66 @@ export default function CalendrierPage() {
               </div>
             </EncartPliable>
 
+            <div>
+              <label className={labelCss}>Zone de vacances scolaires</label>
+              <select
+                value={zoneVacances}
+                onChange={(e) => changerZone(e.target.value)}
+                className={champ}
+              >
+                <option value="A">Zone A</option>
+                <option value="B">Zone B</option>
+                <option value="C">Zone C</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
+                Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
+                Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
+                Montpellier, Paris, Toulouse, Versailles.
+              </p>
+            </div>
+
             <section className="carte rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>
               {apercu.length === 0 ? (
                 <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {apercu.map((p, i) => (
-                    <li key={i} className="py-3 flex items-start gap-3">
-                      <span
-                        className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: p.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
-                      />
-                      <span className="text-[#1F2733]">
-                        Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
-                        <strong>{fmt(p.fin)}</strong> {fmtHeure(p.fin)}
-                        <span className="block text-xs text-gray-500">
-                          {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
+                  {apercu.map((p, i) => {
+                    const vac = vacancesQuiChevauchent(p.debut, p.fin, vacances);
+                    return (
+                      <li key={i} className="py-3 flex items-start gap-3">
+                        <span
+                          className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: p.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
+                        />
+                        <span className="text-[#1F2733]">
+                          Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
+                          <strong>{fmt(p.fin)}</strong> {fmtHeure(p.fin)}
+                          <span className="block text-xs text-gray-500">
+                            {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
+                          </span>
+                          {vac && (
+                            <span className="mt-1 inline-block rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                              ⚠ {vac.nom} — répartition selon le jugement
+                            </span>
+                          )}
                         </span>
-                      </span>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
+              {apercu.some((p) => vacancesQuiChevauchent(p.debut, p.fin, vacances)) && (
+                <p className="mt-3 text-xs leading-relaxed text-gray-500">
+                  Certains week-ends tombent pendant les vacances scolaires. La règle
+                  « un week-end sur deux » peut alors ne pas s&apos;appliquer : la
+                  répartition des vacances est fixée par votre jugement. Vérifiez votre
+                  décision et, au besoin, ajustez via le calendrier avancé.
+                </p>
+              )}
             </section>
-          <CalendrierMensuel regle={regleCourante} />
+          <CalendrierMensuel regle={regleCourante} vacances={vacances} />
           </>
         )}
       </div>

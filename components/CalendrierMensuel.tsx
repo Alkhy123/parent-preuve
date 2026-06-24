@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 import { periodesGarde, chezQuiLeJour, type RegleGarde } from "@/lib/gardeCalendrier";
+import { jourEnVacances } from "@/lib/calendrier/chevauchementVacances";
+import type { PeriodeVacances } from "@/lib/calendrier/types";
 
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin",
   "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const JOURS_COURTS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
-export default function CalendrierMensuel({ regle }: { regle: RegleGarde | null }) {
+export default function CalendrierMensuel({
+  regle,
+  vacances = [],
+}: {
+  regle: RegleGarde | null;
+  vacances?: PeriodeVacances[];
+}) {
   const today = new Date();
   const [annee, setAnnee] = useState(today.getFullYear());
   const [mois, setMois] = useState(today.getMonth()); // 0 = janvier
@@ -69,19 +77,27 @@ export default function CalendrierMensuel({ regle }: { regle: RegleGarde | null 
               if (jour === null) return <div key={i} />;
               const chez = chezQui(jour);
               const fondMoi = chez === "moi";
+              const vac = jourEnVacances(new Date(annee, mois, jour), vacances);
               return (
                 <div
                   key={i}
                   className={
-                    "min-h-[52px] rounded-md p-1.5 text-sm " +
+                    "relative min-h-[52px] rounded-md p-1.5 text-sm " +
                     (estAujourdhui(jour) ? "ring-2 ring-[#15233F] " : "")
                   }
                   style={{
                     backgroundColor: fondMoi ? "#F6EFD6" : "#F3F4F6",
                     color: fondMoi ? "#15233F" : "#6B7280",
                   }}
+                  title={vac ? vac.nom : undefined}
                 >
                   <span className="font-medium">{jour}</span>
+                  {vac && (
+                    <span
+                      className="absolute right-1 top-1 inline-block h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: "#8A5A12" }}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -96,7 +112,19 @@ export default function CalendrierMensuel({ regle }: { regle: RegleGarde | null 
               <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "#F3F4F6" }} />
               Chez l&apos;autre parent
             </span>
+            {vacances.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#8A5A12" }} />
+                Vacances scolaires
+              </span>
+            )}
           </div>
+          {vacances.length > 0 && (
+            <p className="mt-2 text-xs text-gray-500">
+              Le repère vacances est indicatif : la répartition des vacances suit
+              votre jugement, pas la règle d&apos;un week-end sur deux.
+            </p>
+          )}
         </>
       )}
     </section>
