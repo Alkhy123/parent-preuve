@@ -9,6 +9,7 @@ import ControleDossier from "@/components/ControleDossier";
 import FormMessage from "@/components/ui/FormMessage";
 import { totauxFrais, totauxPension, resteDuGlobal, euros } from "@/lib/dossierCalculs";
 import { getProcedureActiveId } from "@/lib/procedureActive";
+import { journaliserAction } from "@/lib/auditLog";
 
 // jspdf-autotable enrichit l'instance jsPDF d'un champ lastAutoTable.
 type DocAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
@@ -298,6 +299,18 @@ export default function ExportPage() {
 
       // 3) Téléchargement
       doc.save(`dossier-parent-preuve-${new Date().toISOString().slice(0, 10)}.pdf`);
+
+      // Audit minimal : compteurs techniques uniquement (aucun contenu).
+      void journaliserAction("export.generation", {
+        procedureId: procId,
+        metadonnees: {
+          evenements: events.length,
+          frais: frais.length,
+          pension: pension.length,
+          pieces: pieces.length,
+          preuves: preuves.length,
+        },
+      });
     } catch (e) {
       setMessage("Erreur : " + (e as Error).message);
     } finally {

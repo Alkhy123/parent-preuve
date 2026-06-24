@@ -32,6 +32,7 @@ const TABLES_UTILISATEUR = [
   "dossier",
   "children",
   "note_brouillon",
+  "audit_log",
   // procedures EN DERNIER : children / regles / pension_payments le referencent
   // via procedure_id (ON DELETE SET NULL) et sont deja supprimes au-dessus.
   "procedures",

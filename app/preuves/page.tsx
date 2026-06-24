@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
+import { journaliserAction } from "@/lib/auditLog";
 import { exporterPreuvePdf } from "@/lib/preuvePdf";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
@@ -154,6 +155,10 @@ export default function PreuvesPage() {
         )
       );
       setRetour((r) => ({ ...r, [p.id]: "Horodatage refait." }));
+      void journaliserAction("preuve.horodatage", {
+        cibleType: "preuve_photo",
+        cibleId: p.id,
+      });
     } catch {
       setRetour((r) => ({
         ...r,
@@ -184,6 +189,11 @@ export default function PreuvesPage() {
           ? "Intégrité vérifiée : empreinte recalculée concordante."
           : "Écart constaté entre l'empreinte d'origine et l'empreinte recalculée.",
       }));
+      void journaliserAction("preuve.verification_hash", {
+        cibleType: "preuve_photo",
+        cibleId: p.id,
+        metadonnees: { concordant: Boolean(v.hash_verifie) },
+      });
     } catch {
       setRetour((r) => ({
         ...r,

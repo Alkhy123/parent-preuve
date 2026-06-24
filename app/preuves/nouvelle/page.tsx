@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
+import { journaliserAction } from "@/lib/auditLog";
 
 // Type souple pour la liste des enfants (voir note en bas sur le nom de colonne).
 type Enfant = {
@@ -239,7 +240,13 @@ export default function NouvellePreuvePage() {
         verificationTexte = "vérification serveur indisponible (à refaire)";
       }
 
-      // 8) Récap à l'écran
+      // Audit minimal : trace technique de la création (aucun contenu sensible).
+      void journaliserAction("preuve.creation", {
+        cibleType: "preuve_photo",
+        cibleId: preuveId,
+        procedureId,
+        metadonnees: { horodatage_ok: horodatageOK },
+      });
 
       // 8) Récap à l'écran
       setRecap({
