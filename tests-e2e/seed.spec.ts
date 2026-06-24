@@ -9,10 +9,11 @@
 // Préfixe [TEST] partout pour repérer/nettoyer (le nettoyage se fait via
 // `npm run e2e:compte -- --delete`, qui supprime le compte de test et ses données).
 //
+// Couvre aussi : règle de pension (pour la question IA) + calendrier de garde
+// (date de référence + zone de vacances) par procédure.
+//
 // NON couvert ici (à faire à la main ou à étendre plus tard) :
-//   - règle de pension (composant dédié) → utile pour tester la question IA ;
-//   - preuves photo (upload de fichier + GPS) ;
-//   - calendrier de garde (date de référence + zone vacances).
+//   - preuves photo (upload de fichier + GPS + horodatage).
 
 import { test } from "@playwright/test";
 import {
@@ -22,6 +23,8 @@ import {
   remplirProcedure,
   ajouterFait,
   ajouterFrais,
+  ajouterReglePension,
+  configurerCalendrier,
 } from "./helpers";
 
 const P = "[TEST]";
@@ -47,6 +50,12 @@ test("seed : deux procédures avec données distinctes", async ({ page }) => {
     description: "Enfant A remis avec 45 minutes de retard.",
   });
   await ajouterFrais(page, { libelle: `${P} Cantine A`, montant: "120" });
+  await ajouterReglePension(page, {
+    montant: "300",
+    debiteur: "autre",
+    jourEcheance: "5",
+  });
+  await configurerCalendrier(page, { dateReference: "2026-06-05", zone: "A" });
 
   // 3) Procédure B : détails + un fait + un frais différents.
   await activerProcedure(page, idB);
@@ -61,4 +70,10 @@ test("seed : deux procédures avec données distinctes", async ({ page }) => {
     description: "Enfant B non présenté au week-end prévu.",
   });
   await ajouterFrais(page, { libelle: `${P} Orthodontie B`, montant: "300" });
+  await ajouterReglePension(page, {
+    montant: "450",
+    debiteur: "autre",
+    jourEcheance: "10",
+  });
+  await configurerCalendrier(page, { dateReference: "2026-06-12", zone: "C" });
 });

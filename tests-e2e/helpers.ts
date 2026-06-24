@@ -151,3 +151,58 @@ export async function ajouterFrais(
   await page.getByRole("button", { name: "Ajouter le frais" }).click();
   await expect(page.getByText(frais.libelle).first()).toBeVisible();
 }
+
+// Crée la règle de pension de la procédure active (composant ReglePension).
+export async function ajouterReglePension(
+  page: Page,
+  regle: { montant: string; debiteur: "moi" | "autre"; jourEcheance: string }
+): Promise<void> {
+  await page.goto("/pension");
+  const carte = page
+    .locator("div.carte")
+    .filter({ has: page.getByRole("heading", { name: "Règle de pension" }) });
+  // Aucune règle encore : ouvre le formulaire (labels enveloppants ⇒ getByLabel ok).
+  const ajouter = carte.getByRole("button", {
+    name: "Ajouter la règle de pension",
+  });
+  await ajouter.waitFor({ state: "visible" });
+  await ajouter.click();
+  await carte.getByLabel(/Montant de base/).fill(regle.montant);
+  await carte.getByLabel(/Qui paie/).selectOption(regle.debiteur);
+  await carte.getByLabel(/échéance/).fill(regle.jourEcheance);
+  await carte.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByText(/par mois/).first()).toBeVisible();
+}
+
+// Configure le calendrier de garde (date de référence) + la zone de vacances
+// de la procédure active. NB : sur /calendrier, libellés et champs sont des
+// frères (pas d'association label↔input) ⇒ on cible par type/option.
+export async function configurerCalendrier(
+  page: Page,
+  config: { dateReference: string; zone: "A" | "B" | "C" }
+): Promise<void> {
+  await page.goto("/calendrier");
+  // Attend la fin des lectures async (enfants de la procédure active) : sans
+  // enfant sélectionné, l'enregistrement de la règle est refusé.
+  await page.waitForLoadState("networkidle");
+  const carte = page
+    .locator("div.carte")
+    .filter({ has: page.getByRole("heading", { name: "Règle de garde" }) });
+  await carte
+    .getByRole("heading", { name: "Règle de garde" })
+    .waitFor({ state: "visible" });
+  // Si l'encart est replié (règle déjà créée), l'ouvrir.
+  const toggle = carte.getByRole("button", { name: /Afficher/ });
+  if (await toggle.count()) await toggle.first().click();
+  await carte.locator('input[type="date"]').first().fill(config.dateReference);
+  await carte.getByRole("button", { name: "Enregistrer la règle" }).click();
+  // À l'enregistrement, l'encart se replie (signalFermeture) : le message succès
+  // disparaît avec lui. On vérifie plutôt l'aperçu des week-ends (preuve que la
+  // règle est active) et le repli de l'encart.
+  await expect(
+    page.getByRole("heading", { name: "Prochains week-ends de garde" })
+  ).toBeVisible();
+  await expect(carte.getByRole("button", { name: /Afficher/ })).toBeVisible();
+  // Sélecteur de zone (options A/B/C), au niveau page.
+  await page.locator('select:has(option[value="A"])').selectOption(config.zone);
+}
