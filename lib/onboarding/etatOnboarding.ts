@@ -8,6 +8,7 @@
 //   demarrage semblent renseignees, jamais que le dossier est juridiquement complet.
 
 import { chargerEtatDossier } from "@/lib/etatDossier";
+import { getEtatConfigurationDossier } from "@/lib/etatConfiguration";
 
 export type StatutOnboarding = "non_commence" | "en_cours" | "termine";
 
@@ -48,13 +49,21 @@ export function deriverStatutOnboarding(
  */
 export async function chargerStatutOnboarding(): Promise<StatutOnboarding> {
   try {
-    const donnees = await chargerEtatDossier("", "");
+    const [donnees, config] = await Promise.all([
+      chargerEtatDossier("", ""),
+      getEtatConfigurationDossier(),
+    ]);
     const socle = donnees.socle;
+    // Le jugement compte comme renseigne si sa reference est saisie OU si les
+    // regles issues du jugement ont ete validees : un utilisateur qui a valide
+    // ses regles a bien fourni son jugement, l'assistant ne doit plus l'inviter.
+    const jugementRenseigne =
+      !!socle?.referenceJugementRenseignee || config.jugement === "analyse";
     return deriverStatutOnboarding({
       declarantComplet: !!socle?.parent1Complet,
       autreParentComplet: !!socle?.parent2Complet,
       auMoinsUnEnfant: donnees.nombreEnfants > 0,
-      jugementRenseigne: !!socle?.referenceJugementRenseignee,
+      jugementRenseigne,
     });
   } catch {
     return "non_commence";

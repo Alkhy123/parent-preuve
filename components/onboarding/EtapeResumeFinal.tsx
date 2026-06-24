@@ -39,7 +39,9 @@ export default function EtapeResumeFinal({
         getEtatConfigurationDossier(),
       ]);
 
-      // Calendrier : au moins une regle de garde sur un enfant de la procedure.
+      // Calendrier : au moins une regle de garde (simple OU avancee) sur un
+      // enfant de la procedure. On regarde les deux tables car le calendrier
+      // avance (calendar_advanced_rules) n'ecrit pas dans garde_regles.
       let calendrierOk = false;
       const procId = await getProcedureActiveId();
       if (procId) {
@@ -49,12 +51,19 @@ export default function EtapeResumeFinal({
           .eq("procedure_id", procId);
         const ids = (enf ?? []).map((e) => e.id);
         if (ids.length > 0) {
-          const { count } = await supabase
-            .from("garde_regles")
-            .select("id", { count: "exact", head: true })
-            .in("enfant_id", ids)
-            .eq("actif", true);
-          calendrierOk = (count ?? 0) > 0;
+          const [simple, avance] = await Promise.all([
+            supabase
+              .from("garde_regles")
+              .select("id", { count: "exact", head: true })
+              .in("enfant_id", ids)
+              .eq("actif", true),
+            supabase
+              .from("calendar_advanced_rules")
+              .select("id", { count: "exact", head: true })
+              .in("enfant_id", ids)
+              .eq("actif", true),
+          ]);
+          calendrierOk = (simple.count ?? 0) > 0 || (avance.count ?? 0) > 0;
         }
       }
 
@@ -82,9 +91,17 @@ export default function EtapeResumeFinal({
         },
         {
           cle: "jugement",
+          // Renseigné si la référence est saisie OU si les règles du jugement
+          // ont été validées (mêmes critères que l'assistant d'accueil).
           label: "Jugement",
-          valeur: socle?.referenceJugementRenseignee ? "Renseigné" : "À compléter",
-          ton: socle?.referenceJugementRenseignee ? "ok" : "neutre",
+          valeur:
+            socle?.referenceJugementRenseignee || config.jugement === "analyse"
+              ? "Renseigné"
+              : "À compléter",
+          ton:
+            socle?.referenceJugementRenseignee || config.jugement === "analyse"
+              ? "ok"
+              : "neutre",
         },
         {
           cle: "regles",
