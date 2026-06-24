@@ -88,7 +88,7 @@ async function verifierConsentementAgent(request: Request) {
     return {
       autorise: false,
       erreur:
-        "Consentement IA requis pour utiliser le pré-remplissage Agent expérimental.",
+        "Consentement IA requis pour utiliser le pré-remplissage de l'Agent.",
     };
   }
 

@@ -316,15 +316,21 @@ export default function FraisPage() {
     // Cloisonnement : un nouveau frais appartient directement à la procédure
     // active. On ne touche pas `procedure_id` en édition pour ne pas déplacer
     // silencieusement une ligne d'une procédure à une autre.
+    const procedureId = await getProcedureActiveId();
+    if (!procedureId)
+      return setMessage(
+        "Aucune procédure active. Créez d'abord une procédure avant d'ajouter un frais."
+      );
     let resultat;
     if (editionId) {
-      resultat = await supabase.from("expenses").update(payload).eq("id", editionId);
+      // .eq("procedure_id") scope l'update à la procédure active (cloisonnement) ;
+      // procedure_id n'est PAS dans payload, donc la ligne n'est pas déplacée.
+      resultat = await supabase
+        .from("expenses")
+        .update(payload)
+        .eq("id", editionId)
+        .eq("procedure_id", procedureId);
     } else {
-      const procedureId = await getProcedureActiveId();
-      if (!procedureId)
-        return setMessage(
-          "Aucune procédure active. Créez d'abord une procédure avant d'ajouter un frais."
-        );
       resultat = await supabase
         .from("expenses")
         .insert({ ...payload, procedure_id: procedureId });
@@ -353,10 +359,13 @@ export default function FraisPage() {
 
   // Lier (ou délier si chaîne vide) un justificatif à un frais existant.
   async function lierJustificatif(fraisId: string, docId: string) {
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
     const { error } = await supabase
       .from("expenses")
       .update({ document_id: docId || null })
-      .eq("id", fraisId);
+      .eq("id", fraisId)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerFrais();
   }
@@ -373,16 +382,25 @@ export default function FraisPage() {
   }
 
   async function basculerRembourse(f: Frais) {
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
     const { error } = await supabase
       .from("expenses")
       .update({ rembourse: !f.rembourse })
-      .eq("id", f.id);
+      .eq("id", f.id)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerFrais();
   }
 
   async function supprimerFrais(id: string) {
-    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
+    const { error } = await supabase
+      .from("expenses")
+      .delete()
+      .eq("id", id)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerFrais();
   }

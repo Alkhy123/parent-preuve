@@ -135,6 +135,9 @@ export default function PreuvesPage() {
       });
       if (!reponse.ok) throw new Error("réponse non OK");
       const h = await reponse.json();
+      // Cloisonnement : l'update est borné à la procédure active (avec la RLS).
+      const procId = await getProcedureActiveId();
+      if (!procId) throw new Error("Aucune procédure active.");
       const { error } = await supabase
         .from("preuves_photo")
         .update({
@@ -144,7 +147,8 @@ export default function PreuvesPage() {
           horodatage_prestataire: h.prestataire,
           horodatage_algorithme: h.algorithme,
         })
-        .eq("id", p.id);
+        .eq("id", p.id)
+        .eq("procedure_id", procId);
       if (error) throw error;
       // Reflète le nouvel état dans la liste (pastille + colonnes affichées).
       setPreuves((liste) =>

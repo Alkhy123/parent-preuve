@@ -258,13 +258,26 @@ export default function JournalPage() {
 
   // Fait passer un événement de brouillon à validé (et inversement).
   async function changerStatut(id: string, nouveau: "brouillon" | "valide") {
-    const { error } = await supabase.from("events").update({ statut: nouveau }).eq("id", id);
+    // Cloisonnement : on ne modifie que dans la procédure active (en plus de la RLS).
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
+    const { error } = await supabase
+      .from("events")
+      .update({ statut: nouveau })
+      .eq("id", id)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerEvenements();
   }
 
   async function supprimerEvenement(id: string) {
-    const { error } = await supabase.from("events").delete().eq("id", id);
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", id)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerEvenements();
   }
@@ -276,10 +289,13 @@ export default function JournalPage() {
 
   // Lier (ou délier si chaîne vide) une pièce existante à un fait.
   async function lierPiece(eventId: string, docId: string) {
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
     const { error } = await supabase
       .from("events")
       .update({ document_id: docId || null })
-      .eq("id", eventId);
+      .eq("id", eventId)
+      .eq("procedure_id", procId);
     if (error) setMessage("Erreur : " + error.message);
     else chargerEvenements();
   }

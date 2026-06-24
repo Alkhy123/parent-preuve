@@ -7,7 +7,8 @@
     "check:agent-boundaries": "node scripts/check-agent-boundaries.mjs",
     "check:ia-consent": "node scripts/check-ia-consent-boundaries.mjs",
     "check:multi-procedure-migration": "node scripts/check-multi-procedure-migration.mjs",
-    "build": "node scripts/check-agent-boundaries.mjs && node scripts/check-ia-consent-boundaries.mjs && node scripts/check-multi-procedure-migration.mjs && next build",
+    "check": "npm run check:agent-boundaries && npm run check:ia-consent && npm run check:multi-procedure-migration && npm run lint",
+    "build": "npm run check && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "node --import tsx --import ./tests/setup.ts --test \"tests/**/*.test.ts\""

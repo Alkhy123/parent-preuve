@@ -93,7 +93,7 @@ async function verifierConsentementAgent(request: Request) {
     return {
       autorise: false,
       erreur:
-        "Consentement IA requis pour utiliser la question dossier Agent expérimentale.",
+        "Consentement IA requis pour utiliser la question dossier de l'Agent.",
     };
   }
 

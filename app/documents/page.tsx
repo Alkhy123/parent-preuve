@@ -184,10 +184,13 @@ export default function DocumentsPage() {
 
   async function archiverDocument(doc: Document) {
     setMessage("");
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
     const { error } = await supabase
       .from("documents")
       .update({ etat: "archive" })
-      .eq("id", doc.id);
+      .eq("id", doc.id)
+      .eq("procedure_id", procId);
     if (error) { setMessage("Erreur : " + error.message); return; }
     setChoixId(null);
     chargerDocuments();
@@ -204,7 +207,13 @@ export default function DocumentsPage() {
       setMessage("Erreur (fichier) : " + erreurStorage.message);
       return;
     }
-    const { error } = await supabase.from("documents").delete().eq("id", doc.id);
+    const procId = await getProcedureActiveId();
+    if (!procId) return;
+    const { error } = await supabase
+      .from("documents")
+      .delete()
+      .eq("id", doc.id)
+      .eq("procedure_id", procId);
     if (error) { setMessage("Erreur : " + error.message); return; }
     setChoixId(null);
     chargerDocuments();
