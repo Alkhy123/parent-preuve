@@ -690,3 +690,363 @@ Ordre conseillé :
 8. Préparation staging / pré-production.
 
 Ne pas commencer par ajouter de nouvelles fonctionnalités majeures tant que ces points ne sont pas stabilisés.
+
+## 20. Workflow mixte design, technique et tests
+
+Ce projet doit être travaillé avec une méthode mixte : produit, UX, technique, sécurité et tests.
+
+Aucune intervention ne doit être purement esthétique si elle risque de casser un flux métier existant.
+
+Aucune intervention technique ne doit ignorer l'expérience utilisateur, notamment sur mobile.
+
+Aucune nouvelle fonctionnalité ne doit être considérée comme terminée sans vérification de non-régression.
+
+### 20.1 Ordre de réflexion obligatoire
+
+Pour toute tâche significative, l'agent doit raisonner dans cet ordre :
+
+1. Comprendre le besoin utilisateur.
+2. Identifier les fichiers concernés.
+3. Lire le code existant avant toute modification.
+4. Résumer le comportement actuel.
+5. Identifier les risques fonctionnels.
+6. Identifier les risques UX.
+7. Identifier les risques sécurité / RGPD / RLS.
+8. Proposer une solution minimale.
+9. Modifier par petits blocs.
+10. Tester le comportement existant.
+11. Tester le nouveau comportement.
+12. Lancer les commandes de vérification.
+13. Résumer clairement ce qui a été fait.
+
+L'agent ne doit pas commencer par coder directement.
+
+### 20.2 Principe de refonte contrôlée
+
+Toute refonte visuelle doit respecter le principe suivant :
+
+Le design habille le fonctionnement existant, il ne le remplace pas.
+
+Lorsqu'un composant métier fonctionne déjà, il faut préférer une approche par wrapper visuel plutôt qu'une réécriture.
+
+Exemple recommandé :
+
+```text
+Composant métier existant
+  -> Wrapper visuel
+    -> Progression
+    -> Aide contextuelle
+    -> Layout responsive
+```
+
+Exemple à éviter :
+
+```text
+Suppression du composant existant
+  -> Réécriture complète
+  -> Nouvelle logique de sauvegarde
+  -> Nouveaux effets de bord
+```
+
+### 20.3 Règles de design Parent Preuve
+
+Le design de Parent Preuve doit être :
+
+* clair ;
+* sobre ;
+* rassurant ;
+* mobile-first ;
+* lisible par un parent stressé ;
+* non anxiogène ;
+* non culpabilisant ;
+* cohérent avec l'objectif de dossier factuel.
+
+Les interfaces doivent éviter l'effet fourre-tout.
+
+Chaque écran important doit répondre à trois questions :
+
+1. Où suis-je ?
+2. Que dois-je faire maintenant ?
+3. Pourquoi cette action est utile ?
+
+### 20.4 Design mobile obligatoire
+
+Toute modification d'écran doit être pensée en desktop et mobile.
+
+Sur mobile :
+
+* pas de colonnes serrées ;
+* pas de scroll horizontal obligatoire ;
+* boutons suffisamment grands ;
+* textes courts ;
+* cartes pleine largeur ;
+* progression lisible ;
+* action principale visible ;
+* aide contextuelle accessible mais non envahissante.
+
+Un design desktop réussi mais une version mobile confuse doit être considéré comme incomplet.
+
+### 20.5 Écrans vides intelligents
+
+Une page vide ne doit jamais être simplement vide.
+
+Chaque écran vide doit contenir :
+
+* une phrase expliquant à quoi sert la page ;
+* un exemple concret ;
+* un bouton d'action principal ;
+* éventuellement un lien “Voir un exemple”.
+
+Exemple :
+
+```text
+Aucun événement ajouté pour le moment.
+
+Le journal sert à noter des faits datés de manière claire et factuelle :
+retard, absence, incident de communication, information importante concernant l'enfant.
+
+Bouton : Ajouter un événement
+Bouton secondaire : Voir un exemple
+```
+
+### 20.6 Prochaine action recommandée
+
+L'accueil doit progressivement guider l'utilisateur vers la prochaine action utile.
+
+Exemples :
+
+* ajouter un enfant ;
+* créer une procédure ;
+* renseigner l'autre parent ;
+* ajouter une décision ;
+* configurer une pension ;
+* ajouter un premier événement ;
+* ajouter un premier document ;
+* préparer un export.
+
+La prochaine action recommandée doit être utile, non intrusive, et liée à la procédure active.
+
+### 20.7 Assistant de démarrage et onboarding
+
+L'assistant de démarrage est une partie sensible du produit.
+
+Il doit aider l'utilisateur à poser les bases du dossier sans tout exiger immédiatement.
+
+Il doit respecter les étapes existantes :
+
+1. Vos informations
+2. La procédure
+3. L'autre parent
+4. Vos enfants
+5. Le jugement
+6. Les règles
+7. Le calendrier de garde
+8. Résumé
+
+Les identifiants techniques existants ne doivent pas être renommés sans raison majeure :
+
+* `vos-informations`
+* `procedure`
+* `autre-parent`
+* `enfants`
+* `jugement`
+* `validation-regles`
+* `calendrier`
+* `resume`
+
+La refonte de l'assistant doit prioritairement utiliser une approche wrapper :
+
+* `OnboardingWizard` conserve la logique de progression ;
+* les composants d'étape conservent leurs sauvegardes ;
+* les nouveaux composants gèrent seulement l'affichage, la progression, la checklist, l'aide et le responsive.
+
+### 20.8 Règles spécifiques à l'assistant de démarrage
+
+Pour toute modification de l'assistant :
+
+Ne pas casser :
+
+* la lecture de progression ;
+* la reprise de parcours ;
+* la compatibilité avec `?etape=...` ;
+* les boutons précédent / continuer ;
+* la fin d'assistant ;
+* le retour vers l'accueil ;
+* les sauvegardes Supabase ;
+* les formulaires existants ;
+* la procédure active.
+
+Ne pas modifier sans nécessité :
+
+* `EtapeVosInformations.tsx`
+* `EtapeProcedure.tsx`
+* `EtapeAutreParent.tsx`
+* `EtapeEnfants.tsx`
+* `EtapeJugement.tsx`
+* `EtapeValidationRegles.tsx`
+* `EtapeCalendrier.tsx`
+* `EtapeResumeFinal.tsx`
+
+### 20.9 Vidéo de première connexion
+
+La vidéo de présentation doit être courte, rassurante et non bloquante.
+
+Elle doit :
+
+* s'afficher uniquement lors de la première connexion ;
+* apparaître après acceptation RGPD ;
+* pouvoir être passée ;
+* ne pas utiliser d'hébergement externe si cela implique une fuite de données ;
+* ne pas contenir de promesse juridique ;
+* introduire l'assistant de démarrage.
+
+Elle ne doit pas :
+
+* empêcher définitivement l'accès à l'application ;
+* collecter de donnée supplémentaire ;
+* envoyer de donnée personnelle à un service tiers ;
+* remplacer l'assistant.
+
+### 20.10 Assistant par nouvelle procédure
+
+À terme, l'assistant doit pouvoir se relancer lorsqu'une nouvelle procédure est créée.
+
+Principe :
+
+* première connexion : vidéo puis assistant ;
+* nouvelle procédure : assistant relancé pour cette procédure ;
+* procédure déjà configurée : ne pas relancer inutilement ;
+* ne jamais mélanger les procédures ;
+* une procédure A peut être terminée ;
+* une procédure B peut rester à configurer.
+
+Toute donnée d'onboarding par procédure doit être rattachée à `procedure_id` et `user_id`.
+
+### 20.11 Tests de non-régression UX
+
+Pour toute refonte visuelle, tester au minimum :
+
+1. affichage desktop ;
+2. affichage tablette ;
+3. affichage mobile ;
+4. action principale ;
+5. action secondaire ;
+6. retour arrière ;
+7. refresh de page ;
+8. reprise de progression ;
+9. sauvegarde réelle ;
+10. absence d'erreur console évidente ;
+11. build final.
+
+### 20.12 Tests de non-régression métier
+
+Pour toute modification touchant un flux métier, tester au minimum :
+
+1. lecture des données existantes ;
+2. création ;
+3. modification ;
+4. suppression si disponible ;
+5. filtrage par procédure active ;
+6. comportement sans procédure active ;
+7. comportement avec deux procédures ;
+8. export ou résumé si concerné ;
+9. RLS si une table est modifiée ;
+10. absence de fuite inter-utilisateur ou inter-procédure.
+
+### 20.13 Tests Agent IA
+
+Pour toute modification touchant l'Agent IA, tester :
+
+1. orientation ;
+2. pré-remplissage ;
+3. question dossier ;
+4. consentement serveur ;
+5. quota serveur ;
+6. refus local ;
+7. absence d'écriture automatique ;
+8. absence de conseil juridique personnalisé ;
+9. absence d'appel à Mistral dans `/api/agent/analyser-demande` ;
+10. `npm run check:agent-boundaries`.
+
+### 20.14 Tests Supabase et RLS
+
+Pour toute migration ou modification Supabase :
+
+1. vérifier `user_id` ;
+2. vérifier `procedure_id` si nécessaire ;
+3. activer RLS ;
+4. créer les policies `SELECT`, `INSERT`, `UPDATE`, `DELETE` si nécessaire ;
+5. utiliser `WITH CHECK` sur `UPDATE` quand pertinent ;
+6. ne jamais exposer la service role côté client ;
+7. ne jamais rendre un bucket sensible public ;
+8. tester avec deux utilisateurs si possible ;
+9. tester avec deux procédures.
+
+### 20.15 Tests build et qualité
+
+Avant de conclure une tâche, lancer selon le contexte :
+
+```bash
+npm run lint
+npm run build
+```
+
+Si les scripts existent :
+
+```bash
+npm run check
+npm run check:agent-boundaries
+npm run check:multi-procedure-migration
+```
+
+Toujours indiquer clairement :
+
+* commandes exécutées ;
+* commandes non exécutées ;
+* résultat ;
+* erreurs restantes ;
+* limites ;
+* tests manuels réalisés.
+
+### 20.16 Format obligatoire des réponses après intervention
+
+Après une intervention, l'agent doit répondre avec :
+
+1. Résumé court de la demande.
+2. Fichiers lus.
+3. Fichiers créés.
+4. Fichiers modifiés.
+5. Composants métier préservés.
+6. Changements UX réalisés.
+7. Changements techniques réalisés.
+8. Tests réalisés.
+9. Commandes exécutées.
+10. Résultat du build.
+11. Risques restants.
+12. Prochaine étape recommandée.
+
+Ne jamais prétendre qu'un test a été exécuté s'il ne l'a pas été.
+
+### 20.17 Règle de prudence finale
+
+En cas de doute entre :
+
+* améliorer le design ;
+* préserver une fonctionnalité existante ;
+
+il faut préserver la fonctionnalité existante.
+
+En cas de doute entre :
+
+* aller vite ;
+* vérifier le cloisonnement des données ;
+
+il faut vérifier le cloisonnement.
+
+En cas de doute entre :
+
+* ajouter une promesse utilisateur forte ;
+* rester juridiquement prudent ;
+
+il faut rester juridiquement prudent.
+
