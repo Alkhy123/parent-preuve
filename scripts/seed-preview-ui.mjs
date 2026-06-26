@@ -86,7 +86,7 @@ function chargerEnvLocal() {
 }
 
 function variableObligatoire(nom) {
-  const valeur = process.env[nom];
+  const valeur = process.env[nom]?.trim();
   if (!valeur) {
     throw new Error(
       `Variable ${nom} absente. Definissez-la localement avant de lancer le seed.`
@@ -161,15 +161,26 @@ async function ouvrirEncartSiBesoin(page, titre) {
   }
 }
 
-async function clickFirstVisible(page, nomsBoutons, contexte = "bouton") {
-  for (const nom of nomsBoutons) {
-    const boutons = page.getByRole("button", { name: nom });
+async function findFirstVisible(locatorList) {
+  for (const locator of locatorList) {
+    const total = await locator.count();
+    for (let i = 0; i < total; i += 1) {
+      const element = locator.nth(i);
+      if (await element.isVisible()) return element;
+    }
+  }
+  return null;
+}
+
+async function clickFirstVisibleByRole(page, role, names, contexte = "bouton") {
+  for (const name of names) {
+    const boutons = page.getByRole(role, { name });
     const total = await boutons.count();
     for (let i = 0; i < total; i += 1) {
       const bouton = boutons.nth(i);
       if (await bouton.isVisible()) {
         await bouton.click();
-        console.log(`  ${contexte} : "${nom}"`);
+        console.log(`  ${contexte} : "${name}"`);
         return true;
       }
     }
@@ -177,27 +188,29 @@ async function clickFirstVisible(page, nomsBoutons, contexte = "bouton") {
   return false;
 }
 
-async function maybeClick(page, nomBouton, contexte = "bouton optionnel") {
-  const boutons = page.getByRole("button", { name: nomBouton });
-  const total = await boutons.count();
-  for (let i = 0; i < total; i += 1) {
-    const bouton = boutons.nth(i);
-    if (await bouton.isVisible()) {
+async function maybeClickByTextOrRole(scope, names, contexte = "bouton optionnel") {
+  for (const name of names) {
+    const bouton = await findFirstVisible([
+      scope.getByRole("button", { name }),
+      scope.getByText(name),
+    ]);
+    if (bouton) {
       await bouton.click();
-      console.log(`  ${contexte} : "${nomBouton}"`);
+      console.log(`  ${contexte} : "${name}"`);
       return true;
     }
   }
   return false;
 }
 
-async function fillByLabelOrFallback(scope, labels, valeur, fallbackLocator, nomChamp) {
+async function fillByLabelOrFallback(scope, labels, fallbackLocators, valeur, nomChamp) {
   for (const label of labels) {
     const champAccessible = scope.getByLabel(label);
     if ((await champAccessible.count()) > 0) {
       const cible = champAccessible.first();
       if (await cible.isVisible()) {
         await cible.fill(valeur);
+        console.log(`  champ ${nomChamp} rempli via label "${label}"`);
         return;
       }
     }
@@ -207,19 +220,100 @@ async function fillByLabelOrFallback(scope, labels, valeur, fallbackLocator, nom
       const cible = labelTexte.first().locator("xpath=following-sibling::input[1]");
       if ((await cible.count()) > 0 && (await cible.first().isVisible())) {
         await cible.first().fill(valeur);
-        console.log(`  fallback label voisin utilise pour ${nomChamp}`);
+        console.log(`  champ ${nomChamp} rempli via label voisin "${label}"`);
         return;
       }
     }
   }
 
-  if ((await fallbackLocator.count()) > 0 && (await fallbackLocator.first().isVisible())) {
-    await fallbackLocator.first().fill(valeur);
+  const fallback = await findFirstVisible(fallbackLocators);
+  if (fallback) {
+    await fallback.fill(valeur);
     console.log(`  fallback locator utilise pour ${nomChamp}`);
     return;
   }
 
   throw new Error(`Champ introuvable pour ${nomChamp}`);
+}
+
+async function trouverZoneFormulaireFrais(page) {
+  await page
+    .locator('input[type="date"]')
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 });
+  await expect(
+    page.getByText(/Libellé|Libelle|Montant total|Montant/i).first()
+  ).toBeVisible({ timeout: 15000 });
+
+  const candidats = page
+    .locator("form, section, div")
+    .filter({ has: page.locator('input[type="date"]') })
+    .filter({ hasText: /Libellé|Libelle|Montant total|Montant/i });
+  const total = await candidats.count();
+  for (let i = total - 1; i >= 0; i -= 1) {
+    const candidat = candidats.nth(i);
+    if (
+      (await candidat.isVisible()) &&
+      (await candidat.locator('input[type="date"]').count()) > 0 &&
+      (await candidat.locator('input[type="text"], input[inputmode="decimal"], input[inputMode="decimal"]').count()) >= 2
+    ) {
+      console.log("  zone formulaire frais detectee par champs visibles");
+      return candidat;
+    }
+  }
+
+  console.log("  fallback formulaire frais : zone main");
+  return page.locator("main").first();
+}
+
+async function cliquerSubmitFrais(page, formulaire) {
+  const nomsSubmit = [
+    /Ajouter le frais/i,
+    /Ajouter la dépense/i,
+    /Ajouter la depense/i,
+    /^Enregistrer$/i,
+    /^Valider$/i,
+  ];
+
+  for (const name of nomsSubmit) {
+    const bouton = await findFirstVisible([formulaire.getByRole("button", { name })]);
+    if (bouton && await bouton.isEnabled()) {
+      await bouton.click();
+      console.log(`  submit frais : "${name}"`);
+      return;
+    }
+  }
+
+  for (const name of nomsSubmit) {
+    const bouton = await findFirstVisible([page.getByRole("button", { name })]);
+    if (bouton && await bouton.isEnabled()) {
+      await bouton.click();
+      console.log(`  submit frais global : "${name}"`);
+      return;
+    }
+  }
+
+  const boutonsAjouter = formulaire.getByRole("button", { name: /^Ajouter$/i });
+  for (let i = 0; i < await boutonsAjouter.count(); i += 1) {
+    const bouton = boutonsAjouter.nth(i);
+    if ((await bouton.isVisible()) && (await bouton.isEnabled())) {
+      await bouton.click();
+      console.log('  submit frais : "Ajouter"');
+      return;
+    }
+  }
+
+  const boutonsAjouterGlobaux = page.getByRole("button", { name: /^Ajouter$/i });
+  for (let i = 0; i < await boutonsAjouterGlobaux.count(); i += 1) {
+    const bouton = boutonsAjouterGlobaux.nth(i);
+    if ((await bouton.isVisible()) && (await bouton.isEnabled())) {
+      await bouton.click();
+      console.log('  submit frais global : "Ajouter"');
+      return;
+    }
+  }
+
+  throw new Error("Bouton de validation frais introuvable.");
 }
 
 async function activerProcedureDepuisEnfants(page, etiquette) {
@@ -291,40 +385,48 @@ async function ajouterFrais(page, runId, rapport) {
   for (const item of FRAIS) {
     const libelle = `[TEST UI ${runId}] ${item.libelle}`;
     await attendrePage(page, "/frais", /Frais/);
-    const ouvert = await clickFirstVisible(
+    const ouvert = await clickFirstVisibleByRole(
       page,
-      ["Ajouter une dépense", "Ajouter un frais", "Ajouter"],
+      "button",
+      [/Ajouter une dépense/i, /Nouvelle dépense/i, /Ajouter un frais/i, /^Ajouter$/i],
       "ouverture formulaire frais"
     );
     if (!ouvert) {
       throw new Error("Impossible d'ouvrir le formulaire frais.");
     }
-    await ouvrirEncartSiBesoin(page, "Ajouter un frais");
-    const formulaire = page
-      .locator("div")
-      .filter({ has: page.getByRole("heading", { name: "Ajouter un frais" }) })
-      .filter({ has: page.getByRole("button", { name: "Ajouter le frais" }) })
-      .first();
-    await expect(formulaire.getByRole("button", { name: "Ajouter le frais" })).toBeVisible({
-      timeout: 15000,
-    });
+    await page.waitForTimeout(250);
+    const formulaire = await trouverZoneFormulaireFrais(page);
     await fillByLabelOrFallback(
       formulaire,
       ["Libellé", "Libelle"],
+      [
+        formulaire.getByPlaceholder(/consultation|orthodontiste|libell/i),
+        formulaire.locator('input[type="text"]').first(),
+      ],
       libelle,
-      formulaire.locator('input[type="text"]').first(),
       "libelle du frais"
     );
     await fillByLabelOrFallback(
       formulaire,
       ["Montant total (€)", "Montant total", "Montant"],
+      [
+        formulaire.getByPlaceholder(/^80$/),
+        formulaire.locator('input[inputmode="decimal"], input[inputMode="decimal"]').first(),
+        formulaire.locator('input[type="text"]').nth(1),
+      ],
       item.montant,
-      formulaire.locator('input[inputmode="decimal"], input[inputMode="decimal"]').first(),
       "montant du frais"
     );
-    await formulaire.locator('input[type="date"]').first().fill(dateIsoAujourdhui());
-    await maybeClick(page, "Non, pas de justificatif", "justificatif frais");
-    await formulaire.getByRole("button", { name: "Ajouter le frais" }).click();
+    const champDate = await findFirstVisible([formulaire.locator('input[type="date"]')]);
+    if (!champDate) throw new Error("Champ date frais introuvable.");
+    await champDate.fill(dateIsoAujourdhui());
+    console.log("  champ date frais rempli");
+    await maybeClickByTextOrRole(
+      formulaire,
+      [/Non, pas de justificatif/i, /Pas de justificatif/i, /^Non$/i],
+      "justificatif frais"
+    );
+    await cliquerSubmitFrais(page, formulaire);
     await expect(page.getByText(libelle).first()).toBeVisible({ timeout: 20000 });
     rapport.frais.push(`${libelle} - ${item.montant} EUR`);
     console.log(`  frais : ${libelle}`);
