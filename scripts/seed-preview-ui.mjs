@@ -112,11 +112,81 @@ function creerImageTest(nom) {
   return chemin;
 }
 
+function nomDiagnostic(nom) {
+  return nom
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+}
+
 async function capture(page, nom, rapport) {
   const chemin = join(SORTIE, `${String(rapport.captures.length + 1).padStart(2, "0")}-${nom}.png`);
   await page.screenshot({ path: chemin, fullPage: true });
   rapport.captures.push(chemin);
   console.log(`  capture : ${chemin}`);
+}
+
+async function screenshotDiagnostic(page, nom) {
+  mkdirSync(SORTIE, { recursive: true });
+  const chemin = join(SORTIE, `diagnostic-${nomDiagnostic(nom)}-${Date.now()}.png`);
+  await page.screenshot({ path: chemin, fullPage: true });
+
+  const diagnostic = await page.evaluate(() => {
+    const visible = (el) => {
+      const style = window.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return (
+        style.visibility !== "hidden" &&
+        style.display !== "none" &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    };
+    const texte = (el) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
+    const titres = Array.from(document.querySelectorAll("h1,h2,h3"))
+      .filter(visible)
+      .map(texte)
+      .filter(Boolean);
+    const boutons = Array.from(document.querySelectorAll("button"))
+      .filter(visible)
+      .map(texte)
+      .filter(Boolean);
+    const inputs = Array.from(document.querySelectorAll("input, textarea, select"))
+      .filter(visible)
+      .map((el) => ({
+        tag: el.tagName.toLowerCase(),
+        type: el.getAttribute("type") ?? "",
+        name: el.getAttribute("name") ?? "",
+        placeholder: el.getAttribute("placeholder") ?? "",
+        ariaLabel: el.getAttribute("aria-label") ?? "",
+      }));
+    const mots = ["Ajouter", "Frais", "Libellé", "Libelle", "Date", "Montant"];
+    const textesCibles = Array.from(document.querySelectorAll("body *"))
+      .filter(visible)
+      .map(texte)
+      .filter((t) => t && mots.some((mot) => t.includes(mot)))
+      .slice(0, 80);
+    return {
+      url: window.location.href,
+      titres,
+      boutons,
+      inputs,
+      textesCibles,
+    };
+  });
+
+  console.log(`\n--- Diagnostic ${nom} ---`);
+  console.log(`Capture : ${chemin}`);
+  console.log(`URL : ${diagnostic.url}`);
+  console.log(`Titres visibles : ${JSON.stringify(diagnostic.titres)}`);
+  console.log(`Boutons visibles : ${JSON.stringify(diagnostic.boutons)}`);
+  console.log(`Inputs visibles : ${JSON.stringify(diagnostic.inputs)}`);
+  console.log(`Textes cibles : ${JSON.stringify(diagnostic.textesCibles)}`);
+  console.log("--- Fin diagnostic ---\n");
+  return chemin;
 }
 
 async function attendrePage(page, chemin, titre) {
@@ -236,25 +306,43 @@ async function fillByLabelOrFallback(scope, labels, fallbackLocators, valeur, no
   throw new Error(`Champ introuvable pour ${nomChamp}`);
 }
 
-async function trouverZoneFormulaireFrais(page) {
-  await page
-    .locator('input[type="date"]')
-    .first()
-    .waitFor({ state: "visible", timeout: 15000 });
-  await expect(
-    page.getByText(/Libellé|Libelle|Montant total|Montant/i).first()
-  ).toBeVisible({ timeout: 15000 });
+async function attendreSignalFormulaireFrais(page) {
+  const signaux = [
+    page.getByText(/Libellé/i),
+    page.getByText(/Libelle/i),
+    page.getByText(/Montant total/i),
+    page.getByText(/^Date\b/i),
+    page.getByRole("button", { name: /Ajouter le frais/i }),
+    page.getByRole("button", { name: /Enregistrer les modifications/i }),
+  ];
 
+  const depart = Date.now();
+  while (Date.now() - depart < 15000) {
+    for (const signal of signaux) {
+      const visible = await findFirstVisible([signal]);
+      if (visible) {
+        console.log("  formulaire frais detecte apres ouverture");
+        return;
+      }
+    }
+    await page.waitForTimeout(250);
+  }
+
+  await screenshotDiagnostic(page, "frais-formulaire-non-detecte");
+  throw new Error(
+    "Formulaire frais non detecte apres clic : aucun signal Libelle/Montant/Date/submit visible."
+  );
+}
+
+async function trouverZoneFormulaireFrais(page) {
   const candidats = page
     .locator("form, section, div")
-    .filter({ has: page.locator('input[type="date"]') })
     .filter({ hasText: /Libellé|Libelle|Montant total|Montant/i });
   const total = await candidats.count();
   for (let i = total - 1; i >= 0; i -= 1) {
     const candidat = candidats.nth(i);
     if (
       (await candidat.isVisible()) &&
-      (await candidat.locator('input[type="date"]').count()) > 0 &&
       (await candidat.locator('input[type="text"], input[inputmode="decimal"], input[inputMode="decimal"]').count()) >= 2
     ) {
       console.log("  zone formulaire frais detectee par champs visibles");
@@ -264,6 +352,30 @@ async function trouverZoneFormulaireFrais(page) {
 
   console.log("  fallback formulaire frais : zone main");
   return page.locator("main").first();
+}
+
+async function remplirDateFrais(page, formulaire) {
+  const dateVisible = await findFirstVisible([formulaire.locator('input[type="date"]')]);
+  if (dateVisible) {
+    await dateVisible.fill(dateIsoAujourdhui());
+    console.log("  champ date frais rempli via input date");
+    return;
+  }
+
+  const labelsDate = formulaire.locator("label").filter({ hasText: /^Date\b/i });
+  if ((await labelsDate.count()) > 0) {
+    const champProche = labelsDate
+      .first()
+      .locator("xpath=following-sibling::input[1]");
+    if ((await champProche.count()) > 0 && (await champProche.first().isVisible())) {
+      await champProche.first().fill(dateIsoAujourdhui());
+      console.log("  champ date frais rempli via label voisin");
+      return;
+    }
+  }
+
+  await screenshotDiagnostic(page, "frais-date-introuvable");
+  throw new Error("Champ date frais introuvable apres ouverture du formulaire.");
 }
 
 async function cliquerSubmitFrais(page, formulaire) {
@@ -384,52 +496,62 @@ async function ajouterFrais(page, runId, rapport) {
   console.log("Ajout des frais fictifs...");
   for (const item of FRAIS) {
     const libelle = `[TEST UI ${runId}] ${item.libelle}`;
-    await attendrePage(page, "/frais", /Frais/);
-    const ouvert = await clickFirstVisibleByRole(
-      page,
-      "button",
-      [/Ajouter une dépense/i, /Nouvelle dépense/i, /Ajouter un frais/i, /^Ajouter$/i],
-      "ouverture formulaire frais"
-    );
-    if (!ouvert) {
-      throw new Error("Impossible d'ouvrir le formulaire frais.");
+    try {
+      await attendrePage(page, "/frais", /Frais/);
+      const ouvert = await clickFirstVisibleByRole(
+        page,
+        "button",
+        [/Ajouter une dépense/i, /Ajouter un frais/i, /^Ajouter$/i],
+        "ouverture formulaire frais"
+      );
+      if (!ouvert) {
+        await screenshotDiagnostic(page, "frais-ouverture-impossible");
+        throw new Error("Impossible d'ouvrir le formulaire frais.");
+      }
+
+      await attendreSignalFormulaireFrais(page);
+      const formulaire = await trouverZoneFormulaireFrais(page);
+      await fillByLabelOrFallback(
+        formulaire,
+        ["Libellé", "Libelle"],
+        [
+          formulaire.getByPlaceholder(/consultation|orthodontiste|libell/i),
+          formulaire.locator('input[type="text"]').first(),
+        ],
+        libelle,
+        "libelle du frais"
+      );
+      await fillByLabelOrFallback(
+        formulaire,
+        ["Montant total (€)", "Montant total", "Montant"],
+        [
+          formulaire.getByPlaceholder(/^80$/),
+          formulaire.locator('input[inputmode="decimal"], input[inputMode="decimal"]').first(),
+          formulaire.locator('input[type="number"]').first(),
+          formulaire.locator('input[type="text"]').nth(1),
+        ],
+        item.montant,
+        "montant du frais"
+      );
+      await remplirDateFrais(page, formulaire);
+      await maybeClickByTextOrRole(
+        formulaire,
+        [/Non, pas de justificatif/i, /Pas de justificatif/i, /^Non$/i],
+        "justificatif frais"
+      );
+      await cliquerSubmitFrais(page, formulaire);
+      try {
+        await expect(page.getByText(libelle).first()).toBeVisible({ timeout: 20000 });
+      } catch (e) {
+        await screenshotDiagnostic(page, `frais-libelle-non-visible-${item.libelle}`);
+        throw e;
+      }
+      rapport.frais.push(`${libelle} - ${item.montant} EUR`);
+      console.log(`  frais : ${libelle}`);
+    } catch (e) {
+      await screenshotDiagnostic(page, `frais-echec-${item.libelle}`);
+      throw e;
     }
-    await page.waitForTimeout(250);
-    const formulaire = await trouverZoneFormulaireFrais(page);
-    await fillByLabelOrFallback(
-      formulaire,
-      ["Libellé", "Libelle"],
-      [
-        formulaire.getByPlaceholder(/consultation|orthodontiste|libell/i),
-        formulaire.locator('input[type="text"]').first(),
-      ],
-      libelle,
-      "libelle du frais"
-    );
-    await fillByLabelOrFallback(
-      formulaire,
-      ["Montant total (€)", "Montant total", "Montant"],
-      [
-        formulaire.getByPlaceholder(/^80$/),
-        formulaire.locator('input[inputmode="decimal"], input[inputMode="decimal"]').first(),
-        formulaire.locator('input[type="text"]').nth(1),
-      ],
-      item.montant,
-      "montant du frais"
-    );
-    const champDate = await findFirstVisible([formulaire.locator('input[type="date"]')]);
-    if (!champDate) throw new Error("Champ date frais introuvable.");
-    await champDate.fill(dateIsoAujourdhui());
-    console.log("  champ date frais rempli");
-    await maybeClickByTextOrRole(
-      formulaire,
-      [/Non, pas de justificatif/i, /Pas de justificatif/i, /^Non$/i],
-      "justificatif frais"
-    );
-    await cliquerSubmitFrais(page, formulaire);
-    await expect(page.getByText(libelle).first()).toBeVisible({ timeout: 20000 });
-    rapport.frais.push(`${libelle} - ${item.montant} EUR`);
-    console.log(`  frais : ${libelle}`);
   }
   await capture(page, "frais", rapport);
 }
@@ -528,7 +650,7 @@ function imprimerRapport(rapport) {
 async function main() {
   chargerEnvLocal();
 
-  const baseUrl = variableObligatoire("PARENT_PREUVE_PREVIEW_URL").replace(/\/$/, "");
+  const baseUrl = variableObligatoire("PARENT_PREUVE_PREVIEW_URL").replace(/\/+$/, "");
   const email = variableObligatoire("PARENT_PREUVE_TEST_EMAIL");
   const motDePasse = variableObligatoire("PARENT_PREUVE_TEST_PASSWORD");
   const runId = horodatageRun();
