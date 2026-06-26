@@ -1,0 +1,448 @@
+"use client";
+
+// Options avancées du calendrier, partagées entre :
+//   - /calendrier (mode "embedded", dans un encart replié) ;
+//   - /calendrier/avance (mode "page", page temporaire conservée).
+//
+// Composant AUTONOME par enfant : il lit la règle de base (garde_regles, lecture
+// seule), charge les règles avancées et exceptions persistées, calcule l'aperçu
+// enrichi et permet d'ajouter/retirer mercredi/exceptions. Aucune logique métier,
+// table, requête ou calcul n'est modifié : seul le code UI est mutualisé.
+//
+// Granularité métier inchangée : garde_regles / règles avancées / exceptions sont
+// portées par enfant_id ; le cloisonnement repose sur l'enfant de la procédure
+// active fourni par l'appelant.
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { CHAMP_CALENDRIER, LABEL_CALENDRIER } from "@/components/calendrier/champs";
+import PreviewCalendrierAvance from "@/components/calendrier/PreviewCalendrierAvance";
+import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance";
+import {
+  chargerExceptions,
+  ajouterException as ajouterExceptionDb,
+  supprimerException as supprimerExceptionDb,
+} from "@/lib/calendrier/exceptions";
+import {
+  chargerReglesAvancees,
+  ajouterRegleAvancee,
+  supprimerRegleAvancee,
+  type RegleAvanceeStockee,
+} from "@/lib/calendrier/reglesAvancees";
+import type {
+  ChezQui,
+  ExceptionGarde,
+  JourFerie,
+  PeriodeVacances,
+  ReglePlanning,
+} from "@/lib/calendrier/types";
+
+// Date locale -> "YYYY-MM-DD".
+function iso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const JOURS = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+// Libellé lisible d'une règle avancée (pour la liste « Retirer »).
+function libelleRegleAvancee(regle: ReglePlanning): string {
+  const chez = regle.chezQui === "moi" ? "chez moi" : "chez l'autre parent";
+  if (regle.type === "hebdomadaire") {
+    const j = JOURS[regle.jourDebut] ?? "jour";
+    return `${j.charAt(0).toUpperCase()}${j.slice(1)} (${chez})`;
+  }
+  if (regle.type === "weekend_alterne") return `Week-end sur deux (${chez})`;
+  return `Semaines alternées (${chez})`;
+}
+
+type RegleDb = {
+  parent_principal: "moi" | "autre";
+  date_reference: string;
+  jour_debut: number;
+  heure_debut: string;
+  jour_fin: number;
+  heure_fin: string;
+};
+
+export default function OptionsAvanceesCalendrier({
+  enfantId,
+  mode = "page",
+}: {
+  enfantId: string;
+  mode?: "page" | "embedded";
+}) {
+  const [regle, setRegle] = useState<RegleDb | null>(null);
+  const [chargement, setChargement] = useState(true);
+
+  // Règles avancées + exceptions PERSISTÉES (chargées par enfant).
+  const [reglesAvancees, setReglesAvancees] = useState<RegleAvanceeStockee[]>([]);
+  const [exceptions, setExceptions] = useState<ExceptionGarde[]>([]);
+  const [enErreur, setEnErreur] = useState("");
+
+  // La case « mercredi » reflète l'existence d'une règle hebdomadaire le mercredi.
+  const mercrediStocke = reglesAvancees.find(
+    (r) => r.regle.type === "hebdomadaire" && r.regle.jourDebut === 3,
+  );
+  const mercredi = !!mercrediStocke;
+
+  // Zones + annotations (vacances scolaires, jours fériés) via les routes serveur.
+  const [zoneVacances, setZoneVacances] = useState("A");
+  const [zoneFerie, setZoneFerie] = useState("metropole");
+  const [vacances, setVacances] = useState<PeriodeVacances[]>([]);
+  const [joursFeries, setJoursFeries] = useState<JourFerie[]>([]);
+
+  // Plage affichée : aujourd'hui -> +8 semaines (stable sur la session).
+  const [du, au] = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const a = new Date(d);
+    a.setDate(a.getDate() + 56);
+    return [d, a] as const;
+  }, []);
+
+  // Formulaire d'exception manuelle.
+  const [excDebut, setExcDebut] = useState("");
+  const [excFin, setExcFin] = useState("");
+  const [excChezQui, setExcChezQui] = useState<ChezQui>("moi");
+  const [excMotif, setExcMotif] = useState("");
+
+  useEffect(() => {
+    if (!enfantId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setChargement(true);
+    (async () => {
+      const { data } = await supabase
+        .from("garde_regles")
+        .select("parent_principal, date_reference, jour_debut, heure_debut, jour_fin, heure_fin")
+        .eq("enfant_id", enfantId)
+        .eq("actif", true)
+        .maybeSingle();
+      setRegle((data as RegleDb) ?? null);
+      // Règles avancées + exceptions persistées de cet enfant.
+      const [rav, exc] = await Promise.all([
+        chargerReglesAvancees(enfantId),
+        chargerExceptions(enfantId),
+      ]);
+      setReglesAvancees(rav);
+      setExceptions(exc);
+      setChargement(false);
+    })();
+  }, [enfantId]);
+
+  // Recharge les éléments persistés après une écriture.
+  async function rechargerPersistance() {
+    if (!enfantId) return;
+    const [rav, exc] = await Promise.all([
+      chargerReglesAvancees(enfantId),
+      chargerExceptions(enfantId),
+    ]);
+    setReglesAvancees(rav);
+    setExceptions(exc);
+  }
+
+  // Annotations (vacances + jours fériés) via les routes serveur. Tout échec
+  // est silencieux (fallback []) : l'aperçu reste fonctionnel sans annotations.
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      // Jours fériés : pour chaque année couverte par la plage.
+      const annees = Array.from(new Set([du.getFullYear(), au.getFullYear()]));
+      const feries: JourFerie[] = [];
+      for (const an of annees) {
+        try {
+          const r = await fetch(`/api/calendrier/jours-feries?annee=${an}&zone=${zoneFerie}`);
+          if (r.ok) {
+            const j = await r.json();
+            if (Array.isArray(j.data)) feries.push(...j.data);
+          }
+        } catch {
+          /* silencieux : fallback */
+        }
+      }
+      if (!annule) setJoursFeries(feries);
+
+      // Vacances scolaires sur la plage.
+      try {
+        const r = await fetch(
+          `/api/calendrier/vacances?zone=${zoneVacances}&du=${iso(du)}&au=${iso(au)}`,
+        );
+        const j = r.ok ? await r.json() : { data: [] };
+        if (!annule) setVacances(Array.isArray(j.data) ? j.data : []);
+      } catch {
+        if (!annule) setVacances([]);
+      }
+    })();
+    return () => {
+      annule = true;
+    };
+  }, [du, au, zoneVacances, zoneFerie]);
+
+  // Construit les règles avancées à partir de la règle existante + options.
+  const planning = useMemo(() => {
+    if (!regle) return null;
+
+    // parent_principal "autre" -> l'enfant vit surtout chez l'autre -> mes week-ends de DVH.
+    const chezQuiWeekend: ChezQui = regle.parent_principal === "autre" ? "moi" : "autre";
+    const chezQuiParDefaut: ChezQui = regle.parent_principal === "autre" ? "autre" : "moi";
+
+    const regles: ReglePlanning[] = [
+      {
+        type: "weekend_alterne",
+        jourDebut: regle.jour_debut,
+        heureDebut: (regle.heure_debut || "18:00").slice(0, 5),
+        jourFin: regle.jour_fin,
+        heureFin: (regle.heure_fin || "18:00").slice(0, 5),
+        dateReference: regle.date_reference,
+        chezQui: chezQuiWeekend,
+      },
+      // Règles avancées persistées (mercredi, etc.).
+      ...reglesAvancees.map((r) => r.regle),
+    ];
+
+    return calculerPlanningAvance({
+      regles,
+      exceptions,
+      chezQuiParDefaut,
+      vacances,
+      joursFeries,
+      du,
+      au,
+    });
+  }, [regle, reglesAvancees, exceptions, vacances, joursFeries, du, au]);
+
+  // Active/désactive la règle « mercredi » persistée.
+  async function basculerMercredi(actif: boolean) {
+    if (!enfantId || !regle) return;
+    setEnErreur("");
+    const chezQui: ChezQui = regle.parent_principal === "autre" ? "moi" : "autre";
+    if (actif) {
+      const { error } = await ajouterRegleAvancee(enfantId, {
+        type: "hebdomadaire",
+        jourDebut: 3,
+        heureDebut: "09:00",
+        jourFin: 3,
+        heureFin: "19:00",
+        chezQui,
+      });
+      if (error) return setEnErreur(error);
+    } else if (mercrediStocke) {
+      const { error } = await supprimerRegleAvancee(mercrediStocke.id);
+      if (error) return setEnErreur(error);
+    }
+    rechargerPersistance();
+  }
+
+  async function ajouterException() {
+    if (!enfantId || !excDebut || !excFin) return;
+    setEnErreur("");
+    const { error } = await ajouterExceptionDb(enfantId, {
+      debut: excDebut,
+      fin: excFin,
+      chezQui: excChezQui,
+      motif: excMotif.trim() || undefined,
+    });
+    if (error) return setEnErreur(error);
+    setExcDebut("");
+    setExcFin("");
+    setExcMotif("");
+    rechargerPersistance();
+  }
+
+  async function retirerException(id: string) {
+    setEnErreur("");
+    const { error } = await supprimerExceptionDb(id);
+    if (error) return setEnErreur(error);
+    rechargerPersistance();
+  }
+
+  async function retirerRegleAvancee(id: string) {
+    setEnErreur("");
+    const { error } = await supprimerRegleAvancee(id);
+    if (error) return setEnErreur(error);
+    rechargerPersistance();
+  }
+
+  // Styles communs (tokens de thème).
+  const carteStyle = { backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" } as const;
+
+  if (chargement) {
+    return <p className="text-sm text-texte-doux">Chargement…</p>;
+  }
+
+  if (!regle) {
+    return mode === "embedded" ? (
+      <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+        Aucune règle de garde pour cet enfant. Renseignez-la d&apos;abord ci-dessus
+        pour activer les options avancées.
+      </p>
+    ) : (
+      <p className="text-sm text-texte-doux">
+        Aucune règle pour cet enfant. Créez-la d&apos;abord dans{" "}
+        <Link href="/calendrier" className="text-or-fonce underline">
+          le calendrier de garde
+        </Link>
+        .
+      </p>
+    );
+  }
+
+  return (
+    <>
+      {/* Options avancées (locales) */}
+      <div className="rounded-xl border p-5 space-y-4" style={carteStyle}>
+        <label className="flex items-center gap-2 text-sm text-[#1F2733]">
+          <input
+            type="checkbox"
+            checked={mercredi}
+            onChange={(e) => basculerMercredi(e.target.checked)}
+          />
+          Ajouter le mercredi (journée de DVH)
+        </label>
+
+        {enErreur && (
+          <p className="text-sm" style={{ color: "var(--app-danger, #9B2C2C)" }}>{enErreur}</p>
+        )}
+
+        {reglesAvancees.length > 0 && (
+          <div className="border-t border-slate-200 pt-4">
+            <p className="text-sm font-medium text-[#1F2733]">
+              Règles avancées enregistrées
+            </p>
+            <ul className="mt-2 space-y-1">
+              {reglesAvancees.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between gap-3 text-sm text-texte-doux"
+                >
+                  <span>{libelleRegleAvancee(r.regle)}</span>
+                  <button
+                    type="button"
+                    onClick={() => retirerRegleAvancee(r.id)}
+                    className="hover:underline"
+                    style={{ color: "var(--app-danger, #9B2C2C)" }}
+                  >
+                    Retirer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={LABEL_CALENDRIER}>Zone de vacances scolaires</label>
+            <select
+              value={zoneVacances}
+              onChange={(e) => setZoneVacances(e.target.value)}
+              className={CHAMP_CALENDRIER}
+            >
+              <option value="A">Zone A</option>
+              <option value="B">Zone B</option>
+              <option value="C">Zone C</option>
+            </select>
+          </div>
+          <div>
+            <label className={LABEL_CALENDRIER}>Zone des jours fériés</label>
+            <select
+              value={zoneFerie}
+              onChange={(e) => setZoneFerie(e.target.value)}
+              className={CHAMP_CALENDRIER}
+            >
+              <option value="metropole">Métropole</option>
+              <option value="alsace-moselle">Alsace-Moselle</option>
+              <option value="guadeloupe">Guadeloupe</option>
+              <option value="guyane">Guyane</option>
+              <option value="martinique">Martinique</option>
+              <option value="mayotte">Mayotte</option>
+              <option value="la-reunion">La Réunion</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 pt-4">
+          <p className="text-sm font-medium text-[#1F2733]">
+            Exception manuelle
+          </p>
+          <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={LABEL_CALENDRIER}>Du</label>
+              <input
+                type="date"
+                value={excDebut}
+                onChange={(e) => setExcDebut(e.target.value)}
+                className={CHAMP_CALENDRIER}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CALENDRIER}>Au</label>
+              <input
+                type="date"
+                value={excFin}
+                onChange={(e) => setExcFin(e.target.value)}
+                className={CHAMP_CALENDRIER}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CALENDRIER}>Chez qui</label>
+              <select
+                value={excChezQui}
+                onChange={(e) => setExcChezQui(e.target.value as ChezQui)}
+                className={CHAMP_CALENDRIER}
+              >
+                <option value="moi">Chez moi</option>
+                <option value="autre">Chez l&apos;autre parent</option>
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CALENDRIER}>Motif (facultatif)</label>
+              <input
+                type="text"
+                value={excMotif}
+                onChange={(e) => setExcMotif(e.target.value)}
+                placeholder="Ex : vacances, événement familial"
+                className={CHAMP_CALENDRIER}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={ajouterException}
+            className="mt-3 rounded-lg border px-4 py-2 text-sm font-medium transition"
+            style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+          >
+            Ajouter l&apos;exception
+          </button>
+
+          {exceptions.length > 0 && (
+            <ul className="mt-3 space-y-1">
+              {exceptions.map((ex) => (
+                <li
+                  key={ex.id}
+                  className="flex items-center justify-between gap-3 text-sm text-texte-doux"
+                >
+                  <span>
+                    {ex.debut} → {ex.fin} ·{" "}
+                    {ex.chezQui === "moi" ? "chez moi" : "chez l'autre"}
+                    {ex.motif ? ` · ${ex.motif}` : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => retirerException(ex.id)}
+                    className="hover:underline"
+                    style={{ color: "var(--app-danger, #9B2C2C)" }}
+                  >
+                    Retirer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {planning && <PreviewCalendrierAvance planning={planning} />}
+    </>
+  );
+}

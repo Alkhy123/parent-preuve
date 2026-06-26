@@ -14,6 +14,7 @@ import SelecteurEnfantCalendrier from "@/components/calendrier/SelecteurEnfantCa
 import SelecteurZoneVacances from "@/components/calendrier/SelecteurZoneVacances";
 import ProchainsWeekendsCard from "@/components/calendrier/ProchainsWeekendsCard";
 import EtatCalendrierVide from "@/components/calendrier/EtatCalendrierVide";
+import OptionsAvanceesCalendrier from "@/components/calendrier/OptionsAvanceesCalendrier";
 import { isoJourLocal } from "@/lib/calendrier/chevauchementVacances";
 import type { PeriodeVacances } from "@/lib/calendrier/types";
 
@@ -288,6 +289,16 @@ export default function CalendrierPage() {
               </div>
             </div>
           <CalendrierMensuel regle={regleCourante} vacances={vacances} />
+
+          <EncartPliable titre="Options avancées" replieParDefaut>
+            <div className="space-y-4">
+              <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+                Mercredis, exceptions et jours fériés vous aident à affiner le
+                calendrier. Vérifiez toujours avec votre jugement ou vos documents.
+              </p>
+              <OptionsAvanceesCalendrier enfantId={enfantId} mode="embedded" />
+            </div>
+          </EncartPliable>
           </>
         )}
       </div>
