@@ -523,14 +523,14 @@ export default function FraisPage() {
       />}
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
           <CarteSynthese label="Total du mois" valeur={euros(totalMois)} indice={`${fraisDuMois.length} dépense${fraisDuMois.length > 1 ? "s" : ""}`} />
           <CarteSynthese label="À rembourser" valeur={euros(resteAPercevoir)} indice={`${fraisProcedure.filter((f) => !f.rembourse).length} en cours`} ton="attention" />
           <CarteSynthese label="Remboursé" valeur={euros(dejaRembourse)} indice={`${fraisProcedure.filter((f) => f.rembourse).length} frais`} ton="succes" />
           <CarteSynthese label="Sans justificatif" valeur={String(sansJustificatif)} indice={sansJustificatif > 0 ? "à compléter" : "complet"} ton={sansJustificatif > 0 ? "danger" : "neutre"} />
         </div>
 
-        <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+        <div className="min-w-0 rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
           <div className="space-y-2">
             <FiltrePills options={["Tous", "À rembourser", "Remboursé", "En attente"]} actif={filtreStatut} onChange={setFiltreStatut} />
             <FiltrePills options={["Toutes", ...CATEGORIES]} actif={filtreCategorie} onChange={setFiltreCategorie} />
@@ -545,7 +545,7 @@ export default function FraisPage() {
           </div>
         </div>
 
-      <div>
+      <div className="min-w-0">
           <RegleFrais/>
         </div>
 
@@ -848,16 +848,16 @@ export default function FraisPage() {
           {fraisFiltres.map((f) => (
             <div
               key={f.id}
-              className="rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+              className="min-w-0 overflow-hidden rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
               style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
             >
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                   <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
                     {f.categorie}
                   </span>
-                  <p className="mt-1.5 font-semibold text-[#15233F]">{f.libelle}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="mt-1.5 break-words font-semibold text-[#15233F]">{f.libelle}</p>
+                  <p className="break-words text-sm text-slate-500">
                     {f.date_frais} · Total {euros(Number(f.montant))} · Part due {euros(Number(f.part_autre))}
                     {nomEnfant(f.child_id) ? ` · ${nomEnfant(f.child_id)}` : ""}
                   </p>
@@ -893,7 +893,7 @@ export default function FraisPage() {
                     <select
                       value={f.document_id ?? ""}
                       onChange={(e) => lierJustificatif(f.id, e.target.value)}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                      className="max-w-full rounded-lg border border-slate-300 px-2 py-1 text-xs"
                     >
                       <option value="">— Lier un justificatif —</option>
                       {documentsProcedure.map((d) => (
@@ -902,24 +902,24 @@ export default function FraisPage() {
                     </select>
                   </div>
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                   <button
                     onClick={() => chargerPourEdition(f)}
-                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs font-medium transition sm:w-auto"
                     style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => basculerRembourse(f)}
-                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs font-medium transition sm:w-auto"
                     style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                   >
                     {f.rembourse ? "Annuler" : "Marquer remboursé"}
                   </button>
                   <button
                     onClick={() => supprimerFrais(f.id)}
-                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs font-medium transition sm:w-auto"
                     style={{ borderColor: "var(--app-danger, #9B2C2C)", color: "var(--app-danger, #9B2C2C)" }}
                   >
                     Supprimer

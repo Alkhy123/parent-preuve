@@ -2,8 +2,8 @@
 
 // components/app/AppShell.tsx
 //
-// Shell reel de l'application. Il reprend la structure validee dans les apercus
-// sans embarquer de donnees fictives ni de logique metier lourde. Les pages
+// Shell réel de l'application. Il reprend la structure validée dans les aperçus
+// sans embarquer de données fictives ni de logique métier lourde. Les pages
 // conservent leurs propres chargements Supabase, formulaires et sauvegardes.
 
 import Link from "next/link";
@@ -52,8 +52,8 @@ const NAV: NavItem[] = [
   { key: "documents", label: "Documents", icon: "documents", href: "/documents" },
   { key: "preuves", label: "Preuves", icon: "preuves", href: "/preuves" },
   { key: "calendrier", label: "Calendrier", icon: "calendrier", href: "/calendrier" },
-  { key: "procedures", label: "Procedure", icon: "procedures", href: "/procedure" },
-  { key: "syntheses", label: "Syntheses & exports", icon: "syntheses", href: "/export" },
+  { key: "procedures", label: "Procédure", icon: "procedures", href: "/procedure" },
+  { key: "syntheses", label: "Synthèses & exports", icon: "syntheses", href: "/export" },
   { key: "parametres", label: "Compte", icon: "parametres", href: "/compte" },
 ];
 
@@ -67,8 +67,8 @@ type CopiloteConfig = {
 const COPILOTE: Record<AppModule, CopiloteConfig> = {
   dashboard: {
     module: "Tableau de bord",
-    intro: "Retrouvez les prochaines actions utiles et les points a completer dans votre dossier.",
-    conseil: "Avancez par petites etapes : chaque information ajoutee rend le dossier plus clair.",
+    intro: "Retrouvez les prochaines actions utiles et les points à compléter dans votre dossier.",
+    conseil: "Avancez par petites étapes : chaque information ajoutée rend le dossier plus clair.",
     suggestions: [
       { label: "Noter un fait", href: "/journal", icon: "journal" },
       { label: "Ajouter un document", href: "/documents", icon: "documents" },
@@ -77,22 +77,22 @@ const COPILOTE: Record<AppModule, CopiloteConfig> = {
   },
   journal: {
     module: "Journal",
-    intro: "Notez des faits dates, neutres et relies a une procedure active.",
-    conseil: "Decrivez ce qui est observable : date, heure, lieu, piece eventuelle.",
+    intro: "Notez des faits datés, neutres et reliés à une procédure active.",
+    conseil: "Décrivez ce qui est observable : date, heure, lieu, pièce éventuelle.",
     suggestions: [
-      { label: "Ajouter un evenement", href: "#ajouter-fait", icon: "plus" },
-      { label: "Lier une piece", href: "/documents", icon: "attache" },
+      { label: "Ajouter un événement", href: "#ajouter-fait", icon: "plus" },
+      { label: "Lier une pièce", href: "/documents", icon: "attache" },
       { label: "Exporter en CSV", href: "#export-journal", icon: "syntheses" },
     ],
   },
   frais: {
     module: "Frais",
-    intro: "Suivez les depenses et les justificatifs rattaches a la procedure.",
-    conseil: "Joignez un justificatif a chaque depense : un frais documente est plus simple a presenter.",
+    intro: "Suivez les dépenses et les justificatifs rattachés à la procédure.",
+    conseil: "Joignez un justificatif à chaque dépense : un frais documenté est plus simple à présenter.",
     suggestions: [
-      { label: "Categoriser une depense", href: "/frais", icon: "frais" },
-      { label: "Reperer les frais sans justificatif", href: "/frais", icon: "attache" },
-      { label: "Calculer une part a rembourser", href: "/frais", icon: "syntheses" },
+      { label: "Catégoriser une dépense", href: "/frais", icon: "frais" },
+      { label: "Repérer les frais sans justificatif", href: "/frais", icon: "attache" },
+      { label: "Calculer une part à rembourser", href: "/frais", icon: "syntheses" },
     ],
   },
   documents: {
@@ -126,27 +126,27 @@ const COPILOTE: Record<AppModule, CopiloteConfig> = {
     ],
   },
   procedures: {
-    module: "Procedure",
-    intro: "Verifiez que chaque dossier reste separe des autres procedures.",
-    conseil: "Ne melangez pas les dossiers : chaque donnee appartient a une procedure.",
-    suggestions: [{ label: "Verifier la procedure", href: "/procedure", icon: "procedures" }],
+    module: "Procédure",
+    intro: "Vérifiez que chaque dossier reste séparé des autres procédures.",
+    conseil: "Ne mélangez pas les dossiers : chaque donnée appartient à une procédure.",
+    suggestions: [{ label: "Vérifier la procédure", href: "/procedure", icon: "procedures" }],
   },
   syntheses: {
-    module: "Syntheses & exports",
-    intro: "Preparez des documents factuels a relire avant transmission.",
-    conseil: "L'export organise vos donnees ; il ne remplace pas un avis juridique.",
+    module: "Synthèses & exports",
+    intro: "Préparez des documents factuels à relire avant transmission.",
+    conseil: "L'export organise vos données ; il ne remplace pas un avis juridique.",
     suggestions: [{ label: "Exporter le dossier", href: "/export", icon: "syntheses" }],
   },
   parametres: {
-    module: "Parametres",
-    intro: "Adaptez l'apparence et les reglages de votre espace.",
-    conseil: "Ces reglages modifient votre confort, pas le contenu de votre dossier.",
-    suggestions: [{ label: "Regler le theme", href: "/compte", icon: "parametres" }],
+    module: "Paramètres",
+    intro: "Adaptez l'apparence et les réglages de votre espace.",
+    conseil: "Ces réglages modifient votre confort, pas le contenu de votre dossier.",
+    suggestions: [{ label: "Régler le thème", href: "/compte", icon: "parametres" }],
   },
 };
 
 const MESSAGE_PRUDENT =
-  "L'assistant propose, vous verifiez et validez. Il ne remplace pas un professionnel du droit.";
+  "L'assistant propose, vous vérifiez et validez. Il ne remplace pas un professionnel du droit.";
 
 export default function AppShell({
   activeModule,
@@ -180,7 +180,7 @@ export default function AppShell({
   }, []);
 
   function libelleProcedure(p: Procedure) {
-    return p.etiquette?.trim() ? p.etiquette : "Procedure sans nom";
+    return p.etiquette?.trim() ? p.etiquette : "Procédure sans nom";
   }
 
   function changerProcedure(id: string) {
@@ -227,7 +227,7 @@ export default function AppShell({
               className="px-1 text-[11px] font-medium uppercase tracking-wide"
               style={{ color: "var(--app-text-muted)" }}
             >
-              Procedure active
+              Procédure active
             </p>
             <div
               className="mt-1 rounded-lg border px-3 py-2.5"
@@ -251,7 +251,7 @@ export default function AppShell({
                 </select>
               ) : (
                 <p className="truncate text-sm font-semibold">
-                  {actuelle ? libelleProcedure(actuelle) : "Aucune procedure"}
+                  {actuelle ? libelleProcedure(actuelle) : "Aucune procédure"}
                 </p>
               )}
             </div>
@@ -322,10 +322,10 @@ export default function AppShell({
               </div>
               <div className="hidden min-w-0 lg:block">
                 <p className="truncate text-sm font-medium">
-                  {actuelle ? libelleProcedure(actuelle) : "Aucune procedure active"}
+                  {actuelle ? libelleProcedure(actuelle) : "Aucune procédure active"}
                 </p>
                 <p className="text-xs" style={{ color: "var(--app-text-muted)" }}>
-                  Donnees reelles de votre dossier, filtrees par les pages metier.
+                  Données réelles de votre dossier, filtrées par les pages métier.
                 </p>
               </div>
               <button
@@ -343,7 +343,7 @@ export default function AppShell({
             </div>
           </header>
 
-          <main className="px-4 pb-24 pt-5 sm:px-6 lg:pb-8">
+          <main className="px-4 pb-36 pt-5 sm:px-6 lg:pb-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
@@ -360,7 +360,7 @@ export default function AppShell({
           </main>
 
           <nav
-            className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t py-2 lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 lg:hidden"
             style={{
               backgroundColor: "var(--app-surface)",
               borderColor: "var(--app-border)",
@@ -430,7 +430,7 @@ function PanneauCopilote({ contexte }: { contexte: CopiloteConfig }) {
         <div className="min-w-0">
           <h2 className="text-base font-semibold leading-tight">Copilote</h2>
           <p className="truncate text-xs" style={{ color: "var(--app-text-muted)" }}>
-            Adapte a : {contexte.module}
+            Adapté à : {contexte.module}
           </p>
         </div>
       </div>

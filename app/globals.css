@@ -40,7 +40,7 @@
 }
 
 body {
-  background: var(--background);
+  background: var(--app-bg, var(--background));
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, Helvetica, Arial, sans-serif;
 }

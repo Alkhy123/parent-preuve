@@ -113,5 +113,6 @@ Points **positifs** confirmés (conformes aux aperçus) :
 - `@playwright/test` a été installé **localement sans enregistrement** (`--no-save`,
   contournement SSL `--use-system-ca`) uniquement pour la capture ; non commité,
   non ajouté à `package.json`.
-- Aucune modification de fichier métier, route IA, migration ou donnée. Rien n'a été
-  commité. Identifiants de test non divulgués.
+- Aucune modification métier, route IA, migration Supabase, règle RLS ou donnée
+  applicative n'a été effectuée dans ce bloc d'audit. Identifiants de test non
+  divulgués.
