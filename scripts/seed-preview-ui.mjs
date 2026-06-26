@@ -306,7 +306,35 @@ async function fillByLabelOrFallback(scope, labels, fallbackLocators, valeur, no
   throw new Error(`Champ introuvable pour ${nomChamp}`);
 }
 
-async function attendreSignalFormulaireFrais(page) {
+// Ouvre le formulaire d'ajout de frais. Priorite au data-testid stable
+// `frais-add-toggle`, puis fallback sur les boutons visibles par texte.
+async function ouvrirFormulaireFrais(page) {
+  const toggle = page.locator('[data-testid="frais-add-toggle"]');
+  if ((await toggle.count()) > 0) {
+    const cible = toggle.first();
+    if (await cible.isVisible()) {
+      await cible.click();
+      console.log("  ouverture formulaire frais : data-testid frais-add-toggle");
+      return;
+    }
+  }
+
+  const ouvert = await clickFirstVisibleByRole(
+    page,
+    "button",
+    [/Ajouter une dépense/i, /Ajouter un frais/i, /^Ajouter$/i],
+    "ouverture formulaire frais"
+  );
+  if (!ouvert) {
+    await screenshotDiagnostic(page, "frais-ouverture-impossible");
+    throw new Error("Impossible d'ouvrir le formulaire frais.");
+  }
+}
+
+// Vrai si le formulaire d'ajout de frais (champs Libelle/Montant/Date) est visible.
+async function formulaireFraisDetecte(page) {
+  const form = page.locator('[data-testid="frais-add-form"]');
+  if ((await form.count()) > 0 && (await form.first().isVisible())) return true;
   const signaux = [
     page.getByText(/Libellé/i),
     page.getByText(/Libelle/i),
@@ -315,15 +343,47 @@ async function attendreSignalFormulaireFrais(page) {
     page.getByRole("button", { name: /Ajouter le frais/i }),
     page.getByRole("button", { name: /Enregistrer les modifications/i }),
   ];
+  for (const signal of signaux) {
+    if (await findFirstVisible([signal])) return true;
+  }
+  return false;
+}
 
+// Tente de re-ouvrir / deplier le formulaire si le premier clic n'a pas suffi.
+async function tenterRouvertureFormulaireFrais(page) {
+  // a) data-testid du bouton principal.
+  const toggle = page.locator('[data-testid="frais-add-toggle"]');
+  if ((await toggle.count()) > 0 && (await toggle.first().isVisible())) {
+    await toggle.first().click().catch(() => {});
+  }
+  // b) bouton "Afficher" a l'interieur de l'encart d'ajout.
+  const section = page.locator('[data-testid="frais-add-section"]');
+  if ((await section.count()) > 0) {
+    const afficher = section.getByRole("button", { name: /Afficher/i });
+    if ((await afficher.count()) > 0 && (await afficher.first().isVisible())) {
+      await afficher.first().click().catch(() => {});
+      console.log('  encart frais deplie via "Afficher"');
+    }
+  }
+  // c) bouton "Ajouter un frais" de l'etat vide.
+  const vide = page.getByRole("button", { name: /Ajouter un frais/i });
+  if ((await vide.count()) > 0 && (await vide.first().isVisible())) {
+    await vide.first().click().catch(() => {});
+  }
+}
+
+async function attendreSignalFormulaireFrais(page) {
   const depart = Date.now();
+  let recuperationTentee = false;
   while (Date.now() - depart < 15000) {
-    for (const signal of signaux) {
-      const visible = await findFirstVisible([signal]);
-      if (visible) {
-        console.log("  formulaire frais detecte apres ouverture");
-        return;
-      }
+    if (await formulaireFraisDetecte(page)) {
+      console.log("  formulaire frais detecte apres ouverture");
+      return;
+    }
+    // Mi-parcours : si rien n'apparait, on tente de deplier/rouvrir une fois.
+    if (!recuperationTentee && Date.now() - depart > 2500) {
+      recuperationTentee = true;
+      await tenterRouvertureFormulaireFrais(page);
     }
     await page.waitForTimeout(250);
   }
@@ -335,6 +395,13 @@ async function attendreSignalFormulaireFrais(page) {
 }
 
 async function trouverZoneFormulaireFrais(page) {
+  // Priorite au conteneur stable du formulaire.
+  const form = page.locator('[data-testid="frais-add-form"]');
+  if ((await form.count()) > 0 && (await form.first().isVisible())) {
+    console.log("  zone formulaire frais : data-testid frais-add-form");
+    return form.first();
+  }
+
   const candidats = page
     .locator("form, section, div")
     .filter({ hasText: /Libellé|Libelle|Montant total|Montant/i });
@@ -379,6 +446,17 @@ async function remplirDateFrais(page, formulaire) {
 }
 
 async function cliquerSubmitFrais(page, formulaire) {
+  // Priorite au data-testid stable du bouton de validation.
+  const submitTestId = page.locator('[data-testid="frais-submit"]');
+  if ((await submitTestId.count()) > 0) {
+    const cible = submitTestId.first();
+    if ((await cible.isVisible()) && (await cible.isEnabled())) {
+      await cible.click();
+      console.log("  submit frais : data-testid frais-submit");
+      return;
+    }
+  }
+
   const nomsSubmit = [
     /Ajouter le frais/i,
     /Ajouter la dépense/i,
@@ -498,17 +576,7 @@ async function ajouterFrais(page, runId, rapport) {
     const libelle = `[TEST UI ${runId}] ${item.libelle}`;
     try {
       await attendrePage(page, "/frais", /Frais/);
-      const ouvert = await clickFirstVisibleByRole(
-        page,
-        "button",
-        [/Ajouter une dépense/i, /Ajouter un frais/i, /^Ajouter$/i],
-        "ouverture formulaire frais"
-      );
-      if (!ouvert) {
-        await screenshotDiagnostic(page, "frais-ouverture-impossible");
-        throw new Error("Impossible d'ouvrir le formulaire frais.");
-      }
-
+      await ouvrirFormulaireFrais(page);
       await attendreSignalFormulaireFrais(page);
       const formulaire = await trouverZoneFormulaireFrais(page);
       await fillByLabelOrFallback(
@@ -650,7 +718,12 @@ function imprimerRapport(rapport) {
 async function main() {
   chargerEnvLocal();
 
-  const baseUrl = variableObligatoire("PARENT_PREUVE_PREVIEW_URL").replace(/\/+$/, "");
+  // URL de preview nettoyee : trim (deja fait par variableObligatoire) puis
+  // suppression des slashs finaux. On refuse une URL vide apres nettoyage.
+  const baseUrl = variableObligatoire("PARENT_PREUVE_PREVIEW_URL").trim().replace(/\/+$/, "");
+  if (!baseUrl) {
+    throw new Error("PARENT_PREUVE_PREVIEW_URL est vide apres nettoyage.");
+  }
   const email = variableObligatoire("PARENT_PREUVE_TEST_EMAIL");
   const motDePasse = variableObligatoire("PARENT_PREUVE_TEST_PASSWORD");
   const runId = horodatageRun();

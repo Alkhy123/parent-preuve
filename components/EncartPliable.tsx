@@ -9,6 +9,9 @@ type Props = {
   replieParDefaut?: boolean;   // état initial quand c'est pliable
   idPersistance?: string;      // si défini, l'état (plié/déplié) est mémorisé sur l'appareil
   signalFermeture?: number;    // incrémenter cette valeur referme l'encart (ex. après enregistrement)
+  open?: boolean;              // ouverture contrôlée (rétrocompatible : undefined = non contrôlé)
+  onOpenChange?: (ouvert: boolean) => void; // notifié quand l'utilisateur plie/déplie en mode contrôlé
+  testId?: string;             // data-testid optionnel posé sur le conteneur (non visuel)
   children: ReactNode;
 };
 
@@ -21,14 +24,25 @@ export default function EncartPliable({
   replieParDefaut = false,
   idPersistance,
   signalFermeture,
+  open,
+  onOpenChange,
+  testId,
   children,
 }: Props) {
-  const [replie, setReplie] = useState(pliable ? replieParDefaut : false);
+  // Mode contrôlé si `open` est fourni : l'état plié/déplié suit alors le parent.
+  // Sinon comportement historique (état interne), inchangé.
+  const controle = open !== undefined;
+  const [replieInterne, setReplieInterne] = useState(pliable ? replieParDefaut : false);
+  const replie = controle ? !open : replieInterne;
   const premierRendu = useRef(true);
 
   // Applique un état et le mémorise sur l'appareil si une persistance est demandée.
   function appliquerEtat(valeurRepliee: boolean) {
-    setReplie(valeurRepliee);
+    if (controle) {
+      onOpenChange?.(!valeurRepliee);
+      return;
+    }
+    setReplieInterne(valeurRepliee);
     if (idPersistance) {
       try {
         localStorage.setItem(PREFIXE + idPersistance, String(valeurRepliee));
@@ -41,13 +55,13 @@ export default function EncartPliable({
   // Au montage : si une persistance est demandée, on relit l'état mémorisé.
   // (lecture en effet, jamais au rendu serveur, pour éviter les écarts d'hydratation)
   useEffect(() => {
-    if (!pliable || !idPersistance) return;
+    if (controle || !pliable || !idPersistance) return;
     try {
       const v = localStorage.getItem(PREFIXE + idPersistance);
       // Initialisation depuis le stockage local au montage (pas de cascade).
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (v === 'true') setReplie(true);
-      else if (v === 'false') setReplie(false);
+      if (v === 'true') setReplieInterne(true);
+      else if (v === 'false') setReplieInterne(false);
     } catch {
       /* localStorage indisponible : on garde l'état par défaut */
     }
@@ -68,6 +82,7 @@ export default function EncartPliable({
 
   return (
     <div
+      data-testid={testId}
       className="rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:p-5"
       style={{
         backgroundColor: "var(--app-surface)",

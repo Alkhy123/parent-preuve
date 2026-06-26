@@ -75,6 +75,20 @@ export default function FraisPage() {
   // Édition d'un frais existant. null = mode ajout ; sinon l'id du frais modifié.
   const [editionId, setEditionId] = useState<string | null>(null);
   const formulaireRef = useRef<HTMLDivElement>(null);
+  const libelleRef = useRef<HTMLInputElement>(null);
+
+  // Ouvre directement le formulaire d'ajout d'un frais (mode ajout, encart déplié),
+  // puis fait défiler vers le formulaire et place le focus sur « Libellé ».
+  // Utilisé par les boutons « Ajouter une dépense » / « Ajouter un frais ».
+  function openAddFraisForm() {
+    setEditionId(null);
+    setFormulaireOuvert(true);
+    // Le formulaire est monté après ce rendu : on diffère le scroll + focus.
+    setTimeout(() => {
+      formulaireRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      libelleRef.current?.focus();
+    }, 60);
+  }
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
@@ -505,7 +519,8 @@ export default function FraisPage() {
           </button>
           <button
             type="button"
-            onClick={() => setFormulaireOuvert(true)}
+            data-testid="frais-add-toggle"
+            onClick={openAddFraisForm}
             className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white transition md:inline-flex"
             style={{ backgroundColor: "var(--app-primary)" }}
           >
@@ -539,7 +554,7 @@ export default function FraisPage() {
             <button type="button" onClick={exporterCsv} disabled={fraisProcedure.length === 0} className="flex-1 rounded-lg border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50" style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}>
               Export CSV
             </button>
-            <button type="button" onClick={() => setFormulaireOuvert(true)} className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--app-primary)" }}>
+            <button type="button" onClick={openAddFraisForm} className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--app-primary)" }}>
               Ajouter
             </button>
           </div>
@@ -571,14 +586,16 @@ export default function FraisPage() {
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive ou quand on édite un frais. */}
         {formulaireOuvert && (
-        <div className="mt-4" ref={formulaireRef}>
+        <div className="mt-4" ref={formulaireRef} data-testid="frais-add-section">
           <EncartPliable
             key={editionId ? `frais-edition-${editionId}` : preRempli ? "frais-prerempli" : "frais-standard"}
             titre={editionId ? "Modifier le frais" : "Ajouter un frais"}
-            replieParDefaut={!preRempli && !editionId}
+            testId="frais-add-encart"
+            open={formulaireOuvert}
+            onOpenChange={setFormulaireOuvert}
             signalFermeture={signalAjout}
           >
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid="frais-add-form">
           {editionId && (
             <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
               <p className="font-medium text-[#15233F]">Modification d&apos;un frais existant.</p>
@@ -609,6 +626,7 @@ export default function FraisPage() {
               Libellé <span className="text-[#9B2C2C]">*</span>
             </label>
             <input
+              ref={libelleRef}
               type="text" placeholder="Ex : Consultation orthodontiste"
               value={libelle} onChange={(e) => setLibelle(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
@@ -806,6 +824,8 @@ export default function FraisPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <button
+              type="button"
+              data-testid="frais-submit"
               onClick={ajouterFrais}
               className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
             >
@@ -852,7 +872,7 @@ export default function FraisPage() {
               action={
                 <button
                   type="button"
-                  onClick={() => setFormulaireOuvert(true)}
+                  onClick={openAddFraisForm}
                   className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white"
                   style={{ backgroundColor: "var(--app-primary)" }}
                 >
