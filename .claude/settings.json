@@ -20,7 +20,14 @@
       "Bash(grep -rhoE '\\(hover:\\)?\\(bg|text|border|ring|from|to\\)-\\(\\\\[#[0-9A-Fa-f]+\\\\]\\(/\\\\[?[0-9.]+\\\\]?\\)?|slate-[0-9]+|emerald-[0-9]+|amber-[0-9]+|rose-[0-9]+|blue-[0-9]+|white\\)' components/apercu app/apercu)",
       "Bash(sed -i 's/ lg:flex/ md:flex/g' app/apercu/*/page.tsx && echo \"OK\" && grep -rl \"md:flex\" app/apercu | wc -l && grep -rc \"lg:flex\" app/apercu | grep -v ':0' || echo \"plus aucun lg:flex\")",
       "Bash(sed -i 's#\"/compte\"]#\"/compte\", \"/frais\"]#' components/NavBar.tsx components/BandeauProcedure.tsx components/Footer.tsx)",
-      "Bash(sed -i 's#\"/journal\"]#\"/journal\", \"/frais\"]#' components/BoutonCaptureRapide.tsx components/AssistantFlottant.tsx)"
+      "Bash(sed -i 's#\"/journal\"]#\"/journal\", \"/frais\"]#' components/BoutonCaptureRapide.tsx components/AssistantFlottant.tsx)",
+      "Bash(npx playwright *)",
+      "Read(//c/Users/antho/AppData/Local/ms-playwright/**)",
+      "Bash(curl -sI --max-time 15 https://parent-preuve-gsa559prt-alkhyom-s-projects.vercel.app/)",
+      "Bash(node scripts/audit-visuel-preview.mjs)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({...p.dependencies,...p.devDependencies},null,0\\)\\)\")",
+      "Bash(node -e \"console.log\\('version', require\\('@playwright/test/package.json'\\).version\\)\")",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "C:\\projets\\parent-preuve\\.git",
