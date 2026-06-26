@@ -268,10 +268,10 @@ export default function NouvellePreuvePage() {
         ecart: ecartSec,
         horodatage: horodatageOK
         ? "horodaté (non qualifié)"
-        : "à refaire (échec, preuve quand même scellée)",
+        : "à refaire (élément conservé avec son empreinte)",
       verification: verificationTexte,
     });
-      setMessageSucces("Preuve enregistrée et scellée.");
+      setMessageSucces("Élément enregistré avec sa traçabilité technique.");
 
       // Réinitialiser le formulaire pour une éventuelle nouvelle preuve
       setFichier(null);
@@ -297,8 +297,8 @@ export default function NouvellePreuvePage() {
   return (
     <AppShell
       activeModule="preuves"
-      title="Ajouter une preuve"
-      subtitle="Ajoutez une photo, une capture ou un document avec ses informations techniques."
+      title="Ajouter une photo au dossier"
+      subtitle="Ajoutez une photo utile à votre dossier, avec des informations techniques de traçabilité."
       copilotContext="preuves"
       actions={
         <Link
@@ -321,35 +321,67 @@ export default function NouvellePreuvePage() {
             <Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0" />
           </span>
           <p>
-            Les informations techniques, comme l&apos;empreinte et l&apos;horodatage,
-            facilitent la traçabilité d&apos;un fichier. Elles ne préjugent pas de sa
-            valeur juridique, qui s&apos;apprécie au cas par cas.
+            Les informations techniques peuvent aider à organiser et contextualiser
+            l&apos;élément. Leur portée s&apos;apprécie au cas par cas : l&apos;application
+            ne remplace pas un commissaire de justice, un avocat ou une décision du juge.
           </p>
         </div>
 
         <div className="app-form-grid">
           <div className="space-y-5">
         {/* Sélection / capture */}
-        <div className="rounded-xl border p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
-          <label className="mb-2 block text-sm font-medium" style={{ color: "var(--app-text)" }}>
-            Photo
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={onFichierChoisi}
-            className="block w-full text-sm
-                       file:mr-4 file:rounded-md file:border-0
-                       file:bg-[#15233F] file:px-4 file:py-2
-                       file:text-sm file:font-medium file:text-white
-                       hover:file:bg-[#15233F]/90"
-            style={{ color: "var(--app-text)" }}
-          />
-          <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>
-            Sur mobile, le bouton ouvre directement l&apos;appareil photo.
-          </p>
-        </div>
+        <section className="rounded-xl border p-5 sm:p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+          <div className="flex items-start gap-3">
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+              style={{ backgroundColor: "var(--app-primary-soft)", color: "var(--app-primary)" }}
+              aria-hidden="true"
+            >
+              <Icon name="preuves" className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>
+                1. Choisir la photo
+              </p>
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--app-text-muted)" }}>
+                Ajoutez une photo utile à votre dossier. Sur mobile, le choix du fichier
+                peut ouvrir directement l&apos;appareil photo.
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="mt-4 rounded-lg border p-3"
+            style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}
+          >
+            <input
+              id="preuve-photo-fichier"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onFichierChoisi}
+              className="sr-only"
+            />
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+                  Fichier sélectionné
+                </p>
+                <p className="mt-1 break-words text-sm font-medium" style={{ color: "var(--app-text)" }}>
+                  {fichier ? fichier.name : "Aucun fichier sélectionné"}
+                </p>
+              </div>
+              <label
+                htmlFor="preuve-photo-fichier"
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition sm:w-auto"
+                style={{ backgroundColor: "var(--app-primary)", color: "var(--app-on-primary)" }}
+              >
+                <Icon name="plus" className="h-4 w-4" />
+                Choisir une photo
+              </label>
+            </div>
+          </div>
+        </section>
 
         {erreur && (
           <p className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -382,60 +414,35 @@ export default function NouvellePreuvePage() {
 
         {/* Aperçu + détails + champs */}
         {fichier && !enCours && (
-          <div className="space-y-5 rounded-xl border p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
-            {apercu && (
-              // Aperçu local d'un blob (URL.createObjectURL) : dimensions inconnues
-              // et URL éphémère -> next/image n'apporte rien ici.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={apercu}
-                alt="Aperçu de la photo"
-                className="max-h-64 rounded-md border"
-                style={{ borderColor: "var(--app-border)" }}
-              />
-            )}
+          <div className="space-y-4">
+            <section className="rounded-xl border p-5 sm:p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>
+                    2. Décrire le contexte
+                  </h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--app-text-muted)" }}>
+                    Ajoutez les éléments utiles à la relecture : date, lieu, situation observée.
+                  </p>
+                </div>
+              </div>
 
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt style={{ color: "var(--app-text-muted)" }}>Nom du fichier</dt>
-                <dd className="break-all text-right font-medium" style={{ color: "var(--app-text)" }}>
-                  {fichier.name}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt style={{ color: "var(--app-text-muted)" }}>Type</dt>
-                <dd className="font-medium" style={{ color: "var(--app-text)" }}>
-                  {fichier.type || "inconnu"}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt style={{ color: "var(--app-text-muted)" }}>Taille</dt>
-                <dd className="font-medium" style={{ color: "var(--app-text)" }}>
-                  {formaterTaille(fichier.size)}
-                </dd>
-              </div>
-              {dimensions && (
-                <div className="flex justify-between gap-4">
-                  <dt style={{ color: "var(--app-text-muted)" }}>Dimensions</dt>
-                  <dd className="font-medium" style={{ color: "var(--app-text)" }}>{dimensions}</dd>
+              {apercu && (
+                <div className="mt-4 overflow-hidden rounded-lg border" style={{ borderColor: "var(--app-border)" }}>
+                  {/* Aperçu local d'un blob (URL.createObjectURL) : dimensions inconnues
+                     et URL éphémère -> next/image n'apporte rien ici. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={apercu}
+                    alt="Aperçu de la photo"
+                    className="max-h-72 w-full object-contain"
+                    style={{ backgroundColor: "var(--app-surface-muted)" }}
+                  />
                 </div>
               )}
-            </dl>
 
-            {empreinte && (
-              <div>
-                <p className="mb-1 text-sm" style={{ color: "var(--app-text-muted)" }}>Empreinte SHA-256</p>
-                <p
-                  className="break-all rounded-md border px-3 py-2 font-mono text-xs"
-                  style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text)" }}
-                >
-                  {empreinte}
-                </p>
-              </div>
-            )}
-
-            {/* Champs de description */}
-            <div className="space-y-4 border-t pt-4" style={{ borderColor: "var(--app-border)" }}>
+              {/* Champs de description */}
+              <div className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium" style={{ color: "var(--app-text)" }}>
                   Titre
@@ -483,26 +490,105 @@ export default function NouvellePreuvePage() {
                 </select>
               </div>
             </div>
+            </section>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <section className="rounded-xl border p-5 sm:p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+              <div className="flex items-start gap-3">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: "var(--app-primary-soft)", color: "var(--app-primary)" }}
+                  aria-hidden="true"
+                >
+                  <Icon name="shield" className="h-5 w-5" />
+                </span>
+                <div>
+                  <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>
+                    3. Informations techniques et traçabilité
+                  </h2>
+                  <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--app-text-muted)" }}>
+                    Ces informations aident à organiser et contextualiser l&apos;élément.
+                    Elles ne garantissent pas sa valeur dans une procédure.
+                  </p>
+                </div>
+              </div>
+
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}>
+                  <dt className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+                    Nom du fichier
+                  </dt>
+                  <dd className="mt-1 break-all font-medium" style={{ color: "var(--app-text)" }}>
+                    {fichier.name}
+                  </dd>
+                </div>
+                <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}>
+                  <dt className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+                    Type
+                  </dt>
+                  <dd className="mt-1 font-medium" style={{ color: "var(--app-text)" }}>
+                    {fichier.type || "inconnu"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}>
+                  <dt className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+                    Taille
+                  </dt>
+                  <dd className="mt-1 font-medium" style={{ color: "var(--app-text)" }}>
+                    {formaterTaille(fichier.size)}
+                  </dd>
+                </div>
+                {dimensions && (
+                  <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}>
+                    <dt className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+                      Dimensions
+                    </dt>
+                    <dd className="mt-1 font-medium" style={{ color: "var(--app-text)" }}>{dimensions}</dd>
+                  </div>
+                )}
+              </dl>
+
+              {empreinte && (
+                <div className="mt-4">
+                  <p className="mb-1 text-sm font-medium" style={{ color: "var(--app-text)" }}>Empreinte SHA-256</p>
+                  <p
+                    className="break-all rounded-md border px-3 py-2 font-mono text-xs"
+                    style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text)" }}
+                  >
+                    {empreinte}
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-xl border p-5 sm:p-6" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+              <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>
+                4. Enregistrer dans la procédure active
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--app-text-muted)" }}>
+                L&apos;original sera conservé dans l&apos;espace privé de la procédure active,
+                avec les informations techniques disponibles.
+              </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <button
                 onClick={enregistrer}
                 disabled={enregistrement || !empreinte}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
-                style={{ backgroundColor: "var(--app-primary)" }}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 sm:w-auto"
+                style={{ backgroundColor: "var(--app-primary)", color: "var(--app-on-primary)" }}
               >
+                <Icon name="check" className="h-4 w-4" />
                 {enregistrement
                   ? "Enregistrement en cours…"
-                  : "Enregistrer et sceller la preuve"}
+                  : "Enregistrer l’élément"}
               </button>
               <Link
                 href="/preuves"
-                className="rounded-lg border px-4 py-2.5 text-sm font-medium transition"
+                className="inline-flex w-full items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition sm:w-auto"
                 style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
               >
                 Annuler
               </Link>
             </div>
+            </section>
           </div>
         )}
 
@@ -513,9 +599,9 @@ export default function NouvellePreuvePage() {
               className="rounded-xl border p-4 text-xs leading-relaxed"
               style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
             >
-              L&apos;empreinte identifie de façon unique le contenu exact du fichier : la moindre
-              modification la change entièrement. Cette preuve numérique renforcée ne constitue
-              pas un constat de commissaire de justice.
+              L&apos;empreinte identifie le contenu exact du fichier : la moindre modification la
+              change entièrement. Cet élément reste une pièce de dossier ; sa portée s&apos;apprécie
+              au cas par cas.
             </div>
           </aside>
         </div>
