@@ -27,7 +27,14 @@
       "Bash(node scripts/audit-visuel-preview.mjs)",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({...p.dependencies,...p.devDependencies},null,0\\)\\)\")",
       "Bash(node -e \"console.log\\('version', require\\('@playwright/test/package.json'\\).version\\)\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(node --check scripts/seed-preview-ui.mjs)",
+      "PowerShell(npm.cmd run check:agent-boundaries)",
+      "PowerShell(npm.cmd run check:ia-consent)",
+      "PowerShell(npm.cmd run check:multi-procedure-migration)",
+      "PowerShell(npm.cmd run build 2>&1)",
+      "Bash(grep -n \"paths\\\\|@/\\\\*\\\\|baseUrl\" tsconfig.json)",
+      "PowerShell(npm.cmd run lint 2>&1)"
     ],
     "additionalDirectories": [
       "C:\\projets\\parent-preuve\\.git",

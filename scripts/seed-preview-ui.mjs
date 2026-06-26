@@ -790,10 +790,32 @@ async function verifierContexteCalendrier(page, chemin, rapport) {
   console.log(`  contexte calendrier reconnu : ${chemin}`);
 }
 
+// Vérification légère (non bloquante) : le bouton « Options avancées » ouvre
+// bien l'encart replié sur /calendrier (sans quitter la page).
+async function verifierEncartOptionsAvancees(page, rapport) {
+  const bouton = page.getByRole("button", { name: /Options avancées/i });
+  if (!(await bouton.count())) {
+    rapport.avertissements.push("/calendrier : bouton « Options avancées » introuvable.");
+    return;
+  }
+  try {
+    await bouton.first().click();
+    await expect(
+      page.getByText(/Mercredis, exceptions et jours fériés/i).first()
+    ).toBeVisible({ timeout: 8000 });
+    console.log("  encart « Options avancées » ouvert (OK)");
+  } catch {
+    rapport.avertissements.push(
+      "/calendrier : l'encart « Options avancées » ne s'est pas ouvert au clic."
+    );
+  }
+}
+
 async function visiterCalendriers(page, rapport) {
   console.log("Verification des calendriers...");
   await attendrePage(page, "/calendrier", "Calendrier");
   await verifierContexteCalendrier(page, "/calendrier", rapport);
+  await verifierEncartOptionsAvancees(page, rapport);
   await capture(page, "calendrier", rapport);
 
   await attendrePage(page, "/calendrier/avance", /Calendrier/);

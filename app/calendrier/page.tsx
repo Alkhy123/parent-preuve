@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AppShell from "@/components/app/AppShell";
 import { Icon } from "@/components/apercu/icones";
@@ -35,6 +34,20 @@ export default function CalendrierPage() {
   const [message, setMessage] = useState("");
   const [signalFermeture, setSignalFermeture] = useState(0);
   const [chargement, setChargement] = useState(false);
+
+  // Encart « Options avancées » : ouverture contrôlée (fermé par défaut).
+  // Le bouton d'en-tête ouvre l'encart et fait défiler vers lui, sans quitter
+  // /calendrier. /calendrier/avance reste accessible directement par URL.
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const optionsAvanceesRef = useRef<HTMLDivElement>(null);
+
+  function ouvrirOptionsAvancees() {
+    setIsAdvancedOpen(true);
+    // Laisse l'encart afficher son contenu avant de faire défiler vers lui.
+    setTimeout(() => {
+      optionsAvanceesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  }
 
   // Zone de vacances scolaires (A/B/C), memorisee en local. Sert UNIQUEMENT a
   // annoter le calendrier : on n'attribue jamais la garde des vacances (le
@@ -182,14 +195,15 @@ export default function CalendrierPage() {
       subtitle="Règle de garde et prochaines périodes, par enfant."
       copilotContext="calendrier"
       actions={
-        <Link
-          href="/calendrier/avance"
+        <button
+          type="button"
+          onClick={ouvrirOptionsAvancees}
           className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition"
           style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
         >
           <Icon name="calendrier" className="h-4 w-4" />
-          Calendrier avancé (bêta)
-        </Link>
+          Options avancées
+        </button>
       }
     >
       <div className="space-y-6">
@@ -290,15 +304,21 @@ export default function CalendrierPage() {
             </div>
           <CalendrierMensuel regle={regleCourante} vacances={vacances} />
 
-          <EncartPliable titre="Options avancées" replieParDefaut>
-            <div className="space-y-4">
-              <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
-                Mercredis, exceptions et jours fériés vous aident à affiner le
-                calendrier. Vérifiez toujours avec votre jugement ou vos documents.
-              </p>
-              <OptionsAvanceesCalendrier enfantId={enfantId} mode="embedded" />
-            </div>
-          </EncartPliable>
+          <div ref={optionsAvanceesRef}>
+            <EncartPliable
+              titre="Options avancées"
+              open={isAdvancedOpen}
+              onOpenChange={setIsAdvancedOpen}
+            >
+              <div className="space-y-4">
+                <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+                  Mercredis, exceptions et jours fériés vous aident à affiner le
+                  calendrier. Vérifiez toujours avec votre jugement ou vos documents.
+                </p>
+                <OptionsAvanceesCalendrier enfantId={enfantId} mode="embedded" />
+              </div>
+            </EncartPliable>
+          </div>
           </>
         )}
       </div>

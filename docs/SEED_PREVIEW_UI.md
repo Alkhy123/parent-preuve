@@ -88,6 +88,9 @@ Le script :
 - visite `/calendrier` et `/calendrier/avance`, et verifie que la procedure
   active y est reconnue (un enfant detecte) ; sinon un avertissement clair est
   ajoute au rapport et un diagnostic est capture ;
+- verifie de maniere legere (non bloquante) que le bouton « Options avancees »
+  de `/calendrier` ouvre bien l'encart replie ; sinon un avertissement est ajoute
+  au rapport ;
 - revisite `/journal`, `/frais`, `/documents` et `/preuves` pour verifier que les
   donnees apparaissent ;
 - pour chaque preuve photo, attend un signal de succes reel a l'ecran
