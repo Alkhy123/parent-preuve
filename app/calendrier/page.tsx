@@ -5,24 +5,22 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import AppShell from "@/components/app/AppShell";
 import { Icon } from "@/components/apercu/icones";
-import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
+import { JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
 import EncartPliable from "@/components/EncartPliable";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
-import {
-  isoJourLocal,
-  vacancesQuiChevauchent,
-} from "@/lib/calendrier/chevauchementVacances";
+import { useEnfantsProcedureActive } from "@/lib/useEnfantsProcedureActive";
+import SelecteurEnfantCalendrier from "@/components/calendrier/SelecteurEnfantCalendrier";
+import SelecteurZoneVacances from "@/components/calendrier/SelecteurZoneVacances";
+import ProchainsWeekendsCard from "@/components/calendrier/ProchainsWeekendsCard";
+import EtatCalendrierVide from "@/components/calendrier/EtatCalendrierVide";
+import { isoJourLocal } from "@/lib/calendrier/chevauchementVacances";
 import type { PeriodeVacances } from "@/lib/calendrier/types";
 
 const CLE_ZONE = "zone_vacances";
 
-type Enfant = { id: string; prenom_ou_alias: string };
-
 export default function CalendrierPage() {
-  const [enfants, setEnfants] = useState<Enfant[]>([]);
-  const [enfantId, setEnfantId] = useState("");
+  const { enfants, enfantId, setEnfantId, chargementEnfants } = useEnfantsProcedureActive();
   const [regleId, setRegleId] = useState<string | null>(null);
 
   const [parentPrincipal, setParentPrincipal] = useState<"moi" | "autre">("autre");
@@ -36,9 +34,6 @@ export default function CalendrierPage() {
   const [message, setMessage] = useState("");
   const [signalFermeture, setSignalFermeture] = useState(0);
   const [chargement, setChargement] = useState(false);
-  // Chargement de la procédure active / des enfants : évite d'afficher
-  // « Ajoute d'abord un enfant » avant la fin de la résolution Supabase.
-  const [chargementEnfants, setChargementEnfants] = useState(true);
 
   // Zone de vacances scolaires (A/B/C), memorisee en local. Sert UNIQUEMENT a
   // annoter le calendrier : on n'attribue jamais la garde des vacances (le
@@ -54,15 +49,8 @@ export default function CalendrierPage() {
   });
   const [vacances, setVacances] = useState<PeriodeVacances[]>([]);
 
-  // 1) charger les enfants DE LA PROCÉDURE ACTIVE
-  useEffect(() => {
-    (async () => {
-      const data = await getEnfantsDeProcedureActive();
-      setEnfants(data);
-      if (data.length > 0) setEnfantId(data[0].id);
-      setChargementEnfants(false);
-    })();
-  }, []);
+  // Enfants de la procédure active : résolus par le hook partagé
+  // (cloisonnement procedure_id inchangé, garde de chargement incluse).
 
   function changerZone(z: string) {
     setZoneVacances(z);
@@ -183,13 +171,6 @@ export default function CalendrierPage() {
       } as RegleGarde
     : null;
 
-  const apercu = regleCourante ? prochainsWeekends(regleCourante, 8) : [];
-
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  const fmtHeure = (d: Date) =>
-    d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-
   const champ = "w-full rounded-md border border-slate-300 bg-white text-[#1F2733] p-2";
   const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
 
@@ -213,33 +194,20 @@ export default function CalendrierPage() {
       <div className="space-y-6">
         <RegleDVH />
 
-        {chargementEnfants ? (
-          <p style={{ color: "var(--app-text-muted)" }}>
-            Chargement de la procédure active…
-          </p>
-        ) : enfants.length === 0 ? (
-          <p style={{ color: "var(--app-text)" }}>
-            Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».
-          </p>
+        {chargementEnfants || enfants.length === 0 ? (
+          <EtatCalendrierVide chargement={chargementEnfants} />
         ) : (
           <>
             <div className="app-cols-2">
               <div className="space-y-6">
-            <div
-              className="rounded-lg border p-4"
-              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
-            >
-              <label className={labelCss}>Enfant concerné</label>
-              <select value={enfantId} onChange={(e) => setEnfantId(e.target.value)} className={champ}>
-                {enfants.map((en) => (
-                  <option key={en.id} value={en.id}>{en.prenom_ou_alias}</option>
-                ))}
-              </select>
-              <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>
-                Règle déclarée pour cet enfant. À vérifier avec votre jugement ou vos
-                documents : ces informations ne constituent pas un conseil juridique.
-              </p>
-            </div>
+            <SelecteurEnfantCalendrier
+              enfants={enfants}
+              value={enfantId}
+              onChange={setEnfantId}
+              label="Enfant concerné"
+              enCarte
+              aide="Règle déclarée pour cet enfant. À vérifier avec votre jugement ou vos documents : ces informations ne constituent pas un conseil juridique."
+            />
 
             <EncartPliable
               titre="Règle de garde"
@@ -314,73 +282,9 @@ export default function CalendrierPage() {
               </div>
 
               <div className="space-y-6">
-            <div
-              className="rounded-lg border p-4"
-              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
-            >
-              <label className={labelCss}>Zone de vacances scolaires</label>
-              <select
-                value={zoneVacances}
-                onChange={(e) => changerZone(e.target.value)}
-                className={champ}
-              >
-                <option value="A">Zone A</option>
-                <option value="B">Zone B</option>
-                <option value="C">Zone C</option>
-              </select>
-              <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>
-                Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
-                Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
-                Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
-                Montpellier, Paris, Toulouse, Versailles.
-              </p>
-            </div>
+            <SelecteurZoneVacances value={zoneVacances} onChange={changerZone} />
 
-            <section
-              className="rounded-lg border p-5"
-              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
-            >
-              <h2 className="font-display text-xl mb-3" style={{ color: "var(--app-text)" }}>
-                Prochains week-ends de garde
-              </h2>
-              {apercu.length === 0 ? (
-                <p className="text-sm text-slate-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
-              ) : (
-                <ul className="divide-y divide-slate-100">
-                  {apercu.map((p, i) => {
-                    const vac = vacancesQuiChevauchent(p.debut, p.fin, vacances);
-                    return (
-                      <li key={i} className="py-3 flex items-start gap-3">
-                        <span
-                          className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: p.chezQui === "moi" ? "var(--app-accent)" : "var(--app-text-muted)" }}
-                        />
-                        <span style={{ color: "var(--app-text)" }}>
-                          Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
-                          <strong>{fmt(p.fin)}</strong> {fmtHeure(p.fin)}
-                          <span className="block text-xs text-slate-500">
-                            {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
-                          </span>
-                          {vac && (
-                            <span className="mt-1 inline-block rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-                              ⚠ {vac.nom} — répartition selon le jugement
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              {apercu.some((p) => vacancesQuiChevauchent(p.debut, p.fin, vacances)) && (
-                <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                  Certains week-ends tombent pendant les vacances scolaires. La règle
-                  « un week-end sur deux » peut alors ne pas s&apos;appliquer : la
-                  répartition des vacances est fixée par votre jugement. Vérifiez votre
-                  décision et, au besoin, ajustez via le calendrier avancé.
-                </p>
-              )}
-            </section>
+            <ProchainsWeekendsCard regle={regleCourante} vacances={vacances} />
               </div>
             </div>
           <CalendrierMensuel regle={regleCourante} vacances={vacances} />

@@ -12,7 +12,9 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import AppShell from "@/components/app/AppShell";
 import { Icon } from "@/components/apercu/icones";
-import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
+import { useEnfantsProcedureActive } from "@/lib/useEnfantsProcedureActive";
+import SelecteurEnfantCalendrier from "@/components/calendrier/SelecteurEnfantCalendrier";
+import EtatCalendrierVide from "@/components/calendrier/EtatCalendrierVide";
 import PreviewCalendrierAvance from "@/components/calendrier/PreviewCalendrierAvance";
 import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance";
 import {
@@ -52,8 +54,6 @@ function libelleRegleAvancee(regle: ReglePlanning): string {
   return `Semaines alternées (${chez})`;
 }
 
-type Enfant = { id: string; prenom_ou_alias: string };
-
 type RegleDb = {
   parent_principal: "moi" | "autre";
   date_reference: string;
@@ -67,13 +67,9 @@ const champ = "w-full rounded-md border border-slate-300 bg-white text-[#1F2733]
 const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
 
 export default function CalendrierAvancePage() {
-  const [enfants, setEnfants] = useState<Enfant[]>([]);
-  const [enfantId, setEnfantId] = useState("");
+  const { enfants, enfantId, setEnfantId, chargementEnfants } = useEnfantsProcedureActive();
   const [regle, setRegle] = useState<RegleDb | null>(null);
   const [chargement, setChargement] = useState(true);
-  // Chargement de la procédure active / des enfants : évite d'afficher
-  // « Ajoutez d'abord un enfant » avant la fin de la résolution Supabase.
-  const [chargementEnfants, setChargementEnfants] = useState(true);
 
   // Règles avancées + exceptions PERSISTÉES (chargées par enfant).
   const [reglesAvancees, setReglesAvancees] = useState<RegleAvanceeStockee[]>([]);
@@ -107,15 +103,8 @@ export default function CalendrierAvancePage() {
   const [excChezQui, setExcChezQui] = useState<ChezQui>("moi");
   const [excMotif, setExcMotif] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      const data = await getEnfantsDeProcedureActive();
-      setEnfants(data);
-      if (data.length > 0) setEnfantId(data[0].id);
-      else setChargement(false);
-      setChargementEnfants(false);
-    })();
-  }, []);
+  // Enfants de la procédure active : résolus par le hook partagé
+  // (cloisonnement procedure_id inchangé, garde de chargement incluse).
 
   useEffect(() => {
     if (!enfantId) return;
@@ -312,30 +301,15 @@ export default function CalendrierAvancePage() {
           </p>
         </div>
 
-        {chargementEnfants ? (
-          <p className="text-sm text-texte-doux">
-            Chargement de la procédure active…
-          </p>
-        ) : enfants.length === 0 ? (
-          <p style={{ color: "var(--app-text)" }}>
-            Ajoutez d&apos;abord un enfant dans la rubrique « Enfants ».
-          </p>
+        {chargementEnfants || enfants.length === 0 ? (
+          <EtatCalendrierVide chargement={chargementEnfants} />
         ) : (
           <>
-            <div>
-              <label className={labelCss}>Enfant</label>
-              <select
-                value={enfantId}
-                onChange={(e) => setEnfantId(e.target.value)}
-                className={champ}
-              >
-                {enfants.map((en) => (
-                  <option key={en.id} value={en.id}>
-                    {en.prenom_ou_alias}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SelecteurEnfantCalendrier
+              enfants={enfants}
+              value={enfantId}
+              onChange={setEnfantId}
+            />
 
             {chargement ? (
               <p className="text-sm text-texte-doux">Chargement…</p>
