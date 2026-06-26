@@ -77,13 +77,22 @@ const MOTS_SENSIBLES = [
   "égoïste", "nul", "incapable", "honteux", "honte", "évidemment",
 ];
 
-// Apparence du badge selon le statut.
+// Apparence du badge selon le statut (tokens AppShell, lisibles sur les 3 thèmes).
 function badgeStatut(s: string) {
   if (s === "valide")
-    return { texte: "Validé", classe: "border-emerald-200 bg-emerald-50 text-emerald-800" };
+    return {
+      texte: "Validé",
+      style: { backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--vert)" },
+    };
   if (s === "exporte")
-    return { texte: "Exporté", classe: "border-slate-200 bg-slate-100 text-slate-600" };
-  return { texte: "Brouillon", classe: "border-amber-200 bg-amber-50 text-amber-800" };
+    return {
+      texte: "Exporté",
+      style: { backgroundColor: "var(--app-tag-bg)", borderColor: "var(--app-tag-border)", color: "var(--app-tag-text)" },
+    };
+  return {
+    texte: "Brouillon",
+    style: { backgroundColor: "var(--app-banner-bg)", borderColor: "var(--app-banner-border)", color: "var(--app-banner-text)" },
+  };
 }
 
 function dateBloc(date: string) {
@@ -545,7 +554,10 @@ export default function JournalPage() {
           </div>
 
           {motsDetectes.length > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div
+              className="rounded-lg border px-4 py-3 text-sm"
+              style={{ backgroundColor: "var(--app-banner-bg)", borderColor: "var(--app-banner-border)", color: "var(--app-banner-text)" }}
+            >
               Astuce neutralité : votre texte contient des termes peu factuels
               ({motsDetectes.join(", ")}). Préférez décrire ce qui est observable
               (horaires, paroles exactes, faits) plutôt qu&apos;une interprétation.
@@ -673,11 +685,14 @@ export default function JournalPage() {
                       <span className="inline-block rounded-full px-2.5 py-0.5 text-xs" style={{ backgroundColor: "var(--app-surface-muted)", color: "var(--app-text-muted)" }}>
                         {ev.categorie}
                       </span>
-                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
+                      <span className="inline-block rounded-full border px-2.5 py-0.5 text-xs" style={badge.style}>
                         {badge.texte}
                       </span>
                       {implication && (
-                        <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                        <span
+                          className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                          style={{ backgroundColor: "var(--app-primary-soft)", borderColor: "var(--app-border)", color: "var(--app-primary)" }}
+                        >
                           Implication : {implication}
                         </span>
                       )}
@@ -699,7 +714,10 @@ export default function JournalPage() {
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {ev.document_id ? (
                         <>
-                          <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                          <span
+                            className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                            style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--vert)" }}
+                          >
                             Pièce associée : {nomDocument(ev.document_id)}
                           </span>
                           <button
@@ -711,7 +729,10 @@ export default function JournalPage() {
                           </button>
                         </>
                       ) : (
-                        <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
+                        <span
+                          className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                          style={{ backgroundColor: "var(--app-banner-bg)", borderColor: "var(--app-banner-border)", color: "var(--app-banner-text)" }}
+                        >
                           Sans pièce associée
                         </span>
                       )}

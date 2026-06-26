@@ -49,7 +49,10 @@ export default function ProchainsWeekendsCard({
                     {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
                   </span>
                   {vac && (
-                    <span className="mt-1 inline-block rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                    <span
+                      className="mt-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                      style={{ backgroundColor: "var(--app-banner-bg)", borderColor: "var(--app-banner-border)", color: "var(--app-banner-text)" }}
+                    >
                       ⚠ {vac.nom} — répartition selon le jugement
                     </span>
                   )}

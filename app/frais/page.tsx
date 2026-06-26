@@ -704,7 +704,10 @@ export default function FraisPage() {
 
             {documentId ? (
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                <span
+                  className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                  style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--vert)" }}
+                >
                   ✓ Justificatif joint
                 </span>
                 <span className="text-sm text-slate-600">{nomDocument(documentId)}</span>
@@ -937,7 +940,10 @@ export default function FraisPage() {
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {f.document_id ? (
                       <>
-                        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                        <span
+                          className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                          style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--vert)" }}
+                        >
                           ✓ Justificatif joint
                         </span>
                         <button
@@ -948,11 +954,17 @@ export default function FraisPage() {
                         </button>
                       </>
                     ) : f.sans_justificatif ? (
-                      <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                      <span
+                        className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                        style={{ backgroundColor: "var(--app-tag-bg)", borderColor: "var(--app-tag-border)", color: "var(--app-tag-text)" }}
+                      >
                         Sans justificatif (choisi)
                       </span>
                     ) : (
-                      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
+                      <span
+                        className="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                        style={{ backgroundColor: "var(--app-banner-bg)", borderColor: "var(--app-banner-border)", color: "var(--app-banner-text)" }}
+                      >
                         Sans justificatif
                       </span>
                     )}
@@ -1025,13 +1037,13 @@ function CarteSynthese({
         : "var(--app-text)";
   return (
     <section
-      className="rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      className="min-w-0 rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
       style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
     >
-      <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+      <p className="truncate text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold" style={{ color: couleur }}>
+      <p className="mt-1 truncate text-2xl font-semibold" style={{ color: couleur }}>
         {valeur}
       </p>
       <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>

@@ -198,13 +198,17 @@ export default function RegleFrais({
     }
   }
 
-  // Styles réutilisés
-  const champ = 'w-full rounded-md border border-gray-300 bg-white text-[#1F2733] px-3 py-2';
+  // Styles réutilisés. border-slate-* est remappé vers les tokens AppShell par
+  // la couche de compatibilité .app-shell (cohérent multi-thèmes).
+  const champ = 'w-full rounded-md border border-slate-300 bg-white text-[#1F2733] px-3 py-2';
   const label = 'block text-sm font-medium text-[#15233F] mb-1';
 
   if (chargement) {
     return (
-      <div className="rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-4 text-[#1F2733]">
+      <div
+        className="rounded-lg border p-4"
+        style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text)" }}
+      >
         Chargement de la règle de frais…
       </div>
     );
@@ -234,9 +238,12 @@ export default function RegleFrais({
       idPersistance={procedureId ? `regle-frais-compact:${procedureId}` : undefined}
     >
       {valide === false && (
-        <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
-          <p className="mt-1 text-[#1F2733]/70">
+        <div
+          className="mb-4 rounded-lg border p-3 text-sm"
+          style={{ backgroundColor: "var(--app-info-soft)", borderColor: "var(--app-info-border)", color: "var(--app-text)" }}
+        >
+          <p className="font-medium" style={{ color: "var(--app-text)" }}>Proposée par l&apos;IA — à vérifier</p>
+          <p className="mt-1" style={{ color: "var(--app-text-muted)" }}>
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             cliquez sur « Valider cette règle » ; sinon, corrigez puis enregistrez à nouveau.
           </p>

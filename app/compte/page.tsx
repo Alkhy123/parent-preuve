@@ -161,7 +161,7 @@ export default function ComptePage() {
               type="text"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-[#9B2C2C] focus:outline-none"
+              className="mt-1 block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[#9B2C2C] focus:outline-none"
               placeholder="SUPPRIMER"
               autoComplete="off"
             />
