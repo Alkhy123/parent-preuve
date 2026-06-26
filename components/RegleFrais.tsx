@@ -211,7 +211,8 @@ export default function RegleFrais({
   }
 
   const resumeFrais = [
-    valide === false ? '⚠ à valider' : null,
+    'Ces règles servent à organiser vos calculs. Elles ne remplacent pas les justificatifs.',
+    valide === false ? 'À valider' : null,
     form.part_moi_pourcentage && form.part_autre_pourcentage
       ? `${form.part_moi_pourcentage} % / ${form.part_autre_pourcentage} %`
       : null,
@@ -225,12 +226,12 @@ export default function RegleFrais({
 
   return (
     <EncartPliable
-      titre={regleId ? 'Règle de frais partagés' : 'Aucune règle de frais enregistrée'}
-      pliable={regleId !== null}
-      replieParDefaut={regleId !== null && valide !== false && !valeursInitiales}
+      titre="Règles de remboursement"
+      pliable
+      replieParDefaut={valide !== false && !valeursInitiales}
       resume={resumeFrais}
       signalFermeture={signalFermeture}
-      idPersistance={procedureId ? `regle-frais:${procedureId}` : undefined}
+      idPersistance={procedureId ? `regle-frais-compact:${procedureId}` : undefined}
     >
       {valide === false && (
         <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
@@ -248,10 +249,9 @@ export default function RegleFrais({
         </div>
       )}
 
-      <p className="mt-1 mb-4 text-sm text-[#1F2733]/80">
-        Décris ici ce que prévoit le <strong>dispositif du jugement</strong> sur les frais
-        partagés (frais exceptionnels). Ces informations factuelles ne constituent pas un
-        conseil juridique.
+      <p className="mt-1 mb-4 text-sm leading-relaxed" style={{ color: "var(--app-text-muted)" }}>
+        Ces règles servent à organiser vos calculs de frais déclarés. Elles ne
+        remplacent pas l&apos;appréciation du juge ni les justificatifs.
       </p>
 
       {regleId && form.accord_prealable_seuil.trim() !== '' && (
