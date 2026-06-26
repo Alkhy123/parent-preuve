@@ -10,7 +10,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import { Icon } from "@/components/apercu/icones";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import PreviewCalendrierAvance from "@/components/calendrier/PreviewCalendrierAvance";
 import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance";
@@ -62,7 +63,7 @@ type RegleDb = {
   heure_fin: string;
 };
 
-const champ = "w-full rounded-md border border-gray-300 bg-white text-[#1F2733] p-2";
+const champ = "w-full rounded-md border border-slate-300 bg-white text-[#1F2733] p-2";
 const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
 
 export default function CalendrierAvancePage() {
@@ -268,15 +269,27 @@ export default function CalendrierAvancePage() {
     rechargerPersistance();
   }
 
-  return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Organisation"
-        title="Calendrier avancé (bêta)"
-        subtitle="Aperçu d'un planning enrichi (mercredi, exceptions). N'affecte pas votre calendrier actuel."
-      />
+  // Styles communs (tokens de thème).
+  const carteStyle = { backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" } as const;
 
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
+  return (
+    <AppShell
+      activeModule="calendrier"
+      title="Calendrier avancé (bêta)"
+      subtitle="Aperçu enrichi : mercredi, exceptions, vacances et jours fériés."
+      copilotContext="calendrier"
+      actions={
+        <Link
+          href="/calendrier"
+          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+        >
+          <Icon name="retour" className="h-4 w-4" />
+          Retour au calendrier
+        </Link>
+      }
+    >
+      <div className="space-y-6">
         <p className="text-sm text-texte-doux">
           La règle de base reste gérée dans{" "}
           <Link href="/calendrier" className="text-or-fonce underline">
@@ -286,7 +299,7 @@ export default function CalendrierAvancePage() {
         </p>
 
         {enfants.length === 0 ? (
-          <p className="text-[#1F2733]">
+          <p style={{ color: "var(--app-text)" }}>
             Ajoutez d&apos;abord un enfant dans la rubrique « Enfants ».
           </p>
         ) : (
@@ -319,7 +332,7 @@ export default function CalendrierAvancePage() {
             ) : (
               <>
                 {/* Options avancées (locales) */}
-                <div className="carte rounded-xl bg-white p-5 space-y-4">
+                <div className="rounded-xl border p-5 space-y-4" style={carteStyle}>
                   <label className="flex items-center gap-2 text-sm text-[#1F2733]">
                     <input
                       type="checkbox"
@@ -435,7 +448,8 @@ export default function CalendrierAvancePage() {
                     <button
                       type="button"
                       onClick={ajouterException}
-                      className="btn btn-secondaire mt-3"
+                      className="mt-3 rounded-lg border px-4 py-2 text-sm font-medium transition"
+                      style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                     >
                       Ajouter l&apos;exception
                     </button>
@@ -472,6 +486,6 @@ export default function CalendrierAvancePage() {
           </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import { Icon } from "@/components/apercu/icones";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
@@ -41,6 +42,8 @@ type Enfant = {
   id: string;
   prenom_ou_alias: string | null;
 };
+
+type TonBadge = "info" | "attention" | "neutre";
 
 function dateHeureFr(iso: string): string {
   const d = new Date(iso);
@@ -88,27 +91,37 @@ function blobVersImage(
     });
   }
 
-// Pastille de statut d'horodatage (repère visuel dans la liste).
-function pastilleHorodatage(
+// Badge d'horodatage en vocabulaire PRUDENT (information technique, sans
+// préjuger de la valeur juridique).
+function badgeHorodatage(
   statut: string | null
-): { label: string; classes: string } | null {
-  if (statut === "non_qualifie")
-    return {
-      label: "✓ horodaté",
-      classes: "bg-green-50 text-green-700 border-green-200",
-    };
-  if (statut === "qualifie")
-    return {
-      label: "✓ horodaté (qualifié)",
-      classes: "bg-green-50 text-green-700 border-green-200",
-    };
-  if (statut === "a_refaire")
-    return {
-      label: "⚠ horodatage à refaire",
-      classes: "bg-orange-50 text-orange-700 border-orange-200",
-    };
-  return null; // anciennes preuves sans horodatage : on n'affiche rien
+): { label: string; ton: TonBadge } {
+  if (statut === "non_qualifie") return { label: "Horodatage enregistré", ton: "info" };
+  if (statut === "qualifie") return { label: "Horodatage enregistré (qualifié)", ton: "info" };
+  if (statut === "a_refaire") return { label: "Horodatage à vérifier", ton: "attention" };
+  return { label: "Horodatage non enregistré", ton: "neutre" };
 }
+
+// Petit badge thémé (tokens --app-*). Tons prudents, pas de vocabulaire
+// juridique fort.
+function BadgeTech({ children, ton }: { children: React.ReactNode; ton: TonBadge }) {
+  const style =
+    ton === "info"
+      ? { backgroundColor: "var(--app-info-soft)", color: "var(--app-info)", borderColor: "var(--app-info-border)" }
+      : ton === "attention"
+        ? { backgroundColor: "#FFFBEB", color: "#B45309", borderColor: "#FDE68A" }
+        : { backgroundColor: "var(--app-surface-muted)", color: "var(--app-text-muted)", borderColor: "var(--app-border)" };
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+      style={style}
+    >
+      {children}
+    </span>
+  );
+}
+
+const FILTRES = ["Toutes", "Avec empreinte", "Horodatées", "À vérifier"];
 
 export default function PreuvesPage() {
   const [preuves, setPreuves] = useState<Preuve[]>([]);
@@ -120,6 +133,10 @@ export default function PreuvesPage() {
   // Action technique en cours (clé "id:horodatage" ou "id:hash") + retour par preuve.
   const [actionEnCours, setActionEnCours] = useState<string | null>(null);
   const [retour, setRetour] = useState<Record<string, string>>({});
+
+  // Recherche + filtre locaux (sur les preuves déjà chargées, aucune requête).
+  const [recherche, setRecherche] = useState("");
+  const [filtre, setFiltre] = useState("Toutes");
 
   // Relancer l'horodatage interne (non qualifié) d'une preuve marquée "à refaire".
   // /api/horodatage signe l'empreinte mais n'écrit rien : on persiste les champs ici.
@@ -363,196 +380,293 @@ export default function PreuvesPage() {
     telechargerCsv(csv, nomFichier);
   }
 
+  // Recherche + filtre (locaux, sur les preuves déjà chargées).
+  const terme = recherche.trim().toLowerCase();
+  const preuvesFiltrees = preuvesProcedure.filter((p) => {
+    const texte = `${p.titre ?? ""} ${p.description ?? ""}`.toLowerCase();
+    const okRecherche = terme === "" || texte.includes(terme);
+    const okFiltre =
+      filtre === "Toutes" ||
+      (filtre === "Avec empreinte" && !!p.empreinte_sha256) ||
+      (filtre === "Horodatées" &&
+        (p.horodatage_statut === "non_qualifie" || p.horodatage_statut === "qualifie")) ||
+      (filtre === "À vérifier" && p.horodatage_statut === "a_refaire");
+    return okRecherche && okFiltre;
+  });
+
   // Regrouper les preuves (filtrées) par enfant
   const groupes = new Map<string, Preuve[]>();
-  for (const p of preuvesProcedure) {
+  for (const p of preuvesFiltrees) {
     const cle = p.enfant_id ?? "aucun";
     if (!groupes.has(cle)) groupes.set(cle, []);
     groupes.get(cle)!.push(p);
   }
 
+  const btnSecondaire =
+    "rounded-lg border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50";
+
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Preuve photo"
-        title="Mes preuves"
-        subtitle="Vos preuves photo horodatées, regroupées par enfant."
-      />
-
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
-        <p className="text-sm text-[#1F2733]/70">
-          Une preuve photo, c&apos;est une image accompagnée de ses informations
-          techniques (empreinte, horodatage), pour mieux l&apos;organiser dans votre
-          dossier. Pour ranger une facture ou un document déjà reçu, utilisez plutôt{" "}
-          <Link href="/documents" className="font-medium text-[#15233F] underline">
-            Documents et justificatifs
-          </Link>
-          .
-        </p>
-
-        <div className="flex justify-end gap-2">
+    <AppShell
+      activeModule="preuves"
+      title="Preuves"
+      subtitle="Photos et pièces avec informations techniques (empreinte, horodatage)."
+      copilotContext="preuves"
+      actions={
+        <>
           <button
+            type="button"
             onClick={exporterPreuvePhotoCsv}
             disabled={preuvesProcedure.length === 0}
-            className="rounded-md border border-[#15233F]/30 px-4 py-2 text-sm font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
+            className="hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+            style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface)", color: "var(--app-text-muted)" }}
           >
-            Exporter en CSV
+            <Icon name="syntheses" className="h-4 w-4" />
+            Exporter
           </button>
           <Link
             href="/preuves/nouvelle"
-            className="rounded-md bg-[#15233F] px-4 py-2 text-sm font-medium text-white hover:bg-[#15233F]/90"
+            className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white transition md:inline-flex"
+            style={{ backgroundColor: "var(--app-primary)" }}
           >
-            + Nouvelle preuve
+            <Icon name="plus" className="h-4 w-4" />
+            Ajouter une preuve
           </Link>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {/* Encart prudent sur la portée juridique */}
+        <div
+          className="flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs"
+          style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+        >
+          <span style={{ color: "var(--app-text-muted)" }}>
+            <Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0" />
+          </span>
+          <p>
+            Les informations techniques, comme l&apos;empreinte et l&apos;horodatage,
+            facilitent la traçabilité d&apos;un fichier. Elles ne préjugent pas de sa
+            valeur juridique, qui s&apos;apprécie au cas par cas. Pour ranger une
+            facture ou un document déjà reçu, utilisez plutôt{" "}
+            <Link href="/documents" className="underline" style={{ color: "var(--app-primary)" }}>
+              Documents et justificatifs
+            </Link>
+            .
+          </p>
+        </div>
+
+        {/* Recherche + filtres */}
+        <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--app-text-muted)" }}>
+              <Icon name="search" className="h-4 w-4" />
+            </span>
+            <input
+              type="search"
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              placeholder="Rechercher une preuve"
+              className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none"
+              style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface-muted)", color: "var(--app-text)" }}
+            />
+          </div>
+          <div className="mt-2 flex min-w-0 flex-nowrap gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+            {FILTRES.map((option) => {
+              const selectionne = option === filtre;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFiltre(option)}
+                  className="shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+                  style={{
+                    borderColor: selectionne ? "var(--app-primary)" : "var(--app-border)",
+                    backgroundColor: selectionne ? "var(--app-primary-soft)" : "transparent",
+                    color: selectionne ? "var(--app-primary)" : "var(--app-text-muted)",
+                  }}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 sm:hidden">
+            <Link
+              href="/preuves/nouvelle"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white"
+              style={{ backgroundColor: "var(--app-primary)" }}
+            >
+              <Icon name="plus" className="h-4 w-4" />
+              Ajouter une preuve
+            </Link>
+          </div>
         </div>
 
         {chargement && (
-          <p className="text-sm text-[#1F2733]/70">Chargement…</p>
+          <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>Chargement…</p>
         )}
 
+        {/* État vide intelligent */}
         {!chargement && preuvesProcedure.length === 0 && (
-          <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-8 text-center">
-            <p className="text-[#1F2733]/70">
-              Aucune preuve pour cette procédure.
+          <div className="rounded-xl border p-8 text-center" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+            <p style={{ color: "var(--app-text-muted)" }}>
+              Aucune preuve ajoutée pour cette procédure. Ajoutez une photo, une
+              capture ou un document pour renforcer la traçabilité de votre dossier.
             </p>
             <Link
               href="/preuves/nouvelle"
-              className="mt-3 inline-block text-sm font-medium text-[#15233F] underline"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white"
+              style={{ backgroundColor: "var(--app-primary)" }}
             >
-              Créer ma première preuve
+              <Icon name="plus" className="h-4 w-4" />
+              Ajouter une preuve
             </Link>
+          </div>
+        )}
+
+        {!chargement && preuvesProcedure.length > 0 && groupes.size === 0 && (
+          <div className="rounded-xl border p-6 text-center text-sm" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}>
+            Aucune preuve pour ce filtre.
           </div>
         )}
 
         {!chargement &&
           Array.from(groupes.entries()).map(([cle, liste]) => (
             <section key={cle} className="space-y-3">
-              <h2 className="font-display text-xl text-[#15233F] border-b border-[#C2A24C]/40 pb-1">
+              <h2 className="border-b pb-1 text-base font-semibold" style={{ color: "var(--app-text)", borderColor: "var(--app-border)" }}>
                 {nomEnfant(cle === "aucun" ? null : cle)}
               </h2>
 
-              {liste.map((p) => (
-                <div
-                  key={p.id}
-                  className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-5 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-[#1F2733]">
-                        {p.titre || "Preuve sans titre"}
-                      </p>
-                      <p className="text-xs text-[#1F2733]/60">
-                        Scellée le {dateHeureFr(p.created_at)}
-                      </p>
-                      {pastilleHorodatage(p.horodatage_statut) && (
-                        <span
-                          className={`mt-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                            pastilleHorodatage(p.horodatage_statut)!.classes
-                          }`}
-                        >
-                          {pastilleHorodatage(p.horodatage_statut)!.label}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                    <button
-                        onClick={() => genererRapport(p)}
-                        disabled={genEnCours === p.id}
-                        className="rounded-md bg-[#15233F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#15233F]/90 disabled:opacity-50"
-                      >
-                        {genEnCours === p.id ? "Génération…" : "Rapport PDF"}
-                      </button>
-                      {p.storage_path && (
+              {liste.map((p) => {
+                const hb = badgeHorodatage(p.horodatage_statut);
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-xl border p-5 space-y-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+                    style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-medium" style={{ color: "var(--app-text)" }}>
+                          {p.titre || "Preuve sans titre"}
+                        </p>
+                        <p className="text-xs" style={{ color: "var(--app-text-muted)" }}>
+                          Scellée le {dateHeureFr(p.created_at)}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <BadgeTech ton={p.empreinte_sha256 ? "info" : "neutre"}>
+                            {p.empreinte_sha256 ? "Empreinte technique présente" : "Empreinte technique absente"}
+                          </BadgeTech>
+                          <BadgeTech ton={hb.ton}>{hb.label}</BadgeTech>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                         <button
-                          onClick={() => voirOriginal(p.storage_path)}
-                          className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5"
+                          onClick={() => genererRapport(p)}
+                          disabled={genEnCours === p.id}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+                          style={{ backgroundColor: "var(--app-primary)" }}
                         >
-                          Voir l&apos;original
+                          {genEnCours === p.id ? "Génération…" : "Rapport PDF"}
+                        </button>
+                        {p.storage_path && (
+                          <button
+                            onClick={() => voirOriginal(p.storage_path)}
+                            className={btnSecondaire}
+                            style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+                          >
+                            Voir l&apos;original
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {p.horodatage_statut === "a_refaire" && p.empreinte_sha256 && (
+                        <button
+                          onClick={() => relancerHorodatage(p)}
+                          disabled={actionEnCours === `${p.id}:horodatage`}
+                          className={btnSecondaire}
+                          style={{ borderColor: "#FED7AA", color: "#C2410C" }}
+                        >
+                          {actionEnCours === `${p.id}:horodatage`
+                            ? "Horodatage…"
+                            : "Relancer l'horodatage"}
+                        </button>
+                      )}
+                      {p.storage_path && p.empreinte_sha256 && (
+                        <button
+                          onClick={() => relancerVerificationHash(p)}
+                          disabled={actionEnCours === `${p.id}:hash`}
+                          className={btnSecondaire}
+                          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+                        >
+                          {actionEnCours === `${p.id}:hash`
+                            ? "Vérification…"
+                            : "Vérifier l'intégrité"}
                         </button>
                       )}
                     </div>
+
+                    {retour[p.id] && (
+                      <p className="text-xs" style={{ color: "var(--app-text-muted)" }}>{retour[p.id]}</p>
+                    )}
+
+                    {p.description && (
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--app-text)" }}>
+                        {p.description}
+                      </p>
+                    )}
+
+                    <OptionsAvancees titre="Détails techniques">
+                      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <dt style={{ color: "var(--app-text-muted)" }}>Fichier</dt>
+                        <dd className="break-all" style={{ color: "var(--app-text)" }}>
+                          {p.nom_fichier || "—"} ({formaterTaille(p.taille_octets)})
+                        </dd>
+
+                        <dt style={{ color: "var(--app-text-muted)" }}>Position</dt>
+                        <dd style={{ color: "var(--app-text)" }}>
+                          {p.gps_latitude != null && p.gps_longitude != null
+                            ? `${p.gps_latitude.toFixed(5)}, ${p.gps_longitude.toFixed(
+                                5
+                              )} (±${Math.round(p.gps_precision_metres ?? 0)} m)`
+                            : "non disponible"}
+                        </dd>
+
+                        <dt style={{ color: "var(--app-text-muted)" }}>Écart d&apos;heure</dt>
+                        <dd style={{ color: "var(--app-text)" }}>
+                          {p.ecart_heure_secondes != null
+                            ? `${p.ecart_heure_secondes} s`
+                            : "—"}
+                        </dd>
+                      </dl>
+
+                      {p.empreinte_sha256 && (
+                        <div>
+                          <p className="mb-1 text-xs" style={{ color: "var(--app-text-muted)" }}>
+                            Empreinte SHA-256
+                          </p>
+                          <p
+                            className="rounded-md border px-3 py-2 font-mono text-[10px] break-all"
+                            style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text)" }}
+                          >
+                            {p.empreinte_sha256}
+                          </p>
+                        </div>
+                      )}
+                    </OptionsAvancees>
                   </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {p.horodatage_statut === "a_refaire" && p.empreinte_sha256 && (
-                      <button
-                        onClick={() => relancerHorodatage(p)}
-                        disabled={actionEnCours === `${p.id}:horodatage`}
-                        className="rounded-md border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
-                      >
-                        {actionEnCours === `${p.id}:horodatage`
-                          ? "Horodatage…"
-                          : "Relancer l'horodatage"}
-                      </button>
-                    )}
-                    {p.storage_path && p.empreinte_sha256 && (
-                      <button
-                        onClick={() => relancerVerificationHash(p)}
-                        disabled={actionEnCours === `${p.id}:hash`}
-                        className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
-                      >
-                        {actionEnCours === `${p.id}:hash`
-                          ? "Vérification…"
-                          : "Vérifier l'intégrité"}
-                      </button>
-                    )}
-                  </div>
-
-                  {retour[p.id] && (
-                    <p className="text-xs text-[#1F2733]/70">{retour[p.id]}</p>
-                  )}
-
-                  {p.description && (
-                    <p className="text-sm text-[#1F2733]/80 whitespace-pre-wrap">
-                      {p.description}
-                    </p>
-                  )}
-
-                  <OptionsAvancees titre="Détails techniques">
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <dt className="text-[#1F2733]/60">Fichier</dt>
-                      <dd className="text-[#1F2733] break-all">
-                        {p.nom_fichier || "—"} ({formaterTaille(p.taille_octets)})
-                      </dd>
-
-                      <dt className="text-[#1F2733]/60">Position</dt>
-                      <dd className="text-[#1F2733]">
-                        {p.gps_latitude != null && p.gps_longitude != null
-                          ? `${p.gps_latitude.toFixed(5)}, ${p.gps_longitude.toFixed(
-                              5
-                            )} (±${Math.round(p.gps_precision_metres ?? 0)} m)`
-                          : "non disponible"}
-                      </dd>
-
-                      <dt className="text-[#1F2733]/60">Écart d&apos;heure</dt>
-                      <dd className="text-[#1F2733]">
-                        {p.ecart_heure_secondes != null
-                          ? `${p.ecart_heure_secondes} s`
-                          : "—"}
-                      </dd>
-                    </dl>
-
-                    {p.empreinte_sha256 && (
-                      <div>
-                        <p className="text-xs text-[#1F2733]/60 mb-1">
-                          Empreinte SHA-256
-                        </p>
-                        <p className="rounded-md bg-[#F8F6F1] px-3 py-2 font-mono text-[10px] text-[#15233F] break-all border border-[#C2A24C]/30">
-                          {p.empreinte_sha256}
-                        </p>
-                      </div>
-                    )}
-                  </OptionsAvancees>
-                </div>
-              ))}
+                );
+              })}
             </section>
           ))}
 
-        <p className="text-xs leading-relaxed text-[#1F2733]/60">
+        <p className="text-xs leading-relaxed" style={{ color: "var(--app-text-muted)" }}>
           Ces preuves numériques renforcées sont scellées et horodatées. Elles ne
           constituent pas un constat de commissaire de justice.
         </p>
       </div>
-    </main>
+    </AppShell>
   );
 }

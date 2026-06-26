@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   getProcedureActiveIdLocal,
@@ -8,8 +9,10 @@ import {
 } from "@/lib/procedureActive";
 
 type Procedure = { id: string; etiquette: string | null };
+const ROUTES_NOUVEAU_SHELL = ["/", "/journal", "/compte", "/frais", "/documents", "/preuves", "/preuves/nouvelle", "/calendrier", "/calendrier/avance"];
 
 export default function BandeauProcedure() {
+  const pathname = usePathname();
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [actif, setActif] = useState<string>("");
   const [pret, setPret] = useState(false);
@@ -31,6 +34,7 @@ export default function BandeauProcedure() {
   }, []);
 
   // Rien tant que pas chargé, ou si aucune procédure (déconnecté / dossier vide).
+  if (ROUTES_NOUVEAU_SHELL.includes(pathname)) return null;
   if (!pret || procedures.length === 0) return null;
 
   function libelle(p: Procedure) {

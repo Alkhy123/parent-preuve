@@ -1,17 +1,10 @@
 "use client";
 
-// components/WidgetActionsPrioritaires.tsx
-//
-// Widget d'accueil : 3-4 actions prioritaires, classees, cliquables.
-// LECTURE SEULE, aucune ecriture en base.
-//
-// Source 1 : lib/etatDossier.ts (socle, enfants, frais, brouillons, preuves),
-//   meme cloisonnement par procedure active que le reste de l'accueil.
-// Source 2 : pension_payments (solde) via totauxPension, filtre sur la
-//   procedure active. La pension n'est pas couverte par chargerEtatDossier.
+// Widget d'accueil : actions prioritaires, lecture seule et cloisonnee par procedure.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { Icon } from "@/components/apercu/icones";
 import { supabase } from "@/lib/supabase";
 import { getProcedureActiveId } from "@/lib/procedureActive";
 import { chargerEtatDossier } from "@/lib/etatDossier";
@@ -32,21 +25,22 @@ type Action = {
 
 export default function WidgetActionsPrioritaires() {
   const [actions, setActions] = useState<Action[] | null>(null);
-  const [reste, setReste] = useState(0); // actions au-dela des 4 affichees
+  const [reste, setReste] = useState(0);
   const [erreur, setErreur] = useState(false);
+  // Progression des fondations du dossier (donnée réelle déjà chargée, pas un
+  // pourcentage inventé) : état civil des 2 parents, référence jugement, ≥ 1 enfant.
+  const [prog, setProg] = useState<{ faits: number; total: number } | null>(null);
 
   useEffect(() => {
     let annule = false;
 
     (async () => {
       try {
-        // Accueil : pas de selecteur de periode, du/au vides.
         const [donnees, procId] = await Promise.all([
           chargerEtatDossier("", ""),
           getProcedureActiveId(),
         ]);
 
-        // Solde de pension (cloisonne sur la procedure active).
         let soldePension = 0;
         if (procId) {
           const { data } = await supabase
@@ -56,14 +50,13 @@ export default function WidgetActionsPrioritaires() {
           soldePension = totauxPension((data ?? []) as PensionCalcul[]).solde;
         }
 
-        // Construction des actions a partir de l'etat reel du dossier.
         const liste: Action[] = [];
-
         const socleComplet =
           donnees.socle !== null &&
           donnees.socle.parent1Complet &&
           donnees.socle.parent2Complet &&
           donnees.socle.referenceJugementRenseignee;
+
         if (!socleComplet) {
           liste.push({
             cle: "socle",
@@ -121,14 +114,23 @@ export default function WidgetActionsPrioritaires() {
           });
         }
 
-        // Bloquants d'abord, puis avertissements ; 4 maximum.
         const rang = (x: Niveau) => (x === "bloquant" ? 0 : 1);
         const triees = [...liste].sort((a, b) => rang(a.niveau) - rang(b.niveau));
         const top = triees.slice(0, 4);
 
+        // Fondations du dossier (drapeaux déjà chargés dans `donnees`).
+        const fondations = [
+          !!donnees.socle?.parent1Complet,
+          !!donnees.socle?.parent2Complet,
+          !!donnees.socle?.referenceJugementRenseignee,
+          donnees.nombreEnfants > 0,
+        ];
+        const faitsFond = fondations.filter(Boolean).length;
+
         if (!annule) {
           setActions(top);
           setReste(triees.length - top.length);
+          setProg({ faits: faitsFond, total: fondations.length });
         }
       } catch {
         if (!annule) setErreur(true);
@@ -140,35 +142,67 @@ export default function WidgetActionsPrioritaires() {
     };
   }, []);
 
-  // Etat : recherche en cours.
   if (actions === null && !erreur) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-        Recherche des actions prioritaires…
-      </div>
+      <Carte>
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+          Recherche des actions prioritaires…
+        </p>
+      </Carte>
     );
   }
 
-  // Etat : echec. On n'affirme jamais que tout est en ordre.
   if (erreur || actions === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
-        <p className="mt-2 text-sm text-slate-500">
+      <Carte>
+        <Titre />
+        <p className="mt-2 text-sm" style={{ color: "var(--app-text-muted)" }}>
           Liste indisponible pour le moment. Vous pouvez réessayer plus tard.
         </p>
-      </div>
+      </Carte>
     );
   }
 
   return (
-    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
+    <Carte>
+      <Titre />
+
+      {prog && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium" style={{ color: "var(--app-text-muted)" }}>
+              Dossier complété
+            </span>
+            <span style={{ color: "var(--app-text-muted)" }}>
+              {prog.faits}/{prog.total} · {Math.round((prog.faits / prog.total) * 100)} %
+            </span>
+          </div>
+          <div
+            className="mt-1 h-1.5 overflow-hidden rounded-full"
+            style={{ backgroundColor: "var(--app-surface-muted)" }}
+          >
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.round((prog.faits / prog.total) * 100)}%`,
+                backgroundColor: "var(--app-primary)",
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {actions.length === 0 ? (
-        <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✓ Votre dossier ne présente pas d&apos;action urgente. Vous pouvez
-          continuer à noter les faits au fil de l&apos;eau.
+        <div
+          className="mt-3 rounded-lg border px-4 py-3 text-sm"
+          style={{
+            borderColor: "var(--app-border)",
+            backgroundColor: "var(--app-surface-muted)",
+            color: "var(--app-text-muted)",
+          }}
+        >
+          Votre dossier ne présente pas d&apos;action urgente. Vous pouvez continuer
+          à noter les faits au fil de l&apos;eau.
         </div>
       ) : (
         <>
@@ -177,11 +211,22 @@ export default function WidgetActionsPrioritaires() {
               <li key={a.cle}>
                 <Link
                   href={a.lien}
-                  className="flex items-start gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm text-[#1F2733] transition hover:border-[#C2A24C] hover:bg-[#F8F6F1]"
+                  className="flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm transition"
+                  style={{
+                    borderColor: "var(--app-border)",
+                    backgroundColor: "var(--app-surface-muted)",
+                    color: "var(--app-text)",
+                  }}
                 >
-                  <span aria-hidden="true">
-                    {a.niveau === "bloquant" ? "🔴" : "🟠"}
-                  </span>
+                  <span
+                    className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor:
+                        a.niveau === "bloquant"
+                          ? "var(--app-danger, #9B2C2C)"
+                          : "var(--app-primary)",
+                    }}
+                  />
                   <span>{a.libelle}</span>
                 </Link>
               </li>
@@ -189,12 +234,40 @@ export default function WidgetActionsPrioritaires() {
           </ul>
 
           {reste > 0 && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>
               +{reste} autre{reste > 1 ? "s" : ""} point{reste > 1 ? "s" : ""} à vérifier.
             </p>
           )}
         </>
       )}
-    </div>
+    </Carte>
+  );
+}
+
+function Carte({ children }: { children: ReactNode }) {
+  return (
+    <section
+      className="min-h-[15rem] rounded-xl border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{
+        backgroundColor: "var(--app-surface)",
+        borderColor: "var(--app-border)",
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function Titre() {
+  return (
+    <h2 className="flex items-center gap-2 text-base font-semibold" style={{ color: "var(--app-text)" }}>
+      <span
+        className="flex h-8 w-8 items-center justify-center rounded-lg"
+        style={{ backgroundColor: "var(--app-primary-soft)", color: "var(--app-primary)" }}
+      >
+        <Icon name="check" className="h-4 w-4" />
+      </span>
+      Éléments à compléter
+    </h2>
   );
 }

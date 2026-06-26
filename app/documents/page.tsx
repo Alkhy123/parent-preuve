@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import { Icon } from "@/components/apercu/icones";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
@@ -45,6 +46,12 @@ export default function DocumentsPage() {
   const [confirmation, setConfirmation] = useState("");
   const [choixId, setChoixId] = useState<string | null>(null);
 
+  // UI : formulaire d'import fermé par défaut + recherche/filtre locaux (sur les
+  // documents déjà chargés, aucune nouvelle requête Supabase).
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
+  const [recherche, setRecherche] = useState("");
+  const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
+
   async function chargerEnfants() {
     // Enfants de la procédure active uniquement.
     const data = await getEnfantsDeProcedureActive();
@@ -74,10 +81,16 @@ export default function DocumentsPage() {
     chargerDocuments();
   }, []);
 
-  // Classement : pièces déjà cloisonnées en base (procedure_id), regroupées par
-  // enfant, par type, et triées par date décroissante dans chaque type.
+  // Classement : pièces déjà cloisonnées en base (procedure_id), filtrées
+  // localement (recherche + catégorie), regroupées par enfant, par type, et
+  // triées par date décroissante dans chaque type.
   const groupes = useMemo(() => {
-    const docsProc = documents;
+    const terme = recherche.trim().toLowerCase();
+    const docsProc = documents.filter(
+      (d) =>
+        (filtreCategorie === "Toutes" || d.categorie === filtreCategorie) &&
+        (terme === "" || d.libelle.toLowerCase().includes(terme))
+    );
 
     const parEnfant = new Map<string | null, Document[]>();
     for (const d of docsProc) {
@@ -107,7 +120,7 @@ export default function DocumentsPage() {
         .sort((a, b) => a.type.localeCompare(b.type, "fr"));
       return { enfantId: cle, types };
     });
-  }, [documents, enfants]);
+  }, [documents, enfants, recherche, filtreCategorie]);
 
   async function envoyerDocument() {
     setMessage("");
@@ -165,6 +178,7 @@ export default function DocumentsPage() {
       setLibelle(""); setCategorie("Autre"); setDateDocument("");
       setChildId(""); setImplicationCategorie(""); setFichier(null);
       (document.getElementById("champ-fichier") as HTMLInputElement).value = "";
+      setFormulaireOuvert(false);
       setConfirmation(
         "Pièce ajoutée. Elle apparaît dans la liste ci-dessous et peut être liée à un frais."
       );
@@ -251,238 +265,351 @@ export default function DocumentsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Pièces"
-        title="Documents et justificatifs"
-        subtitle="Stockez vos pièces en sécurité : factures, certificats, captures etc."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
-
-        <p className="text-sm text-slate-600">
+    <AppShell
+      activeModule="documents"
+      title="Documents"
+      subtitle="Vos fichiers et justificatifs, rangés au même endroit."
+      copilotContext="documents"
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={exporterCsv}
+            disabled={documents.length === 0}
+            className="hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+            style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface)", color: "var(--app-text-muted)" }}
+          >
+            <Icon name="syntheses" className="h-4 w-4" />
+            Exporter
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormulaireOuvert(true)}
+            className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white transition md:inline-flex"
+            style={{ backgroundColor: "var(--app-primary)" }}
+          >
+            <Icon name="plus" className="h-4 w-4" />
+            Importer un document
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {/* Liens utiles */}
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
           Rangez ici vos justificatifs et pièces utiles (factures, certificats,
           captures, courriers). Pour une photo à horodater, utilisez plutôt{" "}
-          <Link href="/preuves" className="text-[#15233F] underline">
+          <Link href="/preuves" className="underline" style={{ color: "var(--app-primary)" }}>
             Preuves photo
           </Link>
-          .
-        </p>
-
-        <p className="mt-2 text-sm text-slate-600">
-          Cette page affiche vos pièces actives.{" "}
-          <Link href="/documents/coffre-fort" className="text-[#15233F] underline">
-            Voir toutes les pièces au coffre-fort
+          .{" "}
+          <Link href="/documents/coffre-fort" className="underline" style={{ color: "var(--app-primary)" }}>
+            Voir le coffre-fort
           </Link>
           .
         </p>
 
-        {/* Export CSV */}
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={exporterCsv}
-            disabled={groupes.length === 0}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Exporter en CSV
-          </button>
+        {/* Recherche + filtres par catégorie réelle */}
+        <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+          <div className="relative">
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--app-text-muted)" }}
+            >
+              <Icon name="search" className="h-4 w-4" />
+            </span>
+            <input
+              type="search"
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              placeholder="Rechercher un document"
+              className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none"
+              style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface-muted)", color: "var(--app-text)" }}
+            />
+          </div>
+          <div className="mt-2">
+            <FiltrePills options={["Toutes", ...CATEGORIES]} actif={filtreCategorie} onChange={setFiltreCategorie} />
+          </div>
+          <div className="mt-3 flex gap-2 sm:hidden">
+            <button type="button" onClick={() => setFormulaireOuvert(true)} className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--app-primary)" }}>
+              Importer
+            </button>
+            <button type="button" onClick={exporterCsv} disabled={documents.length === 0} className="flex-1 rounded-lg border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50" style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}>
+              Export CSV
+            </button>
+          </div>
         </div>
 
-        {/* Formulaire d'envoi */}
-        <div className="mt-6 carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-          <p className="text-sm text-slate-500">
-            Ajoutez une pièce : justificatif (facture, certificat), capture d&apos;écran,
-            courrier ou document personnel. Vous pourrez la lier à un frais ensuite.
-          </p>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Libellé <span className="text-[#9B2C2C]">*</span>
-            </label>
-            <input
-              type="text" placeholder="Ex : Facture orthodontiste mars"
-              value={libelle} onChange={(e) => setLibelle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Fichier <span className="text-[#9B2C2C]">*</span>
-            </label>
-            <input
-              id="champ-fichier"
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
-              className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#15233F] file:px-4 file:py-2 file:text-white"
-            />
-            <p className="mt-1 text-xs text-slate-500">Image ou PDF.</p>
-          </div>
-
-          {/* Détails non indispensables au premier enregistrement. */}
-          <OptionsAvancees>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-                <select
-                  value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                >
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Date du document</label>
-                <input
-                  type="date" value={dateDocument}
-                  onChange={(e) => setDateDocument(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                />
-              </div>
+        {/* Formulaire d'import (fermé par défaut, ouvert via « Importer ») */}
+        {formulaireOuvert && (
+          <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>
+                Importer un document
+              </p>
+              <button
+                type="button"
+                onClick={() => setFormulaireOuvert(false)}
+                className="text-xs font-medium"
+                style={{ color: "var(--app-text-muted)" }}
+              >
+                Fermer
+              </button>
             </div>
 
+            <p className="text-sm text-slate-500">
+              Ajoutez une pièce : justificatif (facture, certificat), capture d&apos;écran,
+              courrier ou document personnel. Vous pourrez la lier à un frais ensuite.
+            </p>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
-              <select
-                value={childId} onChange={(e) => setChildId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Aucun —</option>
-                {enfants.map((e) => (
-                  <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-slate-700">
+                Libellé <span className="text-[#9B2C2C]">*</span>
+              </label>
+              <input
+                type="text" placeholder="Ex : Facture orthodontiste mars"
+                value={libelle} onChange={(e) => setLibelle(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Implication parentale (facultatif)
+                Fichier <span className="text-[#9B2C2C]">*</span>
               </label>
-              <select
-                value={implicationCategorie}
-                onChange={(e) => setImplicationCategorie(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Non concerné —</option>
-                {CATEGORIES_IMPLICATION.map((c) => (
-                  <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-slate-500">
-                À renseigner si cette pièce illustre une démarche concrète envers
-                l&apos;enfant (rendez-vous honoré, inscription, suivi…).
-              </p>
+              <input
+                id="champ-fichier"
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
+                className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#15233F] file:px-4 file:py-2 file:text-white"
+              />
+              <p className="mt-1 text-xs text-slate-500">Image ou PDF.</p>
             </div>
-          </OptionsAvancees>
 
-          <button
-            onClick={envoyerDocument}
-            disabled={enCours}
-            className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-50"
-          >
-            {enCours ? "Envoi en cours…" : "Envoyer le document"}
-          </button>
-          <FormMessage message={message} type="erreur" />
-        </div>
+            {/* Détails non indispensables au premier enregistrement. */}
+            <OptionsAvancees>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                  <select
+                    value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  >
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Date du document</label>
+                  <input
+                    type="date" value={dateDocument}
+                    onChange={(e) => setDateDocument(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
+                <select
+                  value={childId} onChange={(e) => setChildId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                >
+                  <option value="">— Aucun —</option>
+                  {enfants.map((e) => (
+                    <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Implication parentale (facultatif)
+                </label>
+                <select
+                  value={implicationCategorie}
+                  onChange={(e) => setImplicationCategorie(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                >
+                  <option value="">— Non concerné —</option>
+                  {CATEGORIES_IMPLICATION.map((c) => (
+                    <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  À renseigner si cette pièce illustre une démarche concrète envers
+                  l&apos;enfant (rendez-vous honoré, inscription, suivi…).
+                </p>
+              </div>
+            </OptionsAvancees>
+
+            <button
+              onClick={envoyerDocument}
+              disabled={enCours}
+              className="rounded-lg px-5 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-50"
+              style={{ backgroundColor: "var(--app-primary)" }}
+            >
+              {enCours ? "Envoi en cours…" : "Envoyer le document"}
+            </button>
+            <FormMessage message={message} type="erreur" />
+          </div>
+        )}
 
         {confirmation && (
-          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
             <FormMessage message={confirmation} type="succes" />
           </div>
         )}
 
         {/* Liste classée par enfant, puis par type, puis par date décroissante */}
-        <div className="mt-8 space-y-8">
-          {groupes.length === 0 && (
-            <EmptyState
-              titre="Aucune pièce active pour cette procédure"
-              message="Ajoutez un justificatif ou une pièce avec le formulaire ci-dessus."
-            />
-          )}
-
-          {groupes.map((groupe) => (
-            <div key={groupe.enfantId ?? "sans-enfant"} className="space-y-4">
-              <h2 className="border-b border-slate-300 pb-1 text-base font-semibold text-[#15233F]">
-                {nomEnfant(groupe.enfantId) ?? "Pièces sans enfant rattaché"}
-              </h2>
-
-              {groupe.types.map((t) => (
-                <div key={t.type} className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    {t.type}
-                  </p>
-
-                  {t.docs.map((doc) => {
-                    const implication = libelleImplication(doc.implication_categorie);
-                    return (
-                    <div key={doc.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold text-[#15233F]">{doc.libelle}</p>
-                          <p className="text-sm text-slate-500">
-                            {doc.date_document ?? "Sans date"}
-                          </p>
-                          {implication && (
-                            <span className="mt-2 inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
-                              Implication : {implication}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <button
-                            onClick={() => ouvrirDocument(doc.chemin_fichier)}
-                            className="text-sm text-slate-700 hover:underline"
-                          >
-                            Ouvrir
-                          </button>
-                          {choixId !== doc.id && (
-                            <button
-                              onClick={() => setChoixId(doc.id)}
-                              className="text-sm text-slate-700 hover:underline"
-                            >
-                              Retirer
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {choixId === doc.id && (
-                        <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                          <p className="text-sm text-slate-700">
-                            Voulez-vous conserver cette pièce au coffre-fort, ou la supprimer
-                            définitivement&nbsp;?
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <button
-                              onClick={() => archiverDocument(doc)}
-                              className="rounded-lg bg-[#2E6A4D] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
-                            >
-                              Conserver au coffre-fort
-                            </button>
-                            <button
-                              onClick={() => supprimerDocument(doc)}
-                              className="rounded-lg bg-[#9B2C2C] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
-                            >
-                              Supprimer définitivement
-                            </button>
-                            <button
-                              onClick={() => setChoixId(null)}
-                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
-                            >
-                              Annuler
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    );
-                  })}
-                </div>
-              ))}
+        <div className="space-y-8">
+          {documents.length === 0 ? (
+            <div>
+              <EmptyState
+                titre="Aucun document ajouté pour cette procédure"
+                message="Importez un jugement, une facture, un courrier ou une attestation pour compléter votre dossier."
+              />
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setFormulaireOuvert(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white"
+                  style={{ backgroundColor: "var(--app-primary)" }}
+                >
+                  <Icon name="plus" className="h-4 w-4" />
+                  Importer un document
+                </button>
+              </div>
             </div>
-          ))}
+          ) : groupes.length === 0 ? (
+            <EmptyState
+              titre="Aucun document pour ce filtre"
+              message="Modifiez la recherche ou la catégorie sélectionnée."
+            />
+          ) : (
+            groupes.map((groupe) => (
+              <div key={groupe.enfantId ?? "sans-enfant"} className="space-y-4">
+                <h2 className="border-b border-slate-300 pb-1 text-base font-semibold text-[#15233F]">
+                  {nomEnfant(groupe.enfantId) ?? "Pièces sans enfant rattaché"}
+                </h2>
+
+                {groupe.types.map((t) => (
+                  <div key={t.type} className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      {t.type}
+                    </p>
+
+                    {t.docs.map((doc) => {
+                      const implication = libelleImplication(doc.implication_categorie);
+                      return (
+                        <div
+                          key={doc.id}
+                          className="rounded-xl border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+                          style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#15233F]">{doc.libelle}</p>
+                              <p className="text-sm text-slate-500">
+                                {doc.date_document ?? "Sans date"}
+                              </p>
+                              {implication && (
+                                <span className="mt-2 inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                                  Implication : {implication}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                              <button
+                                onClick={() => ouvrirDocument(doc.chemin_fichier)}
+                                className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                                style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+                              >
+                                Ouvrir
+                              </button>
+                              {choixId !== doc.id && (
+                                <button
+                                  onClick={() => setChoixId(doc.id)}
+                                  className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                                  style={{ borderColor: "var(--app-danger, #9B2C2C)", color: "var(--app-danger, #9B2C2C)" }}
+                                >
+                                  Retirer
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {choixId === doc.id && (
+                            <div className="mt-4 rounded-lg bg-slate-50 p-3">
+                              <p className="text-sm text-slate-700">
+                                Voulez-vous conserver cette pièce au coffre-fort, ou la supprimer
+                                définitivement&nbsp;?
+                              </p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => archiverDocument(doc)}
+                                  className="rounded-lg bg-[#2E6A4D] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
+                                >
+                                  Conserver au coffre-fort
+                                </button>
+                                <button
+                                  onClick={() => supprimerDocument(doc)}
+                                  className="rounded-lg bg-[#9B2C2C] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
+                                >
+                                  Supprimer définitivement
+                                </button>
+                                <button
+                                  onClick={() => setChoixId(null)}
+                                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
         </div>
       </div>
-    </main>
+    </AppShell>
+  );
+}
+
+function FiltrePills({
+  options,
+  actif,
+  onChange,
+}: {
+  options: string[];
+  actif: string;
+  onChange: (valeur: string) => void;
+}) {
+  return (
+    <div className="flex min-w-0 flex-nowrap gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+      {options.map((option) => {
+        const selectionne = option === actif;
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className="shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+            style={{
+              borderColor: selectionne ? "var(--app-primary)" : "var(--app-border)",
+              backgroundColor: selectionne ? "var(--app-primary-soft)" : "transparent",
+              color: selectionne ? "var(--app-primary)" : "var(--app-text-muted)",
+            }}
+          >
+            {option}
+          </button>
+        );
+      })}
+    </div>
   );
 }

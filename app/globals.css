@@ -178,3 +178,390 @@ h1, h2 {
   background-color: rgba(90, 100, 115, 0.08);
   color: var(--texte-doux);
 }
+
+/* ------------------------------------------------------------------ */
+/* Theme PILOTE de l'assistant de demarrage (isole via .assistant-    */
+/* pilote). Rapproche l'ecran de la maquette de reference (bleu vif,  */
+/* surfaces claires) SANS toucher a la charte globale ni aux          */
+/* composants metier. A promouvoir globalement plus tard si valide.   */
+/* ------------------------------------------------------------------ */
+.assistant-pilote .btn-primaire {
+  background-color: #2563eb;
+}
+.assistant-pilote .btn-primaire:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+.assistant-pilote .btn-primaire:focus-visible {
+  outline-color: #2563eb;
+}
+/* Champs metier : focus bleu (les etapes posent un anneau or en inline ;
+   on le neutralise uniquement dans le perimetre du pilote). */
+.assistant-pilote input:focus,
+.assistant-pilote select:focus,
+.assistant-pilote textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb !important;
+  outline: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Apercu de design (app-shell) : typographie APPLICATIVE sans-serif.  */
+/* Override cible du serif global (h1/h2 -> Playfair) pour ce          */
+/* perimetre uniquement, via .apercu-shell. N'affecte pas le reste.    */
+/* ------------------------------------------------------------------ */
+.apercu-shell h1,
+.apercu-shell h2,
+.apercu-shell h3 {
+  font-family: var(--font-geist-sans), system-ui, Helvetica, Arial, sans-serif;
+}
+
+/* App-shell réel : le grand titre de page (h1) garde une serif élégante
+   (touche judiciaire), mais les titres de cartes / sections (h2/h3) passent
+   en sans-serif applicative pour éviter l'effet "document papier" partout. */
+.app-shell h2,
+.app-shell h3 {
+  font-family: var(--font-geist-sans), system-ui, Helvetica, Arial, sans-serif;
+}
+
+/* App-shell : élévation de carte douce et cohérente sur les 3 thèmes
+   (remplace l'ombre navy lourde de .carte, héritée de l'ancienne charte). */
+.app-shell .carte {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+/* ================================================================== */
+/* THÈMES applicatifs (tokens sémantiques --app-*).                    */
+/* Les tokens sont consommés UNIQUEMENT par les composants d'aperçu    */
+/* (.apercu-shell) : le reste de l'application n'est pas affecté.      */
+/* ================================================================== */
+:root,
+[data-theme="classique-bleu"] {
+  --app-bg: #f2f5fa;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f8fafc;
+  --app-sidebar: #ffffff;
+  --app-sidebar-active: rgba(37, 99, 235, 0.08);
+  --app-border: #e2e8f0;
+  --app-text: #0f172a;
+  --app-text-muted: #64748b;
+  --app-primary: #2563eb;
+  --app-primary-hover: #1d4ed8;
+  --app-primary-soft: rgba(37, 99, 235, 0.1);
+  --app-on-primary: #ffffff;
+  --app-accent: #2563eb;
+  --app-ring: #2563eb;
+  --app-banner-bg: #fef3c7;
+  --app-banner-border: #fde68a;
+  --app-banner-text: #92400e;
+  --app-info: #1d4ed8;
+  --app-info-soft: #eff6ff;
+  --app-info-border: #bfdbfe;
+  --app-tag-bg: #f1f5f9;
+  --app-tag-text: #475569;
+  --app-tag-border: #e2e8f0;
+  --app-chip-bg: #f1f5f9;
+  --app-chip-text: #475569;
+  --app-chip-border: #e2e8f0;
+}
+[data-theme="ivoire-greffe"] {
+  --app-bg: #F4EEE2;
+  --app-surface: #FFFEFB;
+  --app-surface-muted: #F0E8D8;
+  --app-sidebar: #EFE2C8;
+  --app-sidebar-active: #E0CFAE;
+  --app-border: #E3D6BD;
+  --app-text: #1D2430;
+  --app-text-muted: #5F6B7A;
+  --app-primary: #875A20;
+  --app-primary-hover: #6F4517;
+  --app-primary-soft: #EFE0C4;
+  --app-on-primary: #FFFCF6;
+  --app-accent: #B98A32;
+  --app-ring: #B98A32;
+  --app-banner-bg: #F1E5CE;
+  --app-banner-border: #D5BE98;
+  --app-banner-text: #6F4517;
+  --app-info: #875A20;
+  --app-info-soft: #F5EAD6;
+  --app-info-border: #D5BE98;
+  --app-tag-bg: #F7EBD6;
+  --app-tag-text: #6F4517;
+  --app-tag-border: #D5BE98;
+  --app-chip-bg: #FFFCF6;
+  --app-chip-text: #5F6B7A;
+  --app-chip-border: #D5BE98;
+}
+[data-theme="noir-or-sombre"] {
+  --app-bg: #080B10;
+  --app-surface: #111827;
+  --app-surface-muted: #18202B;
+  --app-sidebar: #070A0D;
+  --app-sidebar-active: #1B2430;
+  --app-border: #2D3542;
+  --app-text: #F8FAFC;
+  --app-text-muted: #CBD5E1;
+  --app-primary: #D8AA4F;
+  --app-primary-hover: #E5BE6B;
+  --app-primary-soft: #2B2413;
+  --app-on-primary: #080B10;
+  --app-accent: #B88A2A;
+  --app-ring: #D8AA4F;
+  --app-banner-bg: #1E1A10;
+  --app-banner-border: #5C4720;
+  --app-banner-text: #E5BE6B;
+  --app-info: #E5BE6B;
+  --app-info-soft: #2B2413;
+  --app-info-border: #5C4720;
+  --app-tag-bg: #18202B;
+  --app-tag-text: #E2E8F0;
+  --app-tag-border: #2D3542;
+  --app-chip-bg: #111827;
+  --app-chip-text: #CBD5E1;
+  --app-chip-border: #2D3542;
+}
+
+/* ------------------------------------------------------------------ */
+/* Application des tokens aux classes utilitaires des aperçus.         */
+/* Surcharges scopées à .apercu-shell : aucun impact hors aperçu.      */
+/* ------------------------------------------------------------------ */
+.apercu-shell {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
+/* Surfaces */
+.apercu-shell .bg-white {
+  background-color: var(--app-surface);
+}
+.apercu-shell .bg-slate-50,
+.apercu-shell .bg-slate-100 {
+  background-color: var(--app-surface-muted);
+}
+.apercu-shell .bg-slate-200 {
+  background-color: var(--app-border);
+}
+.apercu-shell .hover\:bg-slate-50:hover,
+.apercu-shell .hover\:bg-slate-100:hover {
+  background-color: var(--app-surface-muted);
+}
+.apercu-shell .focus\:bg-white:focus {
+  background-color: var(--app-surface);
+}
+
+/* Texte */
+.apercu-shell .text-slate-900,
+.apercu-shell .text-slate-700 {
+  color: var(--app-text);
+}
+.apercu-shell .text-slate-600,
+.apercu-shell .text-slate-500,
+.apercu-shell .text-slate-400 {
+  color: var(--app-text-muted);
+}
+.apercu-shell .placeholder\:text-slate-400::placeholder {
+  color: var(--app-text-muted);
+}
+
+/* Bordures */
+.apercu-shell .border-slate-100,
+.apercu-shell .border-slate-200,
+.apercu-shell .border-slate-300 {
+  border-color: var(--app-border);
+}
+
+/* Primaire */
+.apercu-shell .bg-\[\#2563EB\] {
+  background-color: var(--app-primary);
+}
+.apercu-shell .text-\[\#2563EB\] {
+  color: var(--app-primary);
+}
+.apercu-shell .border-\[\#2563EB\] {
+  border-color: var(--app-primary);
+}
+.apercu-shell .text-white {
+  color: var(--app-on-primary);
+}
+.apercu-shell .hover\:bg-\[\#1D4ED8\]:hover {
+  background-color: var(--app-primary-hover);
+}
+.apercu-shell .hover\:text-\[\#2563EB\]:hover {
+  color: var(--app-primary);
+}
+
+/* Primaire doux (toutes les opacités utilisées) */
+.apercu-shell .bg-\[\#2563EB\]\/10,
+.apercu-shell .bg-\[\#2563EB\]\/15,
+.apercu-shell .bg-\[\#2563EB\]\/\[0\.06\],
+.apercu-shell .bg-\[\#2563EB\]\/\[0\.08\],
+.apercu-shell .hover\:bg-\[\#2563EB\]\/\[0\.06\]:hover {
+  background-color: var(--app-primary-soft);
+}
+
+/* Bordures primaires douces */
+.apercu-shell .border-\[\#2563EB\]\/20,
+.apercu-shell .border-\[\#2563EB\]\/30,
+.apercu-shell .hover\:border-\[\#2563EB\]\/30:hover {
+  border-color: var(--app-primary);
+}
+
+/* Focus / ring */
+.apercu-shell .focus\:border-\[\#2563EB\]:focus {
+  border-color: var(--app-primary);
+}
+.apercu-shell .ring-\[\#2563EB\],
+.apercu-shell .focus\:ring-\[\#2563EB\]:focus {
+  --tw-ring-color: var(--app-ring);
+}
+
+/* Éléments sémantiques divergents selon le thème */
+.apercu-shell .app-sidebar {
+  background-color: var(--app-sidebar);
+}
+.apercu-shell .app-nav-active {
+  background-color: var(--app-sidebar-active);
+  color: var(--app-primary);
+}
+.apercu-shell .app-banner {
+  background-color: var(--app-banner-bg);
+  border-color: var(--app-banner-border);
+  color: var(--app-banner-text);
+}
+.apercu-shell .app-badge-info {
+  background-color: var(--app-info-soft);
+  border-color: var(--app-info-border);
+  color: var(--app-info);
+}
+.apercu-shell .app-badge-neutre {
+  background-color: var(--app-tag-bg);
+  border-color: var(--app-tag-border);
+  color: var(--app-tag-text);
+}
+.apercu-shell .app-chip {
+  background-color: var(--app-chip-bg);
+  border-color: var(--app-chip-border);
+  color: var(--app-chip-text);
+}
+.apercu-shell .app-chip-active {
+  background-color: var(--app-primary);
+  border-color: var(--app-primary);
+  color: var(--app-on-primary);
+}
+
+/* ------------------------------------------------------------------ */
+/* Shell reel : memes tokens que les apercus, appliques aux pages      */
+/* progressivement migrees. Les couleurs semantiques restent intactes. */
+/* ------------------------------------------------------------------ */
+.app-shell .bg-white {
+  background-color: var(--app-surface);
+}
+.app-shell .bg-slate-50,
+.app-shell .bg-slate-100 {
+  background-color: var(--app-surface-muted);
+}
+.app-shell .bg-slate-200 {
+  background-color: var(--app-border);
+}
+.app-shell .hover\:bg-slate-50:hover,
+.app-shell .hover\:bg-slate-100:hover {
+  background-color: var(--app-surface-muted);
+}
+.app-shell .text-slate-900,
+.app-shell .text-slate-800,
+.app-shell .text-slate-700,
+.app-shell .text-\[\#15233F\],
+.app-shell .text-\[\#1F2733\],
+.app-shell .text-texte,
+.app-shell .text-navy {
+  color: var(--app-text);
+}
+.app-shell .text-slate-600,
+.app-shell .text-slate-500,
+.app-shell .text-slate-400,
+.app-shell .text-\[\#5A6473\],
+.app-shell .text-texte-doux {
+  color: var(--app-text-muted);
+}
+.app-shell .border-slate-100,
+.app-shell .border-slate-200,
+.app-shell .border-slate-300 {
+  border-color: var(--app-border);
+}
+.app-shell .bg-\[\#2563EB\],
+.app-shell .bg-\[\#15233F\],
+.app-shell .bg-navy {
+  background-color: var(--app-primary);
+}
+.app-shell .text-\[\#2563EB\],
+.app-shell .hover\:text-\[\#2563EB\]:hover {
+  color: var(--app-primary);
+}
+.app-shell .border-\[\#2563EB\],
+.app-shell .border-\[\#15233F\]\/30 {
+  border-color: var(--app-primary);
+}
+.app-shell .text-white,
+.app-shell .text-\[\#F8F6F1\] {
+  color: var(--app-on-primary);
+}
+.app-shell .hover\:bg-\[\#1D4ED8\]:hover,
+.app-shell .hover\:bg-\[\#1d2f52\]:hover,
+.app-shell .hover\:bg-\[\#0F1A2E\]:hover {
+  background-color: var(--app-primary-hover);
+}
+.app-shell .bg-\[\#2563EB\]\/10,
+.app-shell .bg-\[\#2563EB\]\/15,
+.app-shell .bg-\[\#2563EB\]\/\[0\.06\],
+.app-shell .bg-\[\#15233F\]\/5,
+.app-shell .bg-\[\#F8F6F1\] {
+  background-color: var(--app-primary-soft);
+}
+.app-shell .border-\[\#2563EB\]\/20,
+.app-shell .border-\[\#2563EB\]\/30,
+.app-shell .border-\[\#C2A24C\]\/40,
+.app-shell .border-\[\#C2A24C\]\/50 {
+  border-color: var(--app-border);
+}
+.app-shell .text-or-fonce,
+.app-shell .text-\[\#8A5A12\] {
+  color: var(--app-primary);
+}
+.app-shell .badge-info {
+  background-color: var(--app-info-soft);
+  border-color: var(--app-info-border);
+  color: var(--app-info);
+}
+.app-shell .badge-neutre {
+  background-color: var(--app-tag-bg);
+  border-color: var(--app-tag-border);
+  color: var(--app-tag-text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Helpers de mise en page interne des pages migrées (scopés app-shell).*/
+/* Objectif : contenu large + grilles, comme les apercus, sans recentrer */
+/* etroitement le contenu metier.                                      */
+/* ------------------------------------------------------------------ */
+/* Grille principale : colonne metier large + colonne secondaire (aide,
+   apercu, encart). Passe en une colonne sous xl. */
+.app-shell .app-form-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 1280px) {
+  .app-shell .app-form-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  }
+}
+/* Deux colonnes equilibrees (params / apercu) a partir de lg. */
+.app-shell .app-cols-2 {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .app-shell .app-cols-2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

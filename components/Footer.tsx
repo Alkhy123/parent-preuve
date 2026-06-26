@@ -1,7 +1,27 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+const ROUTES_NOUVEAU_SHELL = ["/", "/journal", "/compte", "/frais", "/documents", "/preuves", "/preuves/nouvelle", "/calendrier", "/calendrier/avance"];
 
 export default function Footer() {
+  const pathname = usePathname();
+  const [connecte, setConnecte] = useState<boolean | null>(null);
   const annee = new Date().getFullYear();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setConnecte(!!data.user));
+    const { data: ecouteur } = supabase.auth.onAuthStateChange((_e, session) =>
+      setConnecte(!!session?.user)
+    );
+    return () => ecouteur.subscription.unsubscribe();
+  }, []);
+
+  if (ROUTES_NOUVEAU_SHELL.includes(pathname) && connecte !== false) return null;
+
   return (
     <footer className="mt-auto bg-[#15233F] text-[#F8F6F1]">
       <div className="mx-auto max-w-4xl px-6 py-8">

@@ -51,6 +51,8 @@ const ROUTES_MASQUEES = [
   "/confidentialite",
 ];
 
+const ROUTES_SHELL_REEL = ["/", "/journal", "/frais", "/documents", "/preuves", "/preuves/nouvelle", "/calendrier", "/calendrier/avance"];
+
 const TAILLE = 48;
 
 type DestinationCopilote = {
@@ -182,7 +184,14 @@ export default function AssistantFlottant() {
     };
   }, [ouvert]);
 
-  if (!connecte || ROUTES_MASQUEES.includes(pathname) || !pos) {
+  // Masqué aussi sur les aperçus de design (/apercu/*), qui ont leur propre copilote.
+  if (
+    !connecte ||
+    ROUTES_MASQUEES.includes(pathname) ||
+    pathname.startsWith("/apercu") ||
+    ROUTES_SHELL_REEL.includes(pathname) ||
+    !pos
+  ) {
     return null;
   }
 

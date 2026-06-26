@@ -24,6 +24,8 @@ const ROUTES_MASQUEES = [
   "/confidentialite",
 ];
 
+const ROUTES_SHELL_REEL = ["/", "/journal", "/frais", "/documents", "/preuves", "/preuves/nouvelle", "/calendrier", "/calendrier/avance"];
+
 const RACCOURCIS = [
   { href: "/journal", label: "Noter un fait" },
   { href: "/frais", label: "Ajouter une dépense" },
@@ -56,7 +58,14 @@ export default function BoutonCaptureRapide() {
     setOuvert(false);
   }, [pathname]);
 
-  if (!connecte || ROUTES_MASQUEES.includes(pathname) || !pos) {
+  // Masqué aussi sur les aperçus de design (/apercu/*), qui ont leur propre shell.
+  if (
+    !connecte ||
+    ROUTES_MASQUEES.includes(pathname) ||
+    pathname.startsWith("/apercu") ||
+    ROUTES_SHELL_REEL.includes(pathname) ||
+    !pos
+  ) {
     return null;
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/apercu/icones";
 import { supabase } from "@/lib/supabase";
 import { getProcedureActiveId } from "@/lib/procedureActive";
 import { echeancesAVenir } from "@/lib/gardeNotifications";
@@ -215,65 +216,79 @@ export default function ProchainesEcheances() {
     if (e.type === "visite") return "Visite médiatisée";
     return e.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent";
   }
-  function pastille(e: Item): string {
-    // Visite et garde "chez moi" : accent or ; garde chez l'autre : gris.
-    return e.type === "visite" || e.chezQui === "moi" ? "#C2A24C" : "#5A6473";
-  }
+  // Visite et garde "chez moi" : accent primaire ; garde chez l'autre : neutre.
+  const estAccent = (e: Item) => e.type === "visite" || e.chezQui === "moi";
 
   return (
-    <section className="carte rounded-xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h2 className="font-display text-xl text-[#15233F]">Prochaines échéances</h2>
+    <section
+      className="min-h-[15rem] rounded-xl border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+    >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-base font-semibold" style={{ color: "var(--app-text)" }}>
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-lg"
+            style={{ backgroundColor: "var(--app-primary-soft)", color: "var(--app-primary)" }}
+          >
+            <Icon name="calendrier" className="h-4 w-4" />
+          </span>
+          Prochaines échéances
+        </h2>
         {permission !== "granted" && (
-          <button onClick={activerRappels} className="btn btn-secondaire">
+          <button
+            onClick={activerRappels}
+            className="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition"
+            style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+          >
             Activer les rappels
           </button>
         )}
       </div>
 
       {permission === "granted" && (
-        <p className="text-xs text-texte-doux mb-3">
+        <p className="mb-3 text-xs" style={{ color: "var(--app-text-muted)" }}>
           Rappels activés. Tu seras averti quand une échéance approche, lorsque l&apos;app
           est ouverte dans ce navigateur.
         </p>
       )}
 
       {chargement ? (
-        <p className="text-sm text-texte-doux">Chargement…</p>
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>Chargement…</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-texte-doux">
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
           Aucune échéance à venir dans les {FENETRE_JOURS} prochains jours. Vérifie
           qu&apos;une règle de garde ou des visites sont enregistrées dans le calendrier.
         </p>
       ) : (
-        <ul className="divide-y divide-[#15233F]/10">
+        <ul className="space-y-2">
           {items.map((e, i) => (
-            <li key={i} className="py-3 flex items-center gap-3">
+            <li
+              key={i}
+              className="flex items-center gap-3 rounded-lg border px-3 py-2.5"
+              style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface-muted)" }}
+            >
               <span
-                className={
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md " +
-                  (e.type === "visite" || e.chezQui === "moi"
-                    ? "bg-[#C2A24C]/15"
-                    : "bg-[#15233F]/5")
-                }
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                style={{ backgroundColor: estAccent(e) ? "var(--app-primary-soft)" : "var(--app-surface)" }}
               >
                 <span
                   className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: pastille(e) }}
+                  style={{ backgroundColor: estAccent(e) ? "var(--app-primary)" : "var(--app-text-muted)" }}
                 />
               </span>
-              <div className="flex-1 text-[#1F2733]">
+              <div className="min-w-0 flex-1" style={{ color: "var(--app-text)" }}>
                 <span className="font-medium">{e.enfantNom}</span> — {fmt(e.debut)}{" "}
                 {fmtHeure(e.debut)}
-                <span className="block text-xs text-texte-doux">{sousTitre(e)}</span>
+                <span className="block text-xs" style={{ color: "var(--app-text-muted)" }}>
+                  {sousTitre(e)}
+                </span>
               </div>
               <span
-                className={
-                  "badge shrink-0 " +
-                  (e.joursRestants <= SEUIL_NOTIF_JOURS &&
-                  (e.type === "visite" || e.chezQui === "moi")
-                    ? "border-transparent bg-[#C2A24C] text-white"
-                    : "badge-neutre")
+                className="shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium"
+                style={
+                  e.joursRestants <= SEUIL_NOTIF_JOURS && estAccent(e)
+                    ? { backgroundColor: "var(--app-primary)", color: "var(--app-on-primary)", borderColor: "transparent" }
+                    : { backgroundColor: "var(--app-surface)", color: "var(--app-text-muted)", borderColor: "var(--app-border)" }
                 }
               >
                 {badge(e.joursRestants)}

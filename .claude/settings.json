@@ -12,10 +12,19 @@
       "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npm run check:agent-boundaries; npm run build 2>&1 | Select-Object -Last 4)",
       "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; node scripts/fix-jsx-entities.mjs)",
       "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npm run build 2>&1 | Select-Object -Last 4)",
-      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npx tsc --noEmit; if \\($?\\) { Write-Output \"TSC_OK\" })"
+      "PowerShell($env:NODE_OPTIONS = \"--use-system-ca\"; npx tsc --noEmit; if \\($?\\) { Write-Output \"TSC_OK\" })",
+      "Bash(node -e ' *)",
+      "Bash(git commit -q -m ' *)",
+      "PowerShell(npm run lint 2>&1)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\); console.log\\('cross-env in deps?', \\(p.dependencies&&p.dependencies['cross-env']\\)||\\(p.devDependencies&&p.devDependencies['cross-env']\\)||'NON'\\)\")",
+      "Bash(grep -rhoE '\\(hover:\\)?\\(bg|text|border|ring|from|to\\)-\\(\\\\[#[0-9A-Fa-f]+\\\\]\\(/\\\\[?[0-9.]+\\\\]?\\)?|slate-[0-9]+|emerald-[0-9]+|amber-[0-9]+|rose-[0-9]+|blue-[0-9]+|white\\)' components/apercu app/apercu)",
+      "Bash(sed -i 's/ lg:flex/ md:flex/g' app/apercu/*/page.tsx && echo \"OK\" && grep -rl \"md:flex\" app/apercu | wc -l && grep -rc \"lg:flex\" app/apercu | grep -v ':0' || echo \"plus aucun lg:flex\")",
+      "Bash(sed -i 's#\"/compte\"]#\"/compte\", \"/frais\"]#' components/NavBar.tsx components/BandeauProcedure.tsx components/Footer.tsx)",
+      "Bash(sed -i 's#\"/journal\"]#\"/journal\", \"/frais\"]#' components/BoutonCaptureRapide.tsx components/AssistantFlottant.tsx)"
     ],
     "additionalDirectories": [
-      "C:\\projets\\parent-preuve\\.git"
+      "C:\\projets\\parent-preuve\\.git",
+      "C:\\projets\\parent-preuve\\app\\apercu\\*"
     ]
   }
 }

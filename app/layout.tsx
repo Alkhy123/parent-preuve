@@ -9,6 +9,7 @@ import BienvenueRGPD from "@/components/BienvenueRGPD";
 import MajServiceWorker from "@/components/MajServiceWorker";
 import BoutonCaptureRapide from "@/components/BoutonCaptureRapide";
 import AssistantFlottant from "@/components/AssistantFlottant";
+import ThemeProvider from "@/components/theme/ThemeProvider";
 import { Playfair_Display } from "next/font/google";
 
 const geistSans = Geist({
@@ -54,9 +55,18 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* No-flash : applique le thème mémorisé avant le rendu React. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('parent-preuve-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}",
+          }}
+        />
+        <ThemeProvider />
         <NavBar />
         <BandeauProcedure />
         <main className="flex-1">

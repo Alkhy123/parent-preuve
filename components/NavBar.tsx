@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import SelecteurProcedure from "@/components/SelecteurProcedure";
 
+const ROUTES_NOUVEAU_SHELL = ["/", "/journal", "/compte", "/frais", "/documents", "/preuves", "/preuves/nouvelle", "/calendrier", "/calendrier/avance"];
+
 // Lien direct vers l'accueil (premier pôle de navigation).
 const ACCUEIL = { href: "/", label: "Accueil" };
 
@@ -58,13 +60,17 @@ const GROUPES = [
 
 export default function NavBar() {
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
+  const [authPret, setAuthPret] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUtilisateur(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setUtilisateur(data.user);
+      setAuthPret(true);
+    });
     const { data: ecouteur } = supabase.auth.onAuthStateChange(
       (_event, session) => setUtilisateur(session?.user ?? null)
     );
@@ -108,6 +114,10 @@ export default function NavBar() {
   }
   function familleActive(liens: { href: string }[]) {
     return liens.some((l) => estActif(l.href));
+  }
+
+  if (ROUTES_NOUVEAU_SHELL.includes(pathname) && (!authPret || utilisateur)) {
+    return null;
   }
 
   return (

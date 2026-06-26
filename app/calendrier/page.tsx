@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import { Icon } from "@/components/apercu/icones";
 import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
@@ -185,30 +186,37 @@ export default function CalendrierPage() {
   const fmtHeure = (d: Date) =>
     d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-  const champ = "w-full rounded-md border border-gray-300 bg-white text-[#1F2733] p-2";
+  const champ = "w-full rounded-md border border-slate-300 bg-white text-[#1F2733] p-2";
   const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Organisation"
-        title="Calendrier de garde"
-        subtitle="Un week-end sur deux : enregistre la règle par enfant et visualise les prochaines périodes."
-      />
-      
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
-      <div className="mt-6">
-            <RegleDVH />
-          </div>
-          <div className="text-sm">
-            <Link href="/calendrier/avance" className="text-[#7A6326] underline">
-              Aperçu du calendrier avancé (bêta)
-            </Link>
-          </div>
+    <AppShell
+      activeModule="calendrier"
+      title="Calendrier"
+      subtitle="Règle de garde et prochaines périodes, par enfant."
+      copilotContext="calendrier"
+      actions={
+        <Link
+          href="/calendrier/avance"
+          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+        >
+          <Icon name="calendrier" className="h-4 w-4" />
+          Calendrier avancé (bêta)
+        </Link>
+      }
+    >
+      <div className="space-y-6">
+        <RegleDVH />
+
         {enfants.length === 0 ? (
-          <p className="text-[#1F2733]">Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».</p>
+          <p style={{ color: "var(--app-text)" }}>
+            Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».
+          </p>
         ) : (
           <>
+            <div className="app-cols-2">
+              <div className="space-y-6">
             <div>
               <label className={labelCss}>Enfant</label>
               <select value={enfantId} onChange={(e) => setEnfantId(e.target.value)} className={champ}>
@@ -242,7 +250,7 @@ export default function CalendrierPage() {
               <div>
                 <label className={labelCss}>Date de référence (un week-end de garde connu)</label>
                 <input type="date" value={dateReference} onChange={(e) => setDateReference(e.target.value)} className={champ} />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Indique un vendredi (ou samedi/dimanche) où l&apos;enfant est en garde.
                   Les week-ends suivants seront calculés un sur deux.
                 </p>
@@ -279,15 +287,18 @@ export default function CalendrierPage() {
               <button
                 onClick={enregistrer}
                 disabled={chargement}
-                className="rounded-md bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f54] disabled:opacity-50"
+                className="rounded-lg px-5 py-2 text-sm font-semibold text-white transition disabled:opacity-50"
+                style={{ backgroundColor: "var(--app-primary)" }}
               >
                 {chargement ? "Enregistrement…" : "Enregistrer la règle"}
               </button>
 
-              {message && <p className="text-sm text-[#1F2733]">{message}</p>}
+              {message && <p className="text-sm" style={{ color: "var(--app-text)" }}>{message}</p>}
               </div>
             </EncartPliable>
+              </div>
 
+              <div className="space-y-6">
             <div>
               <label className={labelCss}>Zone de vacances scolaires</label>
               <select
@@ -299,7 +310,7 @@ export default function CalendrierPage() {
                 <option value="B">Zone B</option>
                 <option value="C">Zone C</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
                 Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
                 Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
@@ -307,24 +318,29 @@ export default function CalendrierPage() {
               </p>
             </div>
 
-            <section className="carte rounded-lg border border-gray-200 bg-white p-5">
-              <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>
+            <section
+              className="rounded-lg border p-5"
+              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+            >
+              <h2 className="font-display text-xl mb-3" style={{ color: "var(--app-text)" }}>
+                Prochains week-ends de garde
+              </h2>
               {apercu.length === 0 ? (
-                <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
+                <p className="text-sm text-slate-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
               ) : (
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-slate-100">
                   {apercu.map((p, i) => {
                     const vac = vacancesQuiChevauchent(p.debut, p.fin, vacances);
                     return (
                       <li key={i} className="py-3 flex items-start gap-3">
                         <span
                           className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: p.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
+                          style={{ backgroundColor: p.chezQui === "moi" ? "var(--app-accent)" : "#9CA3AF" }}
                         />
-                        <span className="text-[#1F2733]">
+                        <span style={{ color: "var(--app-text)" }}>
                           Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
                           <strong>{fmt(p.fin)}</strong> {fmtHeure(p.fin)}
-                          <span className="block text-xs text-gray-500">
+                          <span className="block text-xs text-slate-500">
                             {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
                           </span>
                           {vac && (
@@ -339,7 +355,7 @@ export default function CalendrierPage() {
                 </ul>
               )}
               {apercu.some((p) => vacancesQuiChevauchent(p.debut, p.fin, vacances)) && (
-                <p className="mt-3 text-xs leading-relaxed text-gray-500">
+                <p className="mt-3 text-xs leading-relaxed text-slate-500">
                   Certains week-ends tombent pendant les vacances scolaires. La règle
                   « un week-end sur deux » peut alors ne pas s&apos;appliquer : la
                   répartition des vacances est fixée par votre jugement. Vérifiez votre
@@ -347,10 +363,12 @@ export default function CalendrierPage() {
                 </p>
               )}
             </section>
+              </div>
+            </div>
           <CalendrierMensuel regle={regleCourante} vacances={vacances} />
           </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }

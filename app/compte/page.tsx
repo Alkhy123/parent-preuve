@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import ThemeSelector from "@/components/theme/ThemeSelector";
 
 export default function ComptePage() {
   const router = useRouter();
@@ -89,14 +90,13 @@ export default function ComptePage() {
   const peutSupprimer = confirmation.trim() === "SUPPRIMER" && !suppressionEnCours;
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Votre compte"
-        title="Mon compte"
-        subtitle="Vos informations et la gestion de votre compte."
-      />
-
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-8 text-[#1F2733]">
+    <AppShell
+      activeModule="parametres"
+      title="Mon compte"
+      subtitle="Vos informations, l'apparence et la gestion de votre compte."
+      copilotContext="parametres"
+    >
+      <div className="mx-auto max-w-3xl space-y-6">
         {/* Informations */}
         <section className="carte rounded-lg bg-white p-5">
           <h2 className="font-display text-xl text-[#15233F]">Informations</h2>
@@ -110,6 +110,18 @@ export default function ComptePage() {
             </Link>
             .
           </p>
+        </section>
+
+        {/* Apparence */}
+        <section className="carte rounded-lg bg-white p-5">
+          <h2 className="font-display text-xl text-[#15233F]">Apparence</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Choisissez le style visuel de votre espace Parent Preuve. Ce réglage
+            modifie uniquement l&apos;apparence de l&apos;application sur cet appareil.
+          </p>
+          <div className="mt-4">
+            <ThemeSelector />
+          </div>
         </section>
 
         {/* Export de portabilité (RGPD) */}
@@ -168,6 +180,6 @@ export default function ComptePage() {
           </button>
         </section>
       </div>
-    </>
+    </AppShell>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
 import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
@@ -86,6 +86,16 @@ function badgeStatut(s: string) {
   return { texte: "Brouillon", classe: "border-amber-200 bg-amber-50 text-amber-800" };
 }
 
+function dateBloc(date: string) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return { jour: "--", mois: date, annee: "" };
+  return {
+    jour: d.toLocaleDateString("fr-FR", { day: "2-digit" }),
+    mois: d.toLocaleDateString("fr-FR", { month: "short" }),
+    annee: d.toLocaleDateString("fr-FR", { year: "numeric" }),
+  };
+}
+
 export default function JournalPage() {
   const [evenements, setEvenements] = useState<Evenement[]>([]);
   const [enfants, setEnfants] = useState<Enfant[]>([]);
@@ -104,6 +114,7 @@ export default function JournalPage() {
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
@@ -193,6 +204,7 @@ export default function JournalPage() {
     setEnfantPropose(c.enfant); // rapproché plus bas, une fois les enfants chargés
     setAvertissements(proposition.avertissements);
     setPreRempli(true);
+    setFormulaireOuvert(true);
   }, []);
 
   // Rapprochement de l'enfant proposé (TEXTE) avec un enfant réel de la procédure
@@ -248,6 +260,7 @@ export default function JournalPage() {
       chargerDocuments(); // une pièce a pu être téléversée à la volée
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+      setFormulaireOuvert(false);
       setConfirmation(
         "Fait ajouté au journal. Il apparaît en brouillon dans la liste ci-dessous : vous pouvez le valider ou en ajouter un autre."
       );
@@ -372,21 +385,100 @@ export default function JournalPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Suivi"
-        title="Journal factuel"
-        subtitle="Décrivez chaque événement par les faits : qui, quand, quoi."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
+    <AppShell
+      activeModule="journal"
+      title="Journal / Événements"
+      subtitle="Vos faits datés, classés et prêts à être exportés."
+      copilotContext="journal"
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={exporterCsv}
+            disabled={evenementsFiltres.length === 0}
+            id="export-journal"
+            className="hidden rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+            style={{
+              borderColor: "var(--app-border)",
+              backgroundColor: "var(--app-surface)",
+              color: "var(--app-text-muted)",
+            }}
+          >
+            Exporter en CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormulaireOuvert(true)}
+            className="hidden items-center rounded-lg px-3 py-2 text-sm font-semibold text-white transition md:inline-flex"
+            style={{ backgroundColor: "var(--app-primary)" }}
+          >
+            Ajouter un événement
+          </button>
+        </>
+      }
+    >
+      <div className="w-full">
+        <div
+          className="rounded-lg border p-3"
+          style={{
+            backgroundColor: "var(--app-surface)",
+            borderColor: "var(--app-border)",
+          }}
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-nowrap gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+              {["Toutes", ...CATEGORIES].map((filtre) => {
+                const actif = filtreCategorie === filtre;
+                return (
+                  <button
+                    key={filtre}
+                    type="button"
+                    onClick={() => setFiltreCategorie(filtre)}
+                    className="shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+                    style={{
+                      borderColor: actif ? "var(--app-primary)" : "var(--app-border)",
+                      backgroundColor: actif ? "var(--app-primary-soft)" : "transparent",
+                      color: actif ? "var(--app-primary)" : "var(--app-text-muted)",
+                    }}
+                  >
+                    {filtre === "Toutes" ? "Toutes les catégories" : filtre}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 sm:hidden">
+              <button
+                type="button"
+                onClick={exporterCsv}
+                disabled={evenementsFiltres.length === 0}
+                className="flex-1 rounded-lg border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  borderColor: "var(--app-border)",
+                  color: "var(--app-text-muted)",
+                }}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormulaireOuvert(true)}
+                className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold text-white"
+                style={{ backgroundColor: "var(--app-primary)" }}
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive (sans modifier le composant partagé). */}
-        <div className="mt-8">
+        {formulaireOuvert && (
+        <div id="ajouter-fait" className="mt-3 scroll-mt-24">
           <EncartPliable
             key={preRempli ? "journal-prerempli" : "journal-standard"}
             titre="Ajouter un fait"
-            replieParDefaut={!preRempli}
+            replieParDefaut={false}
             signalFermeture={signalAjout}
           >
             <div className="space-y-4">
@@ -528,6 +620,7 @@ export default function JournalPage() {
             </div>
           </EncartPliable>
         </div>
+        )}
 
         {confirmation && (
           <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
@@ -535,28 +628,8 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Filtre */}
-        <div className="mt-8 flex items-center gap-3">
-          <label className="text-sm text-slate-600">Filtrer :</label>
-          <select
-            value={filtreCategorie} onChange={(e) => setFiltreCategorie(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-          >
-            <option value="Toutes">Toutes les catégories</option>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-
-          <button
-            onClick={exporterCsv}
-            disabled={evenementsFiltres.length === 0}
-            className="ml-auto rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Exporter en CSV
-          </button>
-        </div>
-
         {/* Liste */}
-        <div className="mt-4 space-y-3">
+        <div className="mt-6 space-y-3">
           {evenementsFiltres.length === 0 && (
             <EmptyState
               titre="Aucun fait pour cette sélection"
@@ -570,12 +643,34 @@ export default function JournalPage() {
           {evenementsFiltres.map((ev) => {
             const badge = badgeStatut(ev.statut);
             const implication = libelleImplication(ev.implication_categorie);
+            const bloc = dateBloc(ev.date_evenement);
             return (
-              <div key={ev.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+              <article
+                key={ev.id}
+                className="rounded-lg border p-4 shadow-[0_1px_3px_rgba(16,24,40,0.06)]"
+                style={{
+                  backgroundColor: "var(--app-surface)",
+                  borderColor: "var(--app-border)",
+                }}
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                  <div
+                    className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: "var(--app-primary-soft)",
+                      color: "var(--app-primary)",
+                    }}
+                  >
+                    <span className="text-xl font-bold leading-none">{bloc.jour}</span>
+                    <span className="text-[11px] font-medium uppercase">{bloc.mois}</span>
+                    <span className="text-[10px]" style={{ color: "var(--app-text-muted)" }}>
+                      {bloc.annee}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                      <span className="inline-block rounded-full px-2.5 py-0.5 text-xs" style={{ backgroundColor: "var(--app-surface-muted)", color: "var(--app-text-muted)" }}>
                         {ev.categorie}
                       </span>
                       <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
@@ -587,40 +682,49 @@ export default function JournalPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
-                    <p className="text-sm text-slate-500">
-                      {ev.date_evenement}{ev.heure_evenement ? ` à ${ev.heure_evenement}` : ""}
+
+                    <h2 className="mt-2 text-base font-semibold" style={{ color: "var(--app-text)" }}>
+                      {ev.titre}
+                    </h2>
+                    <p className="mt-1 text-sm" style={{ color: "var(--app-text-muted)" }}>
+                      {ev.heure_evenement ? `${ev.heure_evenement}` : "Heure non renseignée"}
                       {nomEnfant(ev.child_id) ? ` · ${nomEnfant(ev.child_id)}` : ""}
                     </p>
                     {ev.description_factuelle && (
-                      <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
+                      <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--app-text)" }}>
+                        {ev.description_factuelle}
+                      </p>
                     )}
 
-                    {/* Pièce liée au fait (ou liaison d'une pièce existante). */}
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       {ev.document_id ? (
                         <>
                           <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
-                            ✓ {nomDocument(ev.document_id)}
+                            Pièce associée : {nomDocument(ev.document_id)}
                           </span>
                           <button
                             onClick={() => ouvrirPiece(ev.document_id!)}
-                            className="text-xs text-slate-700 hover:underline"
+                            className="text-xs font-medium hover:underline"
+                            style={{ color: "var(--app-primary)" }}
                           >
                             Ouvrir
                           </button>
                         </>
                       ) : (
-                        <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                          Sans pièce jointe
+                        <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
+                          Sans pièce associée
                         </span>
                       )}
                       <select
                         value={ev.document_id ?? ""}
                         onChange={(e) => lierPiece(ev.id, e.target.value)}
-                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                        className="rounded-lg border bg-transparent px-2 py-1 text-xs"
+                        style={{
+                          borderColor: "var(--app-border)",
+                          color: "var(--app-text)",
+                        }}
                       >
-                        <option value="">— Lier une pièce —</option>
+                        <option value="">Lier une pièce</option>
                         {documentsProcedure.map((d) => (
                           <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
                         ))}
@@ -628,36 +732,39 @@ export default function JournalPage() {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-2">
+                  <div className="flex shrink-0 flex-wrap gap-2 sm:max-w-40 sm:flex-col sm:items-stretch">
                     {ev.statut !== "valide" && (
                       <button
                         onClick={() => changerStatut(ev.id, "valide")}
-                        className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                        className="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+                        style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                       >
-                        Marquer comme validé
+                        Valider
                       </button>
                     )}
                     {ev.statut !== "brouillon" && (
                       <button
                         onClick={() => changerStatut(ev.id, "brouillon")}
-                        className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-600 hover:bg-slate-50"
+                        className="rounded-lg border px-3 py-1.5 text-sm font-medium"
+                        style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                       >
-                        Repasser en brouillon
+                        Brouillon
                       </button>
                     )}
                     <button
                       onClick={() => supprimerEvenement(ev.id)}
-                      className="text-sm text-red-600 hover:underline"
+                      className="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+                      style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                     >
                       Supprimer
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }

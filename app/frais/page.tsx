@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
 import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
@@ -12,6 +12,7 @@ import RegleFrais from '@/components/RegleFrais';
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import { Icon } from "@/components/apercu/icones";
 import {
   nettoyerProposition,
   CLE_SESSION_PREREMPLISSAGE,
@@ -58,6 +59,9 @@ export default function FraisPage() {
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+  const [filtreStatut, setFiltreStatut] = useState("Tous");
+  const [filtreCategorie, setFiltreCategorie] = useState("Toutes");
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
 
   // Section justificatif guidée. "question" = on demande oui/non ;
   // "oui" = on propose téléverser ou sélectionner ; "aucun" = pas de justificatif
@@ -165,6 +169,7 @@ export default function FraisPage() {
     setEnfantPropose(c.enfant); // rapproché plus bas, une fois les enfants chargés
     setAvertissements(proposition.avertissements);
     setPreRempli(true);
+    setFormulaireOuvert(true);
   }, []);
 
   // Rapprochement de l'enfant proposé (TEXTE) avec un enfant réel de la procédure
@@ -273,6 +278,7 @@ export default function FraisPage() {
     setJustifEtape(f.document_id ? "question" : f.sans_justificatif ? "aucun" : "question");
     // Pré-remplissage Agent éventuel : on l'efface pour ne pas mélanger les bandeaux.
     setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+    setFormulaireOuvert(true);
     formulaireRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -347,6 +353,7 @@ export default function FraisPage() {
       reinitialiserJustificatif();
       // Fin du cycle de pré-remplissage : on retire le bandeau et on referme.
       setPreRempli(false); setAvertissements([]); setEnfantPropose(null);
+      setFormulaireOuvert(false);
       setConfirmation(
         etaitEdition
           ? "Frais modifié."
@@ -420,6 +427,10 @@ export default function FraisPage() {
   // Les totaux sont calculés sur ce périmètre.
   const fraisProcedure = frais;
   const documentsProcedure = documents;
+  const moisCourant = new Date().toISOString().slice(0, 7);
+  const fraisDuMois = fraisProcedure.filter((f) => f.date_frais?.startsWith(moisCourant));
+  const totalMois = fraisDuMois.reduce((somme, f) => somme + Number(f.montant), 0);
+  const sansJustificatif = fraisProcedure.filter((f) => !f.document_id).length;
 
   // Les totaux, recalculés à chaque affichage (sur la procédure active)
   const resteAPercevoir = fraisProcedure
@@ -429,6 +440,16 @@ export default function FraisPage() {
   const dejaRembourse = fraisProcedure
     .filter((f) => f.rembourse)
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
+
+  const fraisFiltres = fraisProcedure.filter((f) => {
+    const statutOk =
+      filtreStatut === "Tous" ||
+      (filtreStatut === "À rembourser" && !f.rembourse) ||
+      (filtreStatut === "Remboursé" && f.rembourse) ||
+      (filtreStatut === "En attente" && !f.rembourse && !f.document_id);
+    const categorieOk = filtreCategorie === "Toutes" || f.categorie === filtreCategorie;
+    return statutOk && categorieOk;
+  });
 
   // Export CSV des frais de la procédure active (ce qui est affiché à l'écran).
   // Données factuelles uniquement : aucun jugement, aucune qualification.
@@ -465,20 +486,71 @@ export default function FraisPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Finances"
+    <AppShell
+      activeModule="frais"
+      title="Frais"
+      subtitle="Dépenses liées aux enfants, classées et exportables."
+      copilotContext="frais"
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={exporterCsv}
+            disabled={fraisProcedure.length === 0}
+            className="hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+            style={{ borderColor: "var(--app-border)", backgroundColor: "var(--app-surface)", color: "var(--app-text-muted)" }}
+          >
+            <Icon name="syntheses" className="h-4 w-4" />
+            Exporter
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormulaireOuvert(true)}
+            className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white transition md:inline-flex"
+            style={{ backgroundColor: "var(--app-primary)" }}
+          >
+            <Icon name="plus" className="h-4 w-4" />
+            Ajouter une dépense
+          </button>
+        </>
+      }
+    >
+      {false && null}
+      {false && <span
+        data-eyebrow="Finances"
         title="Frais partagés"
-        subtitle="Suivez moi par moi ce qui est dû et ce qui a été payé"
-      />
+        data-subtitle="Suivez moi par moi ce qui est dû et ce qui a été payé"
+      />}
 
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
-      <div className="mt-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <CarteSynthese label="Total du mois" valeur={euros(totalMois)} indice={`${fraisDuMois.length} dépense${fraisDuMois.length > 1 ? "s" : ""}`} />
+          <CarteSynthese label="À rembourser" valeur={euros(resteAPercevoir)} indice={`${fraisProcedure.filter((f) => !f.rembourse).length} en cours`} ton="attention" />
+          <CarteSynthese label="Remboursé" valeur={euros(dejaRembourse)} indice={`${fraisProcedure.filter((f) => f.rembourse).length} frais`} ton="succes" />
+          <CarteSynthese label="Sans justificatif" valeur={String(sansJustificatif)} indice={sansJustificatif > 0 ? "à compléter" : "complet"} ton={sansJustificatif > 0 ? "danger" : "neutre"} />
+        </div>
+
+        <div className="rounded-lg border p-3" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+          <div className="space-y-2">
+            <FiltrePills options={["Tous", "À rembourser", "Remboursé", "En attente"]} actif={filtreStatut} onChange={setFiltreStatut} />
+            <FiltrePills options={["Toutes", ...CATEGORIES]} actif={filtreCategorie} onChange={setFiltreCategorie} />
+          </div>
+          <div className="mt-3 flex gap-2 sm:hidden">
+            <button type="button" onClick={exporterCsv} disabled={fraisProcedure.length === 0} className="flex-1 rounded-lg border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50" style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}>
+              Export CSV
+            </button>
+            <button type="button" onClick={() => setFormulaireOuvert(true)} className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--app-primary)" }}>
+              Ajouter
+            </button>
+          </div>
+        </div>
+
+      <div>
           <RegleFrais/>
         </div>
 
         {/* Bandeau de totaux */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="hidden">
           <div className="carte rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Reste à percevoir</p>
             <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(resteAPercevoir)}</p>
@@ -490,7 +562,7 @@ export default function FraisPage() {
         </div>
 
         {/* Export CSV */}
-        <div className="mt-4 flex justify-end">
+        <div className="hidden">
           <button
             onClick={exporterCsv}
             disabled={fraisProcedure.length === 0}
@@ -502,7 +574,8 @@ export default function FraisPage() {
 
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive ou quand on édite un frais. */}
-        <div className="mt-8" ref={formulaireRef}>
+        {formulaireOuvert && (
+        <div className="mt-4" ref={formulaireRef}>
           <EncartPliable
             key={editionId ? `frais-edition-${editionId}` : preRempli ? "frais-prerempli" : "frais-standard"}
             titre={editionId ? "Modifier le frais" : "Ajouter un frais"}
@@ -756,6 +829,7 @@ export default function FraisPage() {
             </div>
           </EncartPliable>
         </div>
+        )}
 
         {confirmation && (
           <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
@@ -764,19 +838,18 @@ export default function FraisPage() {
         )}
 
         {/* Liste */}
-        <div className="mt-8 space-y-3">
-          {fraisProcedure.length === 0 && (
+        <div className="space-y-3">
+          {fraisFiltres.length === 0 && (
             <EmptyState
               titre="Aucun frais pour cette procédure"
               message="Ajoutez un premier frais avec « Ajouter un frais » ci-dessus."
             />
           )}
-          {fraisProcedure.map((f) => (
+          {fraisFiltres.map((f) => (
             <div
               key={f.id}
-              className={`carte rounded-xl border p-4 ${
-                f.rembourse ? "border-slate-200 bg-slate-100" : "border-slate-200 bg-white"
-              }`}
+              className="rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -829,22 +902,25 @@ export default function FraisPage() {
                     </select>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                   <button
                     onClick={() => chargerPourEdition(f)}
-                    className="text-sm text-[#15233F] hover:underline"
+                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => basculerRembourse(f)}
-                    className="text-sm text-slate-700 hover:underline"
+                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                   >
                     {f.rembourse ? "Annuler" : "Marquer remboursé"}
                   </button>
                   <button
                     onClick={() => supprimerFrais(f.id)}
-                    className="text-sm text-red-600 hover:underline"
+                    className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                    style={{ borderColor: "var(--app-danger, #9B2C2C)", color: "var(--app-danger, #9B2C2C)" }}
                   >
                     Supprimer
                   </button>
@@ -854,6 +930,76 @@ export default function FraisPage() {
           ))}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
       }
+
+type SyntheseTon = "neutre" | "attention" | "succes" | "danger";
+
+function CarteSynthese({
+  label,
+  valeur,
+  indice,
+  ton = "neutre",
+}: {
+  label: string;
+  valeur: string;
+  indice: string;
+  ton?: SyntheseTon;
+}) {
+  const couleur =
+    ton === "danger"
+      ? "var(--app-danger, #9B2C2C)"
+      : ton === "attention"
+        ? "var(--app-primary)"
+        : "var(--app-text)";
+  return (
+    <section
+      className="rounded-lg border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+    >
+      <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--app-text-muted)" }}>
+        {label}
+      </p>
+      <p className="mt-1 text-2xl font-semibold" style={{ color: couleur }}>
+        {valeur}
+      </p>
+      <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>
+        {indice}
+      </p>
+    </section>
+  );
+}
+
+function FiltrePills({
+  options,
+  actif,
+  onChange,
+}: {
+  options: string[];
+  actif: string;
+  onChange: (valeur: string) => void;
+}) {
+  return (
+    <div className="flex min-w-0 flex-nowrap gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+      {options.map((option) => {
+        const selectionne = option === actif;
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className="shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+            style={{
+              borderColor: selectionne ? "var(--app-primary)" : "var(--app-border)",
+              backgroundColor: selectionne ? "var(--app-primary-soft)" : "transparent",
+              color: selectionne ? "var(--app-primary)" : "var(--app-text-muted)",
+            }}
+          >
+            {option}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

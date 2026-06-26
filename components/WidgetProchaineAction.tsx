@@ -1,16 +1,9 @@
 "use client";
 
-// components/WidgetProchaineAction.tsx
-//
-// Carte d'accueil "Prochaine etape recommandee" : met en avant UNE seule
-// action utile, avec un bouton clair. LECTURE SEULE, aucune ecriture en base,
-// aucun appel IA.
-//
-// Reutilise les helpers existants (memes sources que WidgetActionsPrioritaires
-// et ConfigurationDossier) puis delegue le choix a la fonction pure
-// lib/ux/prochaineAction.ts.
+// Carte d'accueil "Prochaine etape recommandee".
+// Lecture seule : aucune ecriture en base, aucun appel IA.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getProcedureActiveId } from "@/lib/procedureActive";
@@ -22,14 +15,13 @@ import {
   type ProchaineAction,
 } from "@/lib/ux/prochaineAction";
 
-// Libelle + style de badge selon la priorite (jamais l'or vif en texte).
 const BADGE: Record<
   ProchaineAction["priorite"],
   { classe: string; libelle: string }
 > = {
   bloquant: { classe: "badge-erreur", libelle: "Prioritaire" },
   important: { classe: "badge-attention", libelle: "Important" },
-  conseil: { classe: "badge-info", libelle: "Conseillé" },
+  conseil: { classe: "badge-info", libelle: "Conseille" },
 };
 
 type Etat =
@@ -45,14 +37,12 @@ export default function WidgetProchaineAction() {
 
     (async () => {
       try {
-        // Memes sources que le reste de l'accueil, cloisonnees sur la procedure active.
         const [donnees, config, procId] = await Promise.all([
           chargerEtatDossier("", ""),
           getEtatConfigurationDossier(),
           getProcedureActiveId(),
         ]);
 
-        // Solde de pension (la pension n'est pas couverte par chargerEtatDossier).
         let soldePension = 0;
         if (procId) {
           const { data } = await supabase
@@ -83,37 +73,36 @@ export default function WidgetProchaineAction() {
     };
   }, []);
 
-  // Chargement : repere neutre, sans clignotement.
   if (etat.phase === "chargement") {
     return (
-      <div className="carte rounded-xl bg-white p-5 text-sm text-texte-doux">
-        Recherche de la prochaine étape…
-      </div>
+      <CarteAction>
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+          Recherche de la prochaine étape…
+        </p>
+      </CarteAction>
     );
   }
 
-  // Echec : on ne propose rien d'affirmatif, on invite a reessayer.
   if (etat.phase === "erreur") {
     return (
-      <div className="carte rounded-xl bg-white p-5">
-        <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
-        <p className="mt-2 text-sm text-texte-doux">
+      <CarteAction>
+        <Titre />
+        <p className="mt-2 text-sm" style={{ color: "var(--app-text-muted)" }}>
           Indisponible pour le moment. Vous pouvez réessayer plus tard.
         </p>
-      </div>
+      </CarteAction>
     );
   }
 
-  // Rien de prioritaire : message de secours, ton rassurant et non anxiogene.
   if (etat.action === null) {
     return (
-      <div className="carte rounded-xl bg-white p-5">
-        <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
-        <p className="mt-2 text-sm text-texte-doux">
+      <CarteAction>
+        <Titre />
+        <p className="mt-2 text-sm" style={{ color: "var(--app-text-muted)" }}>
           Votre dossier ne présente pas d&apos;action urgente. Vous pouvez continuer
           à noter les faits au fil de l&apos;eau.
         </p>
-      </div>
+      </CarteAction>
     );
   }
 
@@ -121,21 +110,51 @@ export default function WidgetProchaineAction() {
   const badge = BADGE[action.priorite];
 
   return (
-    <div className="carte rounded-xl bg-white p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
+    <CarteAction>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Titre />
         <span className={`badge ${badge.classe}`}>{badge.libelle}</span>
       </div>
 
-      <p className="mt-3 text-base font-medium text-texte">{action.titre}</p>
-      <p className="mt-1 text-sm text-texte-doux">{action.description}</p>
+      <p className="mt-3 text-lg font-semibold" style={{ color: "var(--app-text)" }}>
+        {action.titre}
+      </p>
+      <p className="mt-1 max-w-3xl text-sm" style={{ color: "var(--app-text-muted)" }}>
+        {action.description}
+      </p>
 
       <Link
         href={action.href}
-        className="btn btn-primaire mt-4 inline-flex w-full justify-center sm:w-auto"
+        className="mt-4 inline-flex w-full justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white transition sm:w-auto"
+        style={{ backgroundColor: "var(--app-primary)" }}
       >
         {action.cta}
       </Link>
-    </div>
+    </CarteAction>
+  );
+}
+
+function CarteAction({ children }: { children: ReactNode }) {
+  return (
+    <section
+      className="rounded-xl border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{
+        backgroundColor: "var(--app-primary-soft)",
+        borderColor: "color-mix(in srgb, var(--app-primary) 28%, var(--app-border))",
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function Titre() {
+  return (
+    <p
+      className="text-xs font-semibold uppercase tracking-wide"
+      style={{ color: "var(--app-primary)" }}
+    >
+      Prochaine étape recommandée
+    </p>
   );
 }

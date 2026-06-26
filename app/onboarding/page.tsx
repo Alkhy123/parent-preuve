@@ -60,8 +60,22 @@ export default function OnboardingPage() {
         title="Préparer votre dossier pas à pas"
         subtitle="Un parcours guidé pour organiser un dossier clair, daté et factuel."
       />
-      <div className="bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-3xl px-6 py-10">
+      <div
+        className={[
+          "text-[#1F2733]",
+          // Wizard refondu : fond gris-bleu tres clair facon maquette.
+          // Invitation (et chargement) : fond creme historique inchange.
+          enCours ? "bg-[#F2F5FA]" : "bg-[#ECE7DC]",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "mx-auto px-6 py-10",
+            // Le wizard refondu s'affiche en 3 colonnes : conteneur large en desktop.
+            // L'invitation reste sur une colonne etroite, inchangee.
+            enCours ? "max-w-6xl" : "max-w-3xl",
+          ].join(" ")}
+        >
           {enCours === null ? (
             <p className="text-sm text-texte-doux">Chargement…</p>
           ) : enCours ? (

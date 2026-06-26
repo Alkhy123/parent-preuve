@@ -25,6 +25,7 @@ import {
   type Progression,
 } from "@/lib/onboarding/progression";
 import { type EtapeProps } from "@/components/onboarding/PiedEtape";
+import AssistantShell from "@/components/onboarding/AssistantShell";
 import EtapeVosInformations from "@/components/onboarding/EtapeVosInformations";
 import EtapeProcedure from "@/components/onboarding/EtapeProcedure";
 import EtapeAutreParent from "@/components/onboarding/EtapeAutreParent";
@@ -95,58 +96,15 @@ export default function OnboardingWizard() {
     }
   }
 
-  const def = ETAPES_ONBOARDING[idx];
-
   return (
-    <div className="carte rounded-xl bg-white p-6">
-      {/* Barre de progression : retour libre vers une etape deja atteinte. */}
-      <ol className="flex flex-wrap gap-x-2 gap-y-2 text-xs">
-        {ETAPES_ONBOARDING.map((e, i) => {
-          const fait = progression.completees.includes(e.id);
-          const actif = e.id === courante;
-          const accessible = i <= idx || fait;
-          return (
-            <li key={e.id} className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => accessible && allerA(e.id)}
-                disabled={!accessible}
-                className={[
-                  "flex items-center gap-1.5 rounded-full px-2.5 py-1 transition",
-                  actif
-                    ? "bg-navy text-surface"
-                    : fait
-                      ? "text-vert"
-                      : "text-texte-doux",
-                  accessible ? "hover:bg-navy/5" : "cursor-default opacity-60",
-                ].join(" ")}
-              >
-                <span
-                  aria-hidden="true"
-                  className={[
-                    "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium",
-                    actif
-                      ? "bg-surface text-navy"
-                      : fait
-                        ? "bg-vert/15 text-vert"
-                        : "bg-slate-100 text-texte-doux",
-                  ].join(" ")}
-                >
-                  {fait && !actif ? "✓" : i + 1}
-                </span>
-                <span className="hidden sm:inline">{e.titreCourt}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      <h2 className="mt-6 font-display text-xl text-navy">{def.titre}</h2>
-      <p className="mt-1 text-xs text-texte-doux">
-        Étape {idx + 1} sur {ETAPES_ONBOARDING.length}
-      </p>
-
-      <div className="mt-4">{corps()}</div>
-    </div>
+    <AssistantShell
+      etapes={ETAPES_ONBOARDING}
+      idx={idx}
+      courante={courante}
+      completees={progression.completees}
+      onAller={allerA}
+    >
+      {corps()}
+    </AssistantShell>
   );
 }
