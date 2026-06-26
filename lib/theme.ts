@@ -27,6 +27,30 @@ export const THEMES = [
     description: "Sombre, premium, noir charbon et accents or.",
     pastilles: ["#080B10", "#2D3542", "#D8AA4F"],
   },
+  {
+    id: "marine-laiton",
+    label: "Marine & Laiton",
+    description: "Institutionnel, contrasté, accents laiton.",
+    pastilles: ["#1E3A63", "#E7ECF3", "#B08D3C"],
+  },
+  {
+    id: "bordeaux-juridique",
+    label: "Bordeaux juridique",
+    description: "Profond, solennel, esprit cabinet.",
+    pastilles: ["#7A2230", "#F0E4E2", "#A9852F"],
+  },
+  {
+    id: "ardoise-parchemin",
+    label: "Ardoise & Parchemin",
+    description: "Sobre, doux, gris charbon raffiné.",
+    pastilles: ["#3F4A53", "#E4E3DD", "#9C8456"],
+  },
+  {
+    id: "vert-ministere",
+    label: "Vert ministère",
+    description: "Institutionnel, calme, ton officiel.",
+    pastilles: ["#2E5D43", "#E4EADD", "#A98F3C"],
+  },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]["id"];

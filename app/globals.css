@@ -320,6 +320,128 @@ h1, h2 {
   --app-chip-border: #2D3542;
 }
 
+/* Marine & Laiton — marine institutionnel, accents laiton, ivoire lumineux.
+   Thème CLAIR : la sidebar reste une surface claire teintée (texte sombre
+   lisible) ; l'identité marine passe par --app-primary / --app-accent. */
+[data-theme="marine-laiton"] {
+  --app-bg: #F1F4F8;
+  --app-surface: #FFFFFF;
+  --app-surface-muted: #E9EDF3;
+  --app-sidebar: #E7ECF3;
+  --app-sidebar-active: #DCE4EF;
+  --app-border: #D5DCE6;
+  --app-text: #142D50;
+  --app-text-muted: #566377;
+  --app-primary: #1E3A63;
+  --app-primary-hover: #162B4A;
+  --app-primary-soft: #E0E7F1;
+  --app-on-primary: #FFFFFF;
+  --app-accent: #B08D3C;
+  --app-ring: #1E3A63;
+  --app-banner-bg: #FBF3DE;
+  --app-banner-border: #E6CF94;
+  --app-banner-text: #7A5A12;
+  --app-info: #1E3A63;
+  --app-info-soft: #E6ECF4;
+  --app-info-border: #C2D0E2;
+  --app-tag-bg: #EAEEF4;
+  --app-tag-text: #3A4A63;
+  --app-tag-border: #D5DCE6;
+  --app-chip-bg: #EAEEF4;
+  --app-chip-text: #3A4A63;
+  --app-chip-border: #D5DCE6;
+}
+
+/* Bordeaux juridique — bordeaux profond, ivoire, accents dorés discrets. */
+[data-theme="bordeaux-juridique"] {
+  --app-bg: #F5F1EC;
+  --app-surface: #FFFFFF;
+  --app-surface-muted: #EFE7E1;
+  --app-sidebar: #F0E4E2;
+  --app-sidebar-active: #E7D3D0;
+  --app-border: #E0D3CC;
+  --app-text: #3A1E22;
+  --app-text-muted: #6E5A56;
+  --app-primary: #7A2230;
+  --app-primary-hover: #641A27;
+  --app-primary-soft: #F0DCDE;
+  --app-on-primary: #FFFCF8;
+  --app-accent: #A9852F;
+  --app-ring: #7A2230;
+  --app-banner-bg: #F8EFD9;
+  --app-banner-border: #E2C98D;
+  --app-banner-text: #7A5A12;
+  --app-info: #7A2230;
+  --app-info-soft: #F3E3E5;
+  --app-info-border: #E0C4C8;
+  --app-tag-bg: #F1E7E4;
+  --app-tag-text: #5A3A3E;
+  --app-tag-border: #E0D3CC;
+  --app-chip-bg: #F1E7E4;
+  --app-chip-text: #5A3A3E;
+  --app-chip-border: #E0D3CC;
+}
+
+/* Ardoise & Parchemin — ardoise sobre, parchemin doux, gris charbon raffiné. */
+[data-theme="ardoise-parchemin"] {
+  --app-bg: #EAE6DC;
+  --app-surface: #F7F4EC;
+  --app-surface-muted: #E3DED2;
+  --app-sidebar: #E4E3DD;
+  --app-sidebar-active: #D6D9DA;
+  --app-border: #D5D1C6;
+  --app-text: #2B2D2F;
+  --app-text-muted: #5E6063;
+  --app-primary: #3F4A53;
+  --app-primary-hover: #333C44;
+  --app-primary-soft: #E0E3E5;
+  --app-on-primary: #F7F4EC;
+  --app-accent: #9C8456;
+  --app-ring: #3F4A53;
+  --app-banner-bg: #F2EBD8;
+  --app-banner-border: #D8C79A;
+  --app-banner-text: #6E5A2A;
+  --app-info: #3F4A53;
+  --app-info-soft: #E5E7E8;
+  --app-info-border: #CDD2D5;
+  --app-tag-bg: #E8E5DB;
+  --app-tag-text: #4A4D50;
+  --app-tag-border: #D5D1C6;
+  --app-chip-bg: #E8E5DB;
+  --app-chip-text: #4A4D50;
+  --app-chip-border: #D5D1C6;
+}
+
+/* Vert ministère — vert institutionnel, crème, sauge doux, ton officiel. */
+[data-theme="vert-ministere"] {
+  --app-bg: #F2F3EC;
+  --app-surface: #FFFFFF;
+  --app-surface-muted: #E8EBE0;
+  --app-sidebar: #E4EADD;
+  --app-sidebar-active: #D5E0CB;
+  --app-border: #D2D9C8;
+  --app-text: #1B3026;
+  --app-text-muted: #54635A;
+  --app-primary: #2E5D43;
+  --app-primary-hover: #244C36;
+  --app-primary-soft: #DCE8DD;
+  --app-on-primary: #FFFFFF;
+  --app-accent: #A98F3C;
+  --app-ring: #2E5D43;
+  --app-banner-bg: #F5EFD8;
+  --app-banner-border: #DCC78F;
+  --app-banner-text: #6E5A12;
+  --app-info: #2E5D43;
+  --app-info-soft: #E2ECE2;
+  --app-info-border: #C4D6C6;
+  --app-tag-bg: #E7ECE0;
+  --app-tag-text: #3C4D42;
+  --app-tag-border: #D2D9C8;
+  --app-chip-bg: #E7ECE0;
+  --app-chip-text: #3C4D42;
+  --app-chip-border: #D2D9C8;
+}
+
 /* ------------------------------------------------------------------ */
 /* Application des tokens aux classes utilitaires des aperçus.         */
 /* Surcharges scopées à .apercu-shell : aucun impact hors aperçu.      */
