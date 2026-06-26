@@ -88,6 +88,10 @@ Le script :
 - visite `/calendrier` et `/calendrier/avance` ;
 - revisite `/journal`, `/frais`, `/documents` et `/preuves` pour verifier que les
   donnees apparaissent ;
+- pour chaque preuve photo, attend un signal de succes reel a l'ecran
+  (bandeau « Élément enregistré ») avant de quitter la page, puis verifie que la
+  preuve apparait reellement dans `/preuves`. En cas d'absence, un diagnostic
+  liste les titres, boutons et textes contenant preuve/photo/fichier/image/`[TEST UI]` ;
 - capture des screenshots apres les modules principaux ;
 - affiche un rapport console.
 

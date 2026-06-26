@@ -384,13 +384,16 @@ export default function NouvellePreuvePage() {
         </section>
 
         {erreur && (
-          <p className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <p
+            data-testid="preuve-erreur"
+            className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          >
             {erreur}
           </p>
         )}
 
         {messageSucces && (
-          <div className="space-y-1 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div data-testid="preuve-succes" className="space-y-1 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             <p className="font-medium">{messageSucces}</p>
             {recap && (
               <>
@@ -570,6 +573,8 @@ export default function NouvellePreuvePage() {
               </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <button
+                type="button"
+                data-testid="preuve-submit"
                 onClick={enregistrer}
                 disabled={enregistrement || !empreinte}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 sm:w-auto"

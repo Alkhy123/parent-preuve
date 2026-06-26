@@ -644,6 +644,77 @@ async function ajouterDocuments(page, runId, image, rapport) {
   await capture(page, "documents", rapport);
 }
 
+// Diagnostic dedie a /preuves : capture + textes contenant les mots utiles.
+async function diagnosticPreuves(page, contexte) {
+  await screenshotDiagnostic(page, `preuves-${nomDiagnostic(contexte)}`);
+  const infos = await page.evaluate(() => {
+    const visible = (el) => {
+      const style = window.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return (
+        style.visibility !== "hidden" &&
+        style.display !== "none" &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    };
+    const texte = (el) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
+    const titres = Array.from(document.querySelectorAll("h1,h2,h3"))
+      .filter(visible)
+      .map(texte)
+      .filter(Boolean);
+    const boutons = Array.from(document.querySelectorAll("button, a"))
+      .filter(visible)
+      .map(texte)
+      .filter(Boolean)
+      .slice(0, 60);
+    const mots = ["preuve", "photo", "fichier", "image", "[TEST UI]"];
+    const textesCibles = Array.from(document.querySelectorAll("body *"))
+      .filter(visible)
+      .map(texte)
+      .filter((t) => t && mots.some((mot) => t.toLowerCase().includes(mot.toLowerCase())))
+      .slice(0, 80);
+    return { url: window.location.href, titres, boutons, textesCibles };
+  });
+  console.log(`\n--- Diagnostic preuves (${contexte}) ---`);
+  console.log(`URL : ${infos.url}`);
+  console.log(`Titres : ${JSON.stringify(infos.titres)}`);
+  console.log(`Boutons/liens : ${JSON.stringify(infos.boutons)}`);
+  console.log(`Textes preuve/photo/fichier/image/[TEST UI] : ${JSON.stringify(infos.textesCibles)}`);
+  console.log("--- Fin diagnostic preuves ---\n");
+}
+
+// Attend un signal REEL apres l'enregistrement d'une preuve :
+// succes precis (data-testid ou texte "Élément enregistré") ou erreur affichee.
+// On ne se fie plus a "traçabilité", present dans le texte statique de la page.
+async function attendreResultatPreuve(page, titre) {
+  const succesTestId = page.locator('[data-testid="preuve-succes"]');
+  const succesTexte = page.getByText(/Élément enregistré/i);
+  const erreur = page.locator('[data-testid="preuve-erreur"]');
+
+  const depart = Date.now();
+  while (Date.now() - depart < 45000) {
+    if ((await erreur.count()) > 0 && (await erreur.first().isVisible())) {
+      const message = ((await erreur.first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+      await diagnosticPreuves(page, `erreur-${titre}`);
+      throw new Error(`Erreur affichee lors de l'enregistrement de la preuve : ${message}`);
+    }
+    const succesVisible =
+      ((await succesTestId.count()) > 0 && (await succesTestId.first().isVisible())) ||
+      Boolean(await findFirstVisible([succesTexte]));
+    if (succesVisible) {
+      console.log("  preuve enregistree (succes confirme a l'ecran)");
+      return;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  await diagnosticPreuves(page, `sans-resultat-${titre}`);
+  throw new Error(
+    `Aucun resultat (succes ou erreur) apres enregistrement de la preuve : ${titre}`
+  );
+}
+
 async function ajouterPreuves(page, runId, image, rapport) {
   console.log("Ajout des preuves photo fictives...");
   for (const item of PREUVES) {
@@ -654,19 +725,37 @@ async function ajouterPreuves(page, runId, image, rapport) {
     await expect(page.getByText(/Empreinte SHA-256/)).toBeVisible({ timeout: 15000 });
     await page.getByPlaceholder("Ex. État du logement, document remis…").fill(titre);
     await page.getByPlaceholder(/Décris les faits/).fill(item.description);
-    const enregistrer =
-      (await page.getByRole("button", { name: /Enregistrer l/ }).count()) > 0
-        ? page.getByRole("button", { name: /Enregistrer l/ }).first()
-        : page.getByRole("button", { name: /Enregistrer et sceller/ }).first();
+
+    const enregistrer = await findFirstVisible([
+      page.locator('[data-testid="preuve-submit"]'),
+      page.getByRole("button", { name: /Enregistrer l/ }),
+      page.getByRole("button", { name: /Enregistrer et sceller/ }),
+    ]);
+    if (!enregistrer) {
+      await diagnosticPreuves(page, "bouton-enregistrer-introuvable");
+      throw new Error("Bouton d'enregistrement de la preuve introuvable.");
+    }
     await expect(enregistrer).toBeEnabled({ timeout: 15000 });
     await enregistrer.click();
-    await expect(
-      page.getByText(/enregistr[ée]e|traçabilit|scell[ée]e/i).first()
-    ).toBeVisible({ timeout: 35000 });
+
+    // Attente d'un signal fiable AVANT de quitter la page : sinon la navigation
+    // suivante annulerait l'upload/insert Supabase encore en cours.
+    await attendreResultatPreuve(page, titre);
     rapport.preuves.push(titre);
     console.log(`  preuve : ${titre}`);
   }
+
+  // Verification reelle de persistance : chaque preuve doit apparaitre dans /preuves.
   await attendrePage(page, "/preuves", "Preuves");
+  for (const titre of rapport.preuves) {
+    try {
+      await expect(page.getByText(titre).first()).toBeVisible({ timeout: 20000 });
+    } catch {
+      await diagnosticPreuves(page, `absente-${titre}`);
+      throw new Error(`Preuve enregistree mais absente de /preuves : ${titre}`);
+    }
+  }
+  console.log(`  OK /preuves : ${rapport.preuves.length} preuve(s) visible(s)`);
   await capture(page, "preuves", rapport);
 }
 
