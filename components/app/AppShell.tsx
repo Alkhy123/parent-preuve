@@ -200,23 +200,24 @@ export default function AppShell({
         <aside
           className="hidden border-r lg:flex lg:flex-col"
           style={{
-            backgroundColor: "var(--app-sidebar)",
-            borderColor: "var(--app-border)",
+            backgroundColor: "var(--app-sidebar-bg, var(--app-sidebar))",
+            borderColor: "var(--app-sidebar-border, var(--app-border))",
+            color: "var(--app-sidebar-text, var(--app-text))",
           }}
         >
           <div className="flex items-center gap-2.5 px-5 py-4">
             <span
               className="flex h-9 w-9 items-center justify-center rounded-lg"
               style={{
-                backgroundColor: "var(--app-primary)",
-                color: "var(--app-on-primary)",
+                backgroundColor: "var(--app-sidebar-accent-bg, var(--app-primary))",
+                color: "var(--app-sidebar-accent-text, var(--app-on-primary))",
               }}
             >
               <Icon name="shield" />
             </span>
             <span className="leading-tight">
-              <span className="block text-base font-semibold">Parent Preuve</span>
-              <span className="block text-xs" style={{ color: "var(--app-text-muted)" }}>
+              <span className="block text-base font-semibold" style={{ color: "var(--app-sidebar-text, var(--app-text))" }}>Parent Preuve</span>
+              <span className="block text-xs" style={{ color: "var(--app-sidebar-text-muted, var(--app-text-muted))" }}>
                 Espace dossier
               </span>
             </span>
@@ -225,15 +226,16 @@ export default function AppShell({
           <div className="mx-3 mb-1">
             <p
               className="px-1 text-[11px] font-medium uppercase tracking-wide"
-              style={{ color: "var(--app-text-muted)" }}
+              style={{ color: "var(--app-sidebar-text-muted, var(--app-text-muted))" }}
             >
               Procédure active
             </p>
             <div
               className="mt-1 rounded-lg border px-3 py-2.5"
               style={{
-                backgroundColor: "var(--app-surface-muted)",
-                borderColor: "var(--app-border)",
+                backgroundColor: "var(--app-sidebar-procedure-bg, var(--app-surface-muted))",
+                borderColor: "var(--app-sidebar-procedure-border, var(--app-border))",
+                color: "var(--app-sidebar-procedure-text, var(--app-text))",
               }}
             >
               {procedures.length >= 2 ? (
@@ -241,7 +243,7 @@ export default function AppShell({
                   value={actif}
                   onChange={(e) => changerProcedure(e.target.value)}
                   className="w-full bg-transparent text-sm font-semibold outline-none"
-                  style={{ color: "var(--app-text)" }}
+                  style={{ color: "var(--app-sidebar-procedure-text, var(--app-text))" }}
                 >
                   {procedures.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -266,8 +268,8 @@ export default function AppShell({
                   href={item.href}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
                   style={{
-                    backgroundColor: active ? "var(--app-sidebar-active)" : "transparent",
-                    color: active ? "var(--app-primary)" : "var(--app-text-muted)",
+                    backgroundColor: active ? "var(--app-sidebar-active-bg, var(--app-sidebar-active))" : "transparent",
+                    color: active ? "var(--app-sidebar-active-text, var(--app-primary))" : "var(--app-sidebar-text-muted, var(--app-text-muted))",
                     fontWeight: active ? 600 : 500,
                   }}
                 >

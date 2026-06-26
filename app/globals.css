@@ -350,6 +350,18 @@ h1, h2 {
   --app-chip-bg: #EAEEF4;
   --app-chip-text: #3A4A63;
   --app-chip-border: #D5DCE6;
+  /* Sidebar profonde marine, texte ivoire, accent laiton. */
+  --app-sidebar-bg: #15263F;
+  --app-sidebar-border: #24364F;
+  --app-sidebar-text: #EAF0F8;
+  --app-sidebar-text-muted: #A9B8CC;
+  --app-sidebar-active-bg: #213A5C;
+  --app-sidebar-active-text: #E2B962;
+  --app-sidebar-accent-bg: #B08D3C;
+  --app-sidebar-accent-text: #15263F;
+  --app-sidebar-procedure-bg: #1B2F4D;
+  --app-sidebar-procedure-border: #2C405C;
+  --app-sidebar-procedure-text: #EAF0F8;
 }
 
 /* Bordeaux juridique — bordeaux profond, ivoire, accents dorés discrets. */
@@ -380,6 +392,18 @@ h1, h2 {
   --app-chip-bg: #F1E7E4;
   --app-chip-text: #5A3A3E;
   --app-chip-border: #E0D3CC;
+  /* Sidebar profonde bordeaux, texte ivoire rosé, accent doré. */
+  --app-sidebar-bg: #581620;
+  --app-sidebar-border: #6E2A33;
+  --app-sidebar-text: #F6E9E2;
+  --app-sidebar-text-muted: #D8B3B0;
+  --app-sidebar-active-bg: #6E222D;
+  --app-sidebar-active-text: #E6C079;
+  --app-sidebar-accent-bg: #A9852F;
+  --app-sidebar-accent-text: #3A1015;
+  --app-sidebar-procedure-bg: #641C26;
+  --app-sidebar-procedure-border: #7A2E37;
+  --app-sidebar-procedure-text: #F6E9E2;
 }
 
 /* Ardoise & Parchemin — ardoise sobre, parchemin doux, gris charbon raffiné. */
@@ -410,6 +434,18 @@ h1, h2 {
   --app-chip-bg: #E8E5DB;
   --app-chip-text: #4A4D50;
   --app-chip-border: #D5D1C6;
+  /* Sidebar profonde ardoise/charbon, texte parchemin, accent laiton discret. */
+  --app-sidebar-bg: #2D343C;
+  --app-sidebar-border: #3D444C;
+  --app-sidebar-text: #EDE7D7;
+  --app-sidebar-text-muted: #B9BDC0;
+  --app-sidebar-active-bg: #3A424B;
+  --app-sidebar-active-text: #D9C79A;
+  --app-sidebar-accent-bg: #9C8456;
+  --app-sidebar-accent-text: #23262A;
+  --app-sidebar-procedure-bg: #353C44;
+  --app-sidebar-procedure-border: #454C54;
+  --app-sidebar-procedure-text: #EDE7D7;
 }
 
 /* Vert ministère — vert institutionnel, crème, sauge doux, ton officiel. */
@@ -440,6 +476,18 @@ h1, h2 {
   --app-chip-bg: #E7ECE0;
   --app-chip-text: #3C4D42;
   --app-chip-border: #D2D9C8;
+  /* Sidebar profonde vert institutionnel, texte crème, accent doré discret. */
+  --app-sidebar-bg: #16382A;
+  --app-sidebar-border: #264A38;
+  --app-sidebar-text: #ECF3E9;
+  --app-sidebar-text-muted: #AEC6B5;
+  --app-sidebar-active-bg: #214A36;
+  --app-sidebar-active-text: #D7C285;
+  --app-sidebar-accent-bg: #A98F3C;
+  --app-sidebar-accent-text: #16382A;
+  --app-sidebar-procedure-bg: #1D4231;
+  --app-sidebar-procedure-border: #2C5440;
+  --app-sidebar-procedure-text: #ECF3E9;
 }
 
 /* ------------------------------------------------------------------ */
