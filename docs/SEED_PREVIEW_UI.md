@@ -85,7 +85,9 @@ Le script :
 - accepte le RGPD si la modale apparait ;
 - cree une procedure et un enfant fictifs ;
 - ajoute les evenements, frais, documents et preuves photo ;
-- visite `/calendrier` et `/calendrier/avance` ;
+- visite `/calendrier` et `/calendrier/avance`, et verifie que la procedure
+  active y est reconnue (un enfant detecte) ; sinon un avertissement clair est
+  ajoute au rapport et un diagnostic est capture ;
 - revisite `/journal`, `/frais`, `/documents` et `/preuves` pour verifier que les
   donnees apparaissent ;
 - pour chaque preuve photo, attend un signal de succes reel a l'ecran

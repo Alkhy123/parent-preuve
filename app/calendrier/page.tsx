@@ -36,6 +36,9 @@ export default function CalendrierPage() {
   const [message, setMessage] = useState("");
   const [signalFermeture, setSignalFermeture] = useState(0);
   const [chargement, setChargement] = useState(false);
+  // Chargement de la procédure active / des enfants : évite d'afficher
+  // « Ajoute d'abord un enfant » avant la fin de la résolution Supabase.
+  const [chargementEnfants, setChargementEnfants] = useState(true);
 
   // Zone de vacances scolaires (A/B/C), memorisee en local. Sert UNIQUEMENT a
   // annoter le calendrier : on n'attribue jamais la garde des vacances (le
@@ -57,6 +60,7 @@ export default function CalendrierPage() {
       const data = await getEnfantsDeProcedureActive();
       setEnfants(data);
       if (data.length > 0) setEnfantId(data[0].id);
+      setChargementEnfants(false);
     })();
   }, []);
 
@@ -209,7 +213,11 @@ export default function CalendrierPage() {
       <div className="space-y-6">
         <RegleDVH />
 
-        {enfants.length === 0 ? (
+        {chargementEnfants ? (
+          <p style={{ color: "var(--app-text-muted)" }}>
+            Chargement de la procédure active…
+          </p>
+        ) : enfants.length === 0 ? (
           <p style={{ color: "var(--app-text)" }}>
             Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».
           </p>

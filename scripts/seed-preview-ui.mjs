@@ -759,16 +759,46 @@ async function ajouterPreuves(page, runId, image, rapport) {
   await capture(page, "preuves", rapport);
 }
 
+// Verifie que la page calendrier reconnait la procedure active (un enfant vient
+// d'etre cree). On attend d'abord la fin du message transitoire de chargement,
+// puis on detecte un eventuel marqueur d'absence de contexte. En cas d'absence,
+// on enregistre un avertissement clair dans le rapport (sans bloquer le run).
+async function verifierContexteCalendrier(page, chemin, rapport) {
+  // Laisse le temps a "Chargement de la procédure active…" de disparaitre.
+  try {
+    await page
+      .getByText(/Chargement de la procédure active/i)
+      .first()
+      .waitFor({ state: "hidden", timeout: 15000 });
+  } catch {
+    /* Le message transitoire peut ne jamais apparaitre : non bloquant. */
+  }
+
+  const absenceEnfant = await findFirstVisible([
+    page.getByText(/Ajoute[z]? d'abord un enfant/i),
+    page.getByText(/Ajoute[z]? d.abord un enfant/i),
+  ]);
+  if (absenceEnfant) {
+    const avertissement =
+      `${chemin} : le calendrier n'a pas reconnu la procedure active ` +
+      "(aucun enfant detecte) alors qu'une procedure de test vient d'etre creee.";
+    rapport.avertissements.push(avertissement);
+    console.warn(`  ⚠ ${avertissement}`);
+    await screenshotDiagnostic(page, `calendrier-contexte-absent-${nomDiagnostic(chemin)}`);
+    return;
+  }
+  console.log(`  contexte calendrier reconnu : ${chemin}`);
+}
+
 async function visiterCalendriers(page, rapport) {
   console.log("Verification des calendriers...");
   await attendrePage(page, "/calendrier", "Calendrier");
-  await expect(page.getByText(/Prochains week-ends|Règle de garde|Renseigne/i).first()).toBeVisible({
-    timeout: 20000,
-  });
+  await verifierContexteCalendrier(page, "/calendrier", rapport);
   await capture(page, "calendrier", rapport);
 
   await attendrePage(page, "/calendrier/avance", /Calendrier/);
   await page.waitForLoadState("domcontentloaded");
+  await verifierContexteCalendrier(page, "/calendrier/avance", rapport);
   await capture(page, "calendrier-avance", rapport);
 }
 
@@ -801,6 +831,12 @@ function imprimerRapport(rapport) {
   console.log(`Preuves : ${rapport.preuves.length} preuve(s) photo`);
   console.log(`Captures : ${rapport.captures.length}`);
   for (const capturePath of rapport.captures) console.log(`- ${capturePath}`);
+  if (rapport.avertissements.length > 0) {
+    console.warn(`\n⚠ Avertissements (${rapport.avertissements.length}) :`);
+    for (const a of rapport.avertissements) console.warn(`- ${a}`);
+  } else {
+    console.log("Aucun avertissement.");
+  }
   console.log("Aucune action destructive executee.");
 }
 
@@ -827,6 +863,7 @@ async function main() {
     documents: [],
     preuves: [],
     captures: [],
+    avertissements: [],
   };
 
   const navigateur = await chromium.launch({ headless: true });

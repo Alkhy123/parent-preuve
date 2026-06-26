@@ -71,6 +71,9 @@ export default function CalendrierAvancePage() {
   const [enfantId, setEnfantId] = useState("");
   const [regle, setRegle] = useState<RegleDb | null>(null);
   const [chargement, setChargement] = useState(true);
+  // Chargement de la procédure active / des enfants : évite d'afficher
+  // « Ajoutez d'abord un enfant » avant la fin de la résolution Supabase.
+  const [chargementEnfants, setChargementEnfants] = useState(true);
 
   // Règles avancées + exceptions PERSISTÉES (chargées par enfant).
   const [reglesAvancees, setReglesAvancees] = useState<RegleAvanceeStockee[]>([]);
@@ -110,6 +113,7 @@ export default function CalendrierAvancePage() {
       setEnfants(data);
       if (data.length > 0) setEnfantId(data[0].id);
       else setChargement(false);
+      setChargementEnfants(false);
     })();
   }, []);
 
@@ -298,7 +302,11 @@ export default function CalendrierAvancePage() {
           . Ici, le mercredi et les exceptions sont enregistrés pour cet enfant.
         </p>
 
-        {enfants.length === 0 ? (
+        {chargementEnfants ? (
+          <p className="text-sm text-texte-doux">
+            Chargement de la procédure active…
+          </p>
+        ) : enfants.length === 0 ? (
           <p style={{ color: "var(--app-text)" }}>
             Ajoutez d&apos;abord un enfant dans la rubrique « Enfants ».
           </p>
