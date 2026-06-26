@@ -34,7 +34,9 @@
       "PowerShell(npm.cmd run check:multi-procedure-migration)",
       "PowerShell(npm.cmd run build 2>&1)",
       "Bash(grep -n \"paths\\\\|@/\\\\*\\\\|baseUrl\" tsconfig.json)",
-      "PowerShell(npm.cmd run lint 2>&1)"
+      "PowerShell(npm.cmd run lint 2>&1)",
+      "Bash(node --check scripts/audit-visuel-preview.mjs)",
+      "Bash(node -e \"const{readFileSync}=require\\('fs'\\);const src=readFileSync\\('lib/theme.ts','utf8'\\);const d=src.indexOf\\('export const THEMES'\\);const f=src.indexOf\\('] as const',d\\);const bloc=src.slice\\(d,f\\);const ids=[...bloc.matchAll\\(/id:\\\\s*[\\\\\"']\\([a-z0-9-]+\\)[\\\\\"']/gi\\)].map\\(m=>m[1]\\);console.log\\(JSON.stringify\\([...new Set\\(ids\\)]\\)\\)\")"
     ],
     "additionalDirectories": [
       "C:\\projets\\parent-preuve\\.git",
