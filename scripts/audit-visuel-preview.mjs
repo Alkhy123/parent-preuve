@@ -4,7 +4,8 @@
 // - Charge .env.local (TEST_EMAIL / TEST_PASSWORD / PREVIEW_URL) sans dépendance.
 // - Se connecte avec le compte de test (jamais affiché).
 // - Parcourt les pages principales en desktop 1440 et mobile 390,
-//   pour les 3 thèmes (classique-bleu, ivoire-greffe, noir-or-sombre).
+//   pour TOUS les thèmes définis dans lib/theme.ts (lus dynamiquement).
+// - Signale les pages présentant un scroll horizontal.
 // - Enregistre les PNG dans docs/audit-visuel-preview/screenshots/.
 //
 // Usage : node scripts/audit-visuel-preview.mjs
@@ -43,7 +44,34 @@ const BASE =
 const EMAIL = process.env.TEST_EMAIL;
 const MDP = process.env.TEST_PASSWORD;
 
-const THEMES = ["classique-bleu", "ivoire-greffe", "noir-or-sombre"];
+// Liste de secours si lib/theme.ts ne peut pas être lu/parsé.
+const THEMES_FALLBACK = [
+  "classique-bleu",
+  "ivoire-greffe",
+  "noir-or-sombre",
+  "marine-laiton",
+  "bordeaux-juridique",
+  "ardoise-parchemin",
+  "vert-ministere",
+];
+
+// Lit dynamiquement les identifiants de thèmes depuis lib/theme.ts (source de
+// vérité), pour éviter de dupliquer une liste statique. Repli prudent si échec.
+function lireThemes() {
+  try {
+    const src = readFileSync("lib/theme.ts", "utf8");
+    const debut = src.indexOf("export const THEMES");
+    const fin = src.indexOf("] as const", debut);
+    const bloc = debut !== -1 && fin !== -1 ? src.slice(debut, fin) : "";
+    const ids = [...bloc.matchAll(/id:\s*["']([a-z0-9-]+)["']/gi)].map((m) => m[1]);
+    const uniques = [...new Set(ids)];
+    return uniques.length > 0 ? uniques : THEMES_FALLBACK;
+  } catch {
+    return THEMES_FALLBACK;
+  }
+}
+
+const THEMES = lireThemes();
 const VIEWPORTS = [
   { nom: "desktop", width: 1440, height: 900 },
   { nom: "mobile", width: 390, height: 844 },
@@ -54,9 +82,7 @@ const PAGES = [
   "/frais",
   "/documents",
   "/preuves",
-  "/preuves/nouvelle",
   "/calendrier",
-  "/calendrier/avance",
   "/compte",
 ];
 
@@ -136,9 +162,15 @@ async function main() {
           const themeApplique = await page.evaluate(() =>
             document.documentElement.getAttribute("data-theme")
           );
+          // Détecte un éventuel scroll horizontal (débordement de largeur).
+          const scrollH = await page.evaluate(() => {
+            const el = document.scrollingElement || document.documentElement;
+            return el.scrollWidth - el.clientWidth > 1;
+          });
           await page.screenshot({ path: cible, fullPage: true });
-          resultats.push({ theme, vp: vp.nom, page: p, ok: true, themeApplique });
-          console.log(`OK  ${theme}/${vp.nom}${p}  (data-theme=${themeApplique})`);
+          resultats.push({ theme, vp: vp.nom, page: p, ok: true, themeApplique, scrollH });
+          const marqueurScroll = scrollH ? "  ⚠ scroll horizontal" : "";
+          console.log(`OK  ${theme}/${vp.nom}${p}  (data-theme=${themeApplique})${marqueurScroll}`);
         } catch (e) {
           resultats.push({ theme, vp: vp.nom, page: p, ok: false, err: String(e).slice(0, 120) });
           console.log(`KO  ${theme}/${vp.nom}${p}  -> ${String(e).slice(0, 120)}`);
@@ -151,6 +183,15 @@ async function main() {
 
   const ok = resultats.filter((r) => r.ok).length;
   console.log(`\n=== Terminé : ${ok}/${resultats.length} captures ===`);
+  console.log(`Thèmes audités (${THEMES.length}) : ${THEMES.join(", ")}`);
+
+  const scrolls = resultats.filter((r) => r.ok && r.scrollH);
+  if (scrolls.length > 0) {
+    console.log(`\n⚠ Scroll horizontal détecté (${scrolls.length}) :`);
+    for (const r of scrolls) console.log(`- ${r.theme}/${r.vp}${r.page}`);
+  } else {
+    console.log("Aucun scroll horizontal détecté.");
+  }
 }
 
 main().catch((e) => {
