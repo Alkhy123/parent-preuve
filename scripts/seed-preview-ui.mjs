@@ -161,6 +161,67 @@ async function ouvrirEncartSiBesoin(page, titre) {
   }
 }
 
+async function clickFirstVisible(page, nomsBoutons, contexte = "bouton") {
+  for (const nom of nomsBoutons) {
+    const boutons = page.getByRole("button", { name: nom });
+    const total = await boutons.count();
+    for (let i = 0; i < total; i += 1) {
+      const bouton = boutons.nth(i);
+      if (await bouton.isVisible()) {
+        await bouton.click();
+        console.log(`  ${contexte} : "${nom}"`);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+async function maybeClick(page, nomBouton, contexte = "bouton optionnel") {
+  const boutons = page.getByRole("button", { name: nomBouton });
+  const total = await boutons.count();
+  for (let i = 0; i < total; i += 1) {
+    const bouton = boutons.nth(i);
+    if (await bouton.isVisible()) {
+      await bouton.click();
+      console.log(`  ${contexte} : "${nomBouton}"`);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function fillByLabelOrFallback(scope, labels, valeur, fallbackLocator, nomChamp) {
+  for (const label of labels) {
+    const champAccessible = scope.getByLabel(label);
+    if ((await champAccessible.count()) > 0) {
+      const cible = champAccessible.first();
+      if (await cible.isVisible()) {
+        await cible.fill(valeur);
+        return;
+      }
+    }
+
+    const labelTexte = scope.locator("label").filter({ hasText: label });
+    if ((await labelTexte.count()) > 0) {
+      const cible = labelTexte.first().locator("xpath=following-sibling::input[1]");
+      if ((await cible.count()) > 0 && (await cible.first().isVisible())) {
+        await cible.first().fill(valeur);
+        console.log(`  fallback label voisin utilise pour ${nomChamp}`);
+        return;
+      }
+    }
+  }
+
+  if ((await fallbackLocator.count()) > 0 && (await fallbackLocator.first().isVisible())) {
+    await fallbackLocator.first().fill(valeur);
+    console.log(`  fallback locator utilise pour ${nomChamp}`);
+    return;
+  }
+
+  throw new Error(`Champ introuvable pour ${nomChamp}`);
+}
+
 async function activerProcedureDepuisEnfants(page, etiquette) {
   await attendrePage(page, "/enfants");
   await page.waitForFunction(
@@ -230,13 +291,40 @@ async function ajouterFrais(page, runId, rapport) {
   for (const item of FRAIS) {
     const libelle = `[TEST UI ${runId}] ${item.libelle}`;
     await attendrePage(page, "/frais", /Frais/);
-    const bouton = page.getByRole("button", { name: "Ajouter un frais" });
-    if (await bouton.count()) await bouton.first().click();
+    const ouvert = await clickFirstVisible(
+      page,
+      ["Ajouter une dépense", "Ajouter un frais", "Ajouter"],
+      "ouverture formulaire frais"
+    );
+    if (!ouvert) {
+      throw new Error("Impossible d'ouvrir le formulaire frais.");
+    }
     await ouvrirEncartSiBesoin(page, "Ajouter un frais");
-    await page.getByPlaceholder("Ex : Consultation orthodontiste").fill(libelle);
-    await page.getByPlaceholder("80").fill(item.montant);
-    await page.locator('input[type="date"]').first().fill(dateIsoAujourdhui());
-    await page.getByRole("button", { name: "Ajouter le frais" }).click();
+    const formulaire = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name: "Ajouter un frais" }) })
+      .filter({ has: page.getByRole("button", { name: "Ajouter le frais" }) })
+      .first();
+    await expect(formulaire.getByRole("button", { name: "Ajouter le frais" })).toBeVisible({
+      timeout: 15000,
+    });
+    await fillByLabelOrFallback(
+      formulaire,
+      ["Libellé", "Libelle"],
+      libelle,
+      formulaire.locator('input[type="text"]').first(),
+      "libelle du frais"
+    );
+    await fillByLabelOrFallback(
+      formulaire,
+      ["Montant total (€)", "Montant total", "Montant"],
+      item.montant,
+      formulaire.locator('input[inputmode="decimal"], input[inputMode="decimal"]').first(),
+      "montant du frais"
+    );
+    await formulaire.locator('input[type="date"]').first().fill(dateIsoAujourdhui());
+    await maybeClick(page, "Non, pas de justificatif", "justificatif frais");
+    await formulaire.getByRole("button", { name: "Ajouter le frais" }).click();
     await expect(page.getByText(libelle).first()).toBeVisible({ timeout: 20000 });
     rapport.frais.push(`${libelle} - ${item.montant} EUR`);
     console.log(`  frais : ${libelle}`);
