@@ -53,22 +53,39 @@ export default function CalendrierMensuel({
   const titreMois = MOIS[mois].charAt(0).toUpperCase() + MOIS[mois].slice(1);
 
   return (
-    <section className="carte rounded-lg border border-gray-200 bg-white p-5">
+    <section
+      className="rounded-lg border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+    >
       <div className="flex items-center justify-between mb-4">
-        <button onClick={moisPrecedent} className="rounded-md px-3 py-1 text-[#15233F] hover:bg-gray-100">‹</button>
-        <h2 className="font-display text-xl text-[#15233F]">{titreMois} {annee}</h2>
-        <button onClick={moisSuivant} className="rounded-md px-3 py-1 text-[#15233F] hover:bg-gray-100">›</button>
+        <button
+          onClick={moisPrecedent}
+          className="rounded-md px-3 py-1 transition hover:bg-[var(--app-surface-muted)]"
+          style={{ color: "var(--app-text)" }}
+          aria-label="Mois précédent"
+        >
+          ‹
+        </button>
+        <h2 className="font-display text-xl" style={{ color: "var(--app-text)" }}>{titreMois} {annee}</h2>
+        <button
+          onClick={moisSuivant}
+          className="rounded-md px-3 py-1 transition hover:bg-[var(--app-surface-muted)]"
+          style={{ color: "var(--app-text)" }}
+          aria-label="Mois suivant"
+        >
+          ›
+        </button>
       </div>
 
       {!regle ? (
-        <p className="text-sm text-gray-500">
-          Renseigne une date de référence ci-dessus pour colorer le calendrier.
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+          Renseignez une date de référence ci-dessus pour colorer le calendrier.
         </p>
       ) : (
         <>
           <div className="grid grid-cols-7 gap-1 mb-1">
             {JOURS_COURTS.map((j) => (
-              <div key={j} className="text-center text-xs font-medium text-gray-500 py-1">{j}</div>
+              <div key={j} className="text-center text-xs font-medium py-1" style={{ color: "var(--app-text-muted)" }}>{j}</div>
             ))}
           </div>
 
@@ -81,13 +98,12 @@ export default function CalendrierMensuel({
               return (
                 <div
                   key={i}
-                  className={
-                    "relative min-h-[52px] rounded-md p-1.5 text-sm " +
-                    (estAujourdhui(jour) ? "ring-2 ring-[#15233F] " : "")
-                  }
+                  className="relative min-h-[52px] rounded-md p-1.5 text-sm"
                   style={{
-                    backgroundColor: fondMoi ? "#F6EFD6" : "#F3F4F6",
-                    color: fondMoi ? "#15233F" : "#6B7280",
+                    backgroundColor: fondMoi ? "var(--app-primary-soft)" : "var(--app-surface-muted)",
+                    color: fondMoi ? "var(--app-text)" : "var(--app-text-muted)",
+                    outline: estAujourdhui(jour) ? "2px solid var(--app-primary)" : undefined,
+                    outlineOffset: estAujourdhui(jour) ? "-2px" : undefined,
                   }}
                   title={vac ? vac.nom : undefined}
                 >
@@ -95,7 +111,7 @@ export default function CalendrierMensuel({
                   {vac && (
                     <span
                       className="absolute right-1 top-1 inline-block h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: "#8A5A12" }}
+                      style={{ backgroundColor: "var(--app-primary)" }}
                     />
                   )}
                 </div>
@@ -103,24 +119,24 @@ export default function CalendrierMensuel({
             })}
           </div>
 
-          <div className="flex items-center gap-5 mt-4 text-xs text-gray-600">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-xs" style={{ color: "var(--app-text-muted)" }}>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "#F6EFD6" }} />
+              <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "var(--app-primary-soft)", border: "1px solid var(--app-border)" }} />
               Garde chez moi
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "#F3F4F6" }} />
+              <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: "var(--app-surface-muted)", border: "1px solid var(--app-border)" }} />
               Chez l&apos;autre parent
             </span>
             {vacances.length > 0 && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#8A5A12" }} />
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--app-primary)" }} />
                 Vacances scolaires
               </span>
             )}
           </div>
           {vacances.length > 0 && (
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>
               Le repère vacances est indicatif : la répartition des vacances suit
               votre jugement, pas la règle d&apos;un week-end sur deux.
             </p>

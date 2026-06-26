@@ -294,13 +294,23 @@ export default function CalendrierAvancePage() {
       }
     >
       <div className="space-y-6">
-        <p className="text-sm text-texte-doux">
-          La règle de base reste gérée dans{" "}
-          <Link href="/calendrier" className="text-or-fonce underline">
-            le calendrier de garde
-          </Link>
-          . Ici, le mercredi et les exceptions sont enregistrés pour cet enfant.
-        </p>
+        <div
+          className="rounded-lg border p-3 text-sm"
+          style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+        >
+          <p className="font-medium" style={{ color: "var(--app-text)" }}>
+            Calendrier avancé (bêta) — page temporaire
+          </p>
+          <p className="mt-1">
+            La règle de base reste gérée dans{" "}
+            <Link href="/calendrier" className="underline" style={{ color: "var(--app-primary)" }}>
+              le calendrier de garde
+            </Link>
+            . Ici, le mercredi, les exceptions et les jours fériés sont enregistrés pour
+            cet enfant. Aide à l&apos;organisation : à vérifier avec votre jugement ou vos
+            documents.
+          </p>
+        </div>
 
         {chargementEnfants ? (
           <p className="text-sm text-texte-doux">
@@ -350,7 +360,9 @@ export default function CalendrierAvancePage() {
                     Ajouter le mercredi (journée de DVH)
                   </label>
 
-                  {enErreur && <p className="text-sm text-rouge">{enErreur}</p>}
+                  {enErreur && (
+                    <p className="text-sm" style={{ color: "var(--app-danger, #9B2C2C)" }}>{enErreur}</p>
+                  )}
 
                   {reglesAvancees.length > 0 && (
                     <div className="border-t border-slate-200 pt-4">
@@ -367,7 +379,8 @@ export default function CalendrierAvancePage() {
                             <button
                               type="button"
                               onClick={() => retirerRegleAvancee(r.id)}
-                              className="text-rouge hover:underline"
+                              className="hover:underline"
+                              style={{ color: "var(--app-danger, #9B2C2C)" }}
                             >
                               Retirer
                             </button>
@@ -477,7 +490,8 @@ export default function CalendrierAvancePage() {
                             <button
                               type="button"
                               onClick={() => retirerException(ex.id)}
-                              className="text-rouge hover:underline"
+                              className="hover:underline"
+                              style={{ color: "var(--app-danger, #9B2C2C)" }}
                             >
                               Retirer
                             </button>

@@ -225,13 +225,20 @@ export default function CalendrierPage() {
           <>
             <div className="app-cols-2">
               <div className="space-y-6">
-            <div>
-              <label className={labelCss}>Enfant</label>
+            <div
+              className="rounded-lg border p-4"
+              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+            >
+              <label className={labelCss}>Enfant concerné</label>
               <select value={enfantId} onChange={(e) => setEnfantId(e.target.value)} className={champ}>
                 {enfants.map((en) => (
                   <option key={en.id} value={en.id}>{en.prenom_ou_alias}</option>
                 ))}
               </select>
+              <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>
+                Règle déclarée pour cet enfant. À vérifier avec votre jugement ou vos
+                documents : ces informations ne constituent pas un conseil juridique.
+              </p>
             </div>
 
             <EncartPliable
@@ -307,7 +314,10 @@ export default function CalendrierPage() {
               </div>
 
               <div className="space-y-6">
-            <div>
+            <div
+              className="rounded-lg border p-4"
+              style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
+            >
               <label className={labelCss}>Zone de vacances scolaires</label>
               <select
                 value={zoneVacances}
@@ -318,7 +328,7 @@ export default function CalendrierPage() {
                 <option value="B">Zone B</option>
                 <option value="C">Zone C</option>
               </select>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>
                 Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
                 Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
                 Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
@@ -343,7 +353,7 @@ export default function CalendrierPage() {
                       <li key={i} className="py-3 flex items-start gap-3">
                         <span
                           className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: p.chezQui === "moi" ? "var(--app-accent)" : "#9CA3AF" }}
+                          style={{ backgroundColor: p.chezQui === "moi" ? "var(--app-accent)" : "var(--app-text-muted)" }}
                         />
                         <span style={{ color: "var(--app-text)" }}>
                           Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
