@@ -462,14 +462,24 @@ export default function DocumentsPage() {
         )}
 
         {/* Liste classée par enfant, puis par type, puis par date décroissante */}
-        <div className="space-y-8">
-          {documents.length === 0 ? (
+        <section className="space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <EmptyState
-                titre="Aucun document ajouté pour cette procédure"
-                message="Importez un jugement, une facture, un courrier ou une attestation pour compléter votre dossier."
-              />
-              <div className="mt-3">
+              <h2 className="text-base font-semibold" style={{ color: "var(--app-text)" }}>
+                Documents importés
+              </h2>
+              <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+                {documents.length === 0
+                  ? "Les documents ajoutés à cette procédure apparaîtront ici."
+                  : `${documents.length} document${documents.length > 1 ? "s" : ""} actif${documents.length > 1 ? "s" : ""} dans cette procédure.`}
+              </p>
+            </div>
+          </div>
+          {documents.length === 0 ? (
+            <EmptyState
+              titre="Aucun document ajouté pour cette procédure"
+              message="Ajoutez un jugement, une facture, un courrier ou une attestation pour retrouver vos pièces utiles au même endroit."
+              action={
                 <button
                   type="button"
                   onClick={() => setFormulaireOuvert(true)}
@@ -479,8 +489,8 @@ export default function DocumentsPage() {
                   <Icon name="plus" className="h-4 w-4" />
                   Importer un document
                 </button>
-              </div>
-            </div>
+              }
+            />
           ) : groupes.length === 0 ? (
             <EmptyState
               titre="Aucun document pour ce filtre"
@@ -489,13 +499,19 @@ export default function DocumentsPage() {
           ) : (
             groupes.map((groupe) => (
               <div key={groupe.enfantId ?? "sans-enfant"} className="space-y-4">
-                <h2 className="border-b border-slate-300 pb-1 text-base font-semibold text-[#15233F]">
+                <h2
+                  className="border-b pb-1 text-base font-semibold"
+                  style={{ borderColor: "var(--app-border)", color: "var(--app-text)" }}
+                >
                   {nomEnfant(groupe.enfantId) ?? "Pièces sans enfant rattaché"}
                 </h2>
 
                 {groupe.types.map((t) => (
                   <div key={t.type} className="space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <p
+                      className="text-xs font-medium uppercase tracking-wide"
+                      style={{ color: "var(--app-text-muted)" }}
+                    >
                       {t.type}
                     </p>
 
@@ -507,22 +523,52 @@ export default function DocumentsPage() {
                           className="rounded-xl border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
                           style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="font-semibold text-[#15233F]">{doc.libelle}</p>
-                              <p className="text-sm text-slate-500">
-                                {doc.date_document ?? "Sans date"}
-                              </p>
-                              {implication && (
-                                <span className="mt-2 inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
-                                  Implication : {implication}
-                                </span>
-                              )}
+                          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex min-w-0 flex-1 gap-3">
+                              <span
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                                style={{ backgroundColor: "var(--app-primary-soft)", color: "var(--app-primary)" }}
+                                aria-hidden="true"
+                              >
+                                <Icon name="documents" className="h-5 w-5" />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="min-w-0 break-words font-semibold" style={{ color: "var(--app-text)" }}>
+                                    {doc.libelle}
+                                  </p>
+                                  <span
+                                    className="rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                                    style={{
+                                      backgroundColor: "var(--app-tag-bg)",
+                                      borderColor: "var(--app-tag-border)",
+                                      color: "var(--app-tag-text)",
+                                    }}
+                                  >
+                                    {doc.categorie}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-sm" style={{ color: "var(--app-text-muted)" }}>
+                                  {doc.date_document ?? "Sans date"}
+                                </p>
+                                {implication && (
+                                  <span
+                                    className="mt-2 inline-block rounded-full border px-2.5 py-0.5 text-xs"
+                                    style={{
+                                      backgroundColor: "var(--app-primary-soft)",
+                                      borderColor: "var(--app-border)",
+                                      color: "var(--app-primary)",
+                                    }}
+                                  >
+                                    Implication : {implication}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                               <button
                                 onClick={() => ouvrirDocument(doc.chemin_fichier)}
-                                className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                                className="w-full rounded-lg border px-3 py-2 text-xs font-medium transition sm:w-auto"
                                 style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                               >
                                 Ouvrir
@@ -530,7 +576,7 @@ export default function DocumentsPage() {
                               {choixId !== doc.id && (
                                 <button
                                   onClick={() => setChoixId(doc.id)}
-                                  className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                                  className="w-full rounded-lg border px-3 py-2 text-xs font-medium transition sm:w-auto"
                                   style={{ borderColor: "var(--app-danger, #9B2C2C)", color: "var(--app-danger, #9B2C2C)" }}
                                 >
                                   Retirer
@@ -540,27 +586,33 @@ export default function DocumentsPage() {
                           </div>
 
                           {choixId === doc.id && (
-                            <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                              <p className="text-sm text-slate-700">
+                            <div
+                              className="mt-4 rounded-lg border p-3"
+                              style={{ backgroundColor: "var(--app-surface-muted)", borderColor: "var(--app-border)" }}
+                            >
+                              <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
                                 Voulez-vous conserver cette pièce au coffre-fort, ou la supprimer
                                 définitivement&nbsp;?
                               </p>
-                              <div className="mt-3 flex flex-wrap gap-2">
+                              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                                 <button
                                   onClick={() => archiverDocument(doc)}
-                                  className="rounded-lg bg-[#2E6A4D] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
+                                  className="rounded-lg px-3 py-2 text-sm text-white"
+                                  style={{ backgroundColor: "var(--vert)" }}
                                 >
                                   Conserver au coffre-fort
                                 </button>
                                 <button
                                   onClick={() => supprimerDocument(doc)}
-                                  className="rounded-lg bg-[#9B2C2C] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
+                                  className="rounded-lg px-3 py-2 text-sm text-white"
+                                  style={{ backgroundColor: "var(--app-danger, #9B2C2C)" }}
                                 >
                                   Supprimer définitivement
                                 </button>
                                 <button
                                   onClick={() => setChoixId(null)}
-                                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+                                  className="rounded-lg border px-3 py-2 text-sm"
+                                  style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
                                 >
                                   Annuler
                                 </button>
@@ -575,7 +627,7 @@ export default function DocumentsPage() {
               </div>
             ))
           )}
-        </div>
+        </section>
       </div>
     </AppShell>
   );
