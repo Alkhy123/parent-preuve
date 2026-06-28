@@ -54,11 +54,11 @@ const EXPORTS_COMPLEMENTAIRES = [
     description:
       "Préparer un courrier sobre, daté et factuel avant de choisir un modèle de rédaction.",
   },
-  {
-    href: "/resume-mois",
+    {
+    href: "/exporter/resume-mois",
     titre: "Résumé du mois",
     description:
-      "Obtenir une synthèse mensuelle des éléments financiers et factuels.",
+      "Préparer une lecture mensuelle des frais, pensions et faits enregistrés.",
   },
   {
     href: "/export",
