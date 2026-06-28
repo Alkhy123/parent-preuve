@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import PageHeader from "@/components/PageHeader";
+import {
+  construirePreRemplissageCollecte,
+  type BrouillonCollectePourPreRemplissage,
+} from "@/lib/collecteRapidePreRemplissage";
+import { CLE_SESSION_PREREMPLISSAGE } from "@/lib/preRemplissage";
 
 type TypeCollecte = {
   id: string;
@@ -136,6 +142,8 @@ function enregistrerBrouillonsLocaux(brouillons: BrouillonLocal[]) {
 }
 
 export default function CollecteRapidePage() {
+  const router = useRouter();
+
   const [typeSelectionne, setTypeSelectionne] = useState(TYPES_COLLECTE[0]);
   const [date, setDate] = useState(dateDuJour());
   const [titre, setTitre] = useState("");
@@ -161,6 +169,15 @@ export default function CollecteRapidePage() {
     ].join("\n");
   }, [date, description, enfant, lieu, piece, titre, typeSelectionne]);
 
+  const actionModule = construirePreRemplissageCollecte({
+    type: typeSelectionne.titre,
+    href: typeSelectionne.href,
+    date,
+    titre,
+    enfant,
+    contenu: brouillon,
+  });
+
   async function copierTexte(texte: string) {
     try {
       await navigator.clipboard.writeText(texte);
@@ -169,6 +186,25 @@ export default function CollecteRapidePage() {
     } catch {
       setCopie(false);
     }
+  }
+
+  function ouvrirModuleAvecPreRemplissage(
+    source: BrouillonCollectePourPreRemplissage,
+  ) {
+    const resultat = construirePreRemplissageCollecte(source);
+
+    try {
+      if (resultat.proposition) {
+        window.sessionStorage.setItem(
+          CLE_SESSION_PREREMPLISSAGE,
+          JSON.stringify(resultat.proposition),
+        );
+      }
+    } catch {
+      // sessionStorage indisponible : on ouvre simplement le module.
+    }
+
+    router.push(resultat.href);
   }
 
   function chargerBrouillons() {
@@ -232,9 +268,8 @@ export default function CollecteRapidePage() {
           Objectif : préparer une saisie utile en moins de 30 secondes.
         </p>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">
-          Cette page sert de brouillon guidé. Elle ne remplace pas encore les
-          formulaires existants, mais elle aide à formuler l’essentiel avant de
-          l’enregistrer au bon endroit.
+          Cette page sert de brouillon guidé. Pour les faits, frais et pensions,
+          Parent Preuve peut maintenant préremplir le module correspondant.
         </p>
       </section>
 
@@ -375,7 +410,7 @@ export default function CollecteRapidePage() {
       <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-            3. Résumé prêt à copier
+            3. Résumé prêt à utiliser
           </p>
           <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
             Brouillon généré
@@ -394,12 +429,22 @@ export default function CollecteRapidePage() {
               {copie ? "Brouillon copié" : "Copier le brouillon"}
             </button>
 
-            <Link
-              href={typeSelectionne.href}
+            <button
+              type="button"
+              onClick={() =>
+                ouvrirModuleAvecPreRemplissage({
+                  type: typeSelectionne.titre,
+                  href: typeSelectionne.href,
+                  date,
+                  titre,
+                  enfant,
+                  contenu: brouillon,
+                })
+              }
               className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
             >
-              Aller vers {typeSelectionne.titre}
-            </Link>
+              {actionModule.labelAction}
+            </button>
           </div>
         </div>
 
@@ -424,9 +469,8 @@ export default function CollecteRapidePage() {
               Important
             </p>
             <p className="mt-2 text-sm leading-6 text-amber-900">
-              Ce brouillon est enregistré uniquement dans ce navigateur si vous
-              utilisez le bouton d’enregistrement local. Il ne remplace pas un
-              enregistrement réel dans le dossier.
+              Le préremplissage ne crée rien automatiquement. Vous devez
+              vérifier les champs puis enregistrer vous-même dans le module.
             </p>
           </div>
         </div>
@@ -459,56 +503,77 @@ export default function CollecteRapidePage() {
           </p>
         ) : (
           <div className="mt-5 grid gap-4">
-            {brouillons.map((brouillonLocal) => (
-              <article
-                key={brouillonLocal.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#C2A24C]">
-                      {brouillonLocal.type}
-                    </p>
-                    <h3 className="mt-1 text-base font-semibold text-[#15233F]">
-                      {brouillonLocal.titre}
-                    </h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Date : {brouillonLocal.date || "à compléter"} · Enfant :{" "}
-                      {brouillonLocal.enfant || "à compléter"}
-                    </p>
+            {brouillons.map((brouillonLocal) => {
+              const actionBrouillon = construirePreRemplissageCollecte({
+                type: brouillonLocal.type,
+                href: brouillonLocal.href,
+                date: brouillonLocal.date,
+                titre: brouillonLocal.titre,
+                enfant: brouillonLocal.enfant,
+                contenu: brouillonLocal.contenu,
+              });
+
+              return (
+                <article
+                  key={brouillonLocal.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#C2A24C]">
+                        {brouillonLocal.type}
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-[#15233F]">
+                        {brouillonLocal.titre}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Date : {brouillonLocal.date || "à compléter"} · Enfant :{" "}
+                        {brouillonLocal.enfant || "à compléter"}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => copierTexte(brouillonLocal.contenu)}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
+                      >
+                        Copier
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          ouvrirModuleAvecPreRemplissage({
+                            type: brouillonLocal.type,
+                            href: brouillonLocal.href,
+                            date: brouillonLocal.date,
+                            titre: brouillonLocal.titre,
+                            enfant: brouillonLocal.enfant,
+                            contenu: brouillonLocal.contenu,
+                          })
+                        }
+                        className="rounded-full bg-[#15233F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0F1A30]"
+                      >
+                        {actionBrouillon.labelAction}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => supprimerBrouillon(brouillonLocal.id)}
+                        className="rounded-full border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => copierTexte(brouillonLocal.contenu)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
-                    >
-                      Copier
-                    </button>
-
-                    <Link
-                      href={brouillonLocal.href}
-                      className="rounded-full bg-[#15233F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0F1A30]"
-                    >
-                      Ouvrir le module
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => supprimerBrouillon(brouillonLocal.id)}
-                      className="rounded-full border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                </div>
-
-                <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
-                  {brouillonLocal.contenu}
-                </pre>
-              </article>
-            ))}
+                  <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
+                    {brouillonLocal.contenu}
+                  </pre>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
@@ -528,8 +593,7 @@ export default function CollecteRapidePage() {
             href="/organiser"
             className="rounded-full bg-[#15233F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
           >
-            Aller dans Organiser   
-            
+            Aller dans Organiser
           </Link>
 
           <Link
