@@ -39,11 +39,11 @@ const EXPORTS_PRIORITAIRES = [
       "Obtenir une présentation claire et factuelle des informations importantes du dossier.",
   },
   {
-    href: "/dossier-avocat",
+    href: "/exporter/dossier-avocat",
     titre: "Dossier avocat",
     badge: "Préparation",
     description:
-      "Rassembler les éléments utiles pour préparer un rendez-vous ou un échange avec un professionnel.",
+      "Préparer un document de travail factuel avant un rendez-vous, une audience ou un échange avec un professionnel.",
   },
 ];
 
