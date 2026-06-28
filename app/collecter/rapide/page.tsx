@@ -528,7 +528,15 @@ export default function CollecteRapidePage() {
             href="/organiser"
             className="rounded-full bg-[#15233F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
           >
-            Aller dans Organiser
+            Aller dans Organiser   
+            
+          </Link>
+
+          <Link
+            href="/organiser/brouillons"
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
+          >
+            Voir les brouillons locaux
           </Link>
 
           <Link

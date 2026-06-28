@@ -55,6 +55,12 @@ const CLASSEMENT = [
       "Compléter les éléments incomplets pour éviter un dossier désorganisé.",
   },
   {
+    href: "/organiser/brouillons",
+    titre: "Brouillons locaux",
+    description:
+    "Retrouver les brouillons préparés depuis la collecte rapide et les envoyer vers le bon module.",
+  },
+  {
     href: "/documents/coffre-fort",
     titre: "Coffre-fort documentaire",
     description:
