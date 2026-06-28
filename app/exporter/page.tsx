@@ -61,10 +61,10 @@ const EXPORTS_COMPLEMENTAIRES = [
       "Préparer une lecture mensuelle des frais, pensions et faits enregistrés.",
   },
   {
-    href: "/export",
+    href: "/exporter/pdf",
     titre: "Export PDF",
     description:
-      "Exporter les éléments disponibles sous une forme lisible et transmissible.",
+      "Préparer un PDF global regroupant faits, frais, pension, pièces et preuves photo.",
   },
 ];
 
