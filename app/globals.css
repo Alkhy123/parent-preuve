@@ -2,27 +2,22 @@
 @import "./theme-tokens.css";
 
 :root {
-  /* Surfaces */
-  --background: #ECE7DC;   /* fond de page (crème chaud) */
-  --foreground: #15233F;   /* texte principal (navy) */
-  --surface: #F8F6F1;      /* crème clair des cartes / encarts */
+  --background: var(--pp-bg);
+  --foreground: var(--pp-fg);
+  --surface: var(--pp-surface);
 
-  /* Palette de marque */
-  --navy: #15233F;
-  --or: #C2A24C;          /* or vif : fonds, traits, accents sur navy */
-  --or-fonce: #7A6326;    /* or foncé lisible : texte doré sur fond clair (AA) */
-  --creme: #ECE7DC;
+  --navy: var(--pp-primary);
+  --or: var(--pp-accent);
+  --or-fonce: var(--pp-accent-strong);
+  --creme: var(--pp-bg);
 
-  /* Texte */
-  --texte: #15233F;
-  --texte-doux: #5A6473;
+  --texte: var(--pp-fg);
+  --texte-doux: var(--pp-muted);
 
-  /* Couleurs sémantiques */
-  --vert: #2E6A4D;
-  --rouge: #9B2C2C;
-  --amber: #8A5A12;
+  --vert: var(--pp-success);
+  --rouge: var(--pp-danger);
+  --amber: var(--pp-warning);
 }
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
