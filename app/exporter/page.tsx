@@ -70,6 +70,12 @@ const EXPORTS_COMPLEMENTAIRES = [
 
 const TABLEAUX = [
   {
+    href: "/exporter/checklist",
+    titre: "Checklist avant export",
+    description:
+      "Relire les points essentiels du dossier avant de générer une chronologie, un courrier, une note ou un PDF.",
+  },
+  {
     href: "/frais",
     titre: "Tableau des frais",
     description:
@@ -212,10 +218,10 @@ export default function ExporterPage() {
 
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-            Tableaux utiles
+            Contrôles utiles
           </p>
           <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
-            Finances et pension
+            Vérifications avant export
           </h2>
 
           <div className="mt-5 grid gap-3">
