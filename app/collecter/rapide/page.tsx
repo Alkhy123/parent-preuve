@@ -5,7 +5,29 @@ import { useMemo, useState } from "react";
 
 import PageHeader from "@/components/PageHeader";
 
-const TYPES_COLLECTE = [
+type TypeCollecte = {
+  id: string;
+  href: string;
+  titre: string;
+  priorite: string;
+  description: string;
+  exemples: string[];
+};
+
+type BrouillonLocal = {
+  id: string;
+  type: string;
+  href: string;
+  date: string;
+  titre: string;
+  enfant: string;
+  contenu: string;
+  creeLe: string;
+};
+
+const CLE_BROUILLONS = "parent-preuve:brouillons-collecte-rapide";
+
+const TYPES_COLLECTE: TypeCollecte[] = [
   {
     id: "fait",
     href: "/journal",
@@ -73,6 +95,46 @@ function dateDuJour() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function genererId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function lireBrouillonsLocaux() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const brut = window.localStorage.getItem(CLE_BROUILLONS);
+
+    if (!brut) {
+      return [];
+    }
+
+    const valeur = JSON.parse(brut);
+
+    if (!Array.isArray(valeur)) {
+      return [];
+    }
+
+    return valeur as BrouillonLocal[];
+  } catch {
+    return [];
+  }
+}
+
+function enregistrerBrouillonsLocaux(brouillons: BrouillonLocal[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(CLE_BROUILLONS, JSON.stringify(brouillons));
+}
+
 export default function CollecteRapidePage() {
   const [typeSelectionne, setTypeSelectionne] = useState(TYPES_COLLECTE[0]);
   const [date, setDate] = useState(dateDuJour());
@@ -82,6 +144,8 @@ export default function CollecteRapidePage() {
   const [description, setDescription] = useState("");
   const [piece, setPiece] = useState("");
   const [copie, setCopie] = useState(false);
+  const [brouillonEnregistre, setBrouillonEnregistre] = useState(false);
+  const [brouillons, setBrouillons] = useState<BrouillonLocal[]>([]);
 
   const brouillon = useMemo(() => {
     return [
@@ -97,14 +161,62 @@ export default function CollecteRapidePage() {
     ].join("\n");
   }, [date, description, enfant, lieu, piece, titre, typeSelectionne]);
 
-  async function copierBrouillon() {
+  async function copierTexte(texte: string) {
     try {
-      await navigator.clipboard.writeText(brouillon);
+      await navigator.clipboard.writeText(texte);
       setCopie(true);
       window.setTimeout(() => setCopie(false), 2500);
     } catch {
       setCopie(false);
     }
+  }
+
+  function chargerBrouillons() {
+    setBrouillons(lireBrouillonsLocaux());
+  }
+
+  function enregistrerBrouillon() {
+    const nouveauBrouillon: BrouillonLocal = {
+      id: genererId(),
+      type: typeSelectionne.titre,
+      href: typeSelectionne.href,
+      date,
+      titre: titre || "Brouillon sans titre",
+      enfant,
+      contenu: brouillon,
+      creeLe: new Date().toISOString(),
+    };
+
+    const brouillonsExistants = lireBrouillonsLocaux();
+    const brouillonsMisAJour = [nouveauBrouillon, ...brouillonsExistants].slice(
+      0,
+      10,
+    );
+
+    enregistrerBrouillonsLocaux(brouillonsMisAJour);
+    setBrouillons(brouillonsMisAJour);
+    setBrouillonEnregistre(true);
+    window.setTimeout(() => setBrouillonEnregistre(false), 2500);
+  }
+
+  function supprimerBrouillon(id: string) {
+    const brouillonsMisAJour = brouillons.filter(
+      (brouillonLocal) => brouillonLocal.id !== id,
+    );
+
+    enregistrerBrouillonsLocaux(brouillonsMisAJour);
+    setBrouillons(brouillonsMisAJour);
+  }
+
+  function viderFormulaire() {
+    setDate(dateDuJour());
+    setTitre("");
+    setEnfant("");
+    setLieu("");
+    setDescription("");
+    setPiece("");
+    setCopie(false);
+    setBrouillonEnregistre(false);
   }
 
   return (
@@ -237,6 +349,26 @@ export default function CollecteRapidePage() {
               />
             </label>
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={viderFormulaire}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
+            >
+              Vider le formulaire
+            </button>
+
+            <button
+              type="button"
+              onClick={enregistrerBrouillon}
+              className="rounded-full bg-[#15233F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
+            >
+              {brouillonEnregistre
+                ? "Brouillon enregistré"
+                : "Enregistrer localement"}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -256,7 +388,7 @@ export default function CollecteRapidePage() {
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={copierBrouillon}
+              onClick={() => copierTexte(brouillon)}
               className="rounded-full bg-[#15233F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
             >
               {copie ? "Brouillon copié" : "Copier le brouillon"}
@@ -292,12 +424,93 @@ export default function CollecteRapidePage() {
               Important
             </p>
             <p className="mt-2 text-sm leading-6 text-amber-900">
-              Ce brouillon aide à préparer une saisie factuelle. Il ne garantit
-              pas la recevabilité d’une preuve et ne remplace pas un conseil
-              juridique.
+              Ce brouillon est enregistré uniquement dans ce navigateur si vous
+              utilisez le bouton d’enregistrement local. Il ne remplace pas un
+              enregistrement réel dans le dossier.
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
+              Brouillons locaux
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
+              Derniers brouillons préparés
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={chargerBrouillons}
+            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70 hover:bg-white"
+          >
+            Charger les brouillons locaux
+          </button>
+        </div>
+
+        {brouillons.length === 0 ? (
+          <p className="mt-4 text-sm leading-6 text-slate-600">
+            Aucun brouillon chargé pour le moment. Les brouillons locaux restent
+            sur ce navigateur et ne sont pas synchronisés entre appareils.
+          </p>
+        ) : (
+          <div className="mt-5 grid gap-4">
+            {brouillons.map((brouillonLocal) => (
+              <article
+                key={brouillonLocal.id}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#C2A24C]">
+                      {brouillonLocal.type}
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold text-[#15233F]">
+                      {brouillonLocal.titre}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Date : {brouillonLocal.date || "à compléter"} · Enfant :{" "}
+                      {brouillonLocal.enfant || "à compléter"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => copierTexte(brouillonLocal.contenu)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
+                    >
+                      Copier
+                    </button>
+
+                    <Link
+                      href={brouillonLocal.href}
+                      className="rounded-full bg-[#15233F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0F1A30]"
+                    >
+                      Ouvrir le module
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => supprimerBrouillon(brouillonLocal.id)}
+                      className="rounded-full border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+
+                <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
+                  {brouillonLocal.contenu}
+                </pre>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
