@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
+
 import {
   fusionnerChronologie,
   type EntreeChronologie,
@@ -28,12 +31,67 @@ import { filtrerEtFormaterPourPdf } from "@/lib/chronologieExport";
 import { genererPdfChronologie } from "@/lib/chronologiePdf";
 import { construireCsvChronologie } from "@/lib/chronologieCsv";
 
-// Cases de filtre par type (toutes cochées par défaut).
+// Cases de filtre par type exportable PDF/CSV.
+// Les exports historiques restent volontairement limités aux 4 sources déjà prévues.
 const TYPES: { cle: TypeEntree; label: string }[] = [
   { cle: "fait", label: "Faits" },
   { cle: "frais", label: "Frais" },
   { cle: "pension", label: "Pension" },
   { cle: "preuve", label: "Preuves" },
+];
+
+const SOURCES_CHRONOLOGIE = [
+  {
+    titre: "Journal",
+    texte: "Faits datés, incidents, remises d’enfant et observations factuelles.",
+  },
+  {
+    titre: "Frais",
+    texte: "Dépenses enregistrées, montants, statuts de remboursement et justificatifs associés.",
+  },
+  {
+    titre: "Pension",
+    texte: "Mois dus, montants payés, paiements partiels et écarts constatés.",
+  },
+  {
+    titre: "Documents",
+    texte: "Pièces classées dans le dossier actif : factures, courriers, décisions ou justificatifs.",
+  },
+  {
+    titre: "Preuves photo",
+    texte: "Photos conservées dans l’application avec leurs informations de suivi.",
+  },
+  {
+    titre: "Règles de garde",
+    texte: "Règles actuellement connues pour les enfants de la procédure active.",
+  },
+];
+
+const POINTS_CONTROLE = [
+  "Vérifier les éléments sans date ou avec une date approximative.",
+  "Relire les titres pour garder une formulation courte et factuelle.",
+  "Contrôler les frais, pensions et pièces avant de générer un export.",
+];
+
+const ETAPES_DOSSIER = [
+  {
+    titre: "1. Collecter",
+    texte: "Ajouter rapidement une trace, un fait, une dépense ou un élément à compléter.",
+    href: "/collecter/rapide",
+    action: "Collecte rapide",
+  },
+  {
+    titre: "2. Organiser",
+    texte: "Relire les brouillons locaux et ouvrir le bon module avant enregistrement.",
+    href: "/organiser/brouillons",
+    action: "Voir les brouillons",
+  },
+  {
+    titre: "3. Exporter",
+    texte: "Préparer une chronologie ou un document de travail clair et daté.",
+    href: "/exporter",
+    action: "Préparer un export",
+  },
 ];
 
 // Déclenche le téléchargement d'un fichier CSV dans le navigateur.
@@ -43,11 +101,14 @@ function telechargerCsv(contenu: string, nomFichier: string) {
   const blob = new Blob([contenu], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
+
   a.href = url;
   a.download = nomFichier;
+
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+
   URL.revokeObjectURL(url);
 }
 
@@ -68,92 +129,103 @@ export default function ChronologiePage() {
   // Chargement (réutilisable) : sert au montage ET au rafraîchissement après
   // une action déclenchée depuis la modale de détail de la timeline.
   const charger = useCallback(async () => {
+    setChargement(true);
+
     // Procédure active + ses enfants (sert au cloisonnement dans la fusion).
-      const [procId, listeEnfants] = await Promise.all([
-        getProcedureActiveId(),
-        getEnfantsDeProcedureActive(),
-      ]);
+    const [procId, listeEnfants] = await Promise.all([
+      getProcedureActiveId(),
+      getEnfantsDeProcedureActive(),
+    ]);
 
-      // Sans procédure active : rien à afficher (cloisonnement strict).
-      if (!procId) {
-        setEnfants(listeEnfants);
-        setEntrees([]);
-        setTimelineItems([]);
-        setChargement(false);
-        return;
-      }
-
-      // Étiquette de la procédure active (pour l'en-tête du PDF).
-      {
-        const { data } = await supabase
-          .from("procedures")
-          .select("etiquette")
-          .eq("id", procId)
-          .single();
-        setEtiquette(data?.etiquette?.trim() || "Procédure sans nom");
-      }
-
-      // Cloisonnement strict en base sur procedure_id pour les cinq sources
-      // directement rattachées. garde_regles n'a pas encore de procedure_id
-      // (étape E) : son cloisonnement reste par enfant dans collecterTimeline.
-      const [evRes, frRes, peRes, prRes, docRes, gaRes] = await Promise.all([
-        supabase
-          .from("events")
-          .select(
-            "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id",
-          )
-          .eq("procedure_id", procId),
-        supabase
-          .from("expenses")
-          .select("id, libelle, categorie, montant, date_frais, rembourse, child_id")
-          .eq("procedure_id", procId),
-        supabase
-          .from("pension_payments")
-          .select("id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id")
-          .eq("procedure_id", procId),
-        supabase
-          .from("preuves_photo")
-          .select("id, titre, description, enfant_id, created_at, horodatage_statut")
-          .eq("procedure_id", procId),
-        supabase
-          .from("documents")
-          .select("id, libelle, categorie, date_document, child_id")
-          .eq("procedure_id", procId)
-          .eq("etat", "actif"),
-        supabase
-          .from("garde_regles")
-          .select("id, type_garde, date_reference, enfant_id")
-          .eq("actif", true),
-      ]);
-
-      const sources = {
-        faits: (evRes.data ?? []) as FaitSource[],
-        frais: (frRes.data ?? []) as FraisSource[],
-        pensions: (peRes.data ?? []) as PensionSource[],
-        preuves: (prRes.data ?? []) as PreuveSource[],
-      };
-      const contexte = {
-        procedureId: procId,
-        enfantIds: listeEnfants.map((e) => e.id),
-      };
-
-      // Export PDF/CSV : inchangé, toujours sur les 4 sources historiques.
-      const resultat = fusionnerChronologie(sources, contexte);
-
-      // Affichage : timeline centrale enrichie (documents + règles de garde).
-      const items = collecterTimeline(
-        {
-          ...sources,
-          documents: (docRes.data ?? []) as DocumentSource[],
-          gardes: (gaRes.data ?? []) as GardeSource[],
-        },
-        contexte,
-      );
-
+    // Sans procédure active : rien à afficher (cloisonnement strict).
+    if (!procId) {
       setEnfants(listeEnfants);
-      setEntrees(resultat);
-      setTimelineItems(items);
+      setEntrees([]);
+      setTimelineItems([]);
       setChargement(false);
+      return;
+    }
+
+    // Étiquette de la procédure active (pour l'en-tête du PDF).
+    {
+      const { data } = await supabase
+        .from("procedures")
+        .select("etiquette")
+        .eq("id", procId)
+        .single();
+
+      setEtiquette(data?.etiquette?.trim() || "Procédure sans nom");
+    }
+
+    // Cloisonnement strict en base sur procedure_id pour les cinq sources
+    // directement rattachées. garde_regles n'a pas encore de procedure_id
+    // (étape E) : son cloisonnement reste par enfant dans collecterTimeline.
+    const [evRes, frRes, peRes, prRes, docRes, gaRes] = await Promise.all([
+      supabase
+        .from("events")
+        .select(
+          "id, titre, categorie, date_evenement, heure_evenement, description_factuelle, child_id",
+        )
+        .eq("procedure_id", procId),
+
+      supabase
+        .from("expenses")
+        .select("id, libelle, categorie, montant, date_frais, rembourse, child_id")
+        .eq("procedure_id", procId),
+
+      supabase
+        .from("pension_payments")
+        .select(
+          "id, mois_du, montant_du, montant_paye, date_paiement, notes, procedure_id",
+        )
+        .eq("procedure_id", procId),
+
+      supabase
+        .from("preuves_photo")
+        .select("id, titre, description, enfant_id, created_at, horodatage_statut")
+        .eq("procedure_id", procId),
+
+      supabase
+        .from("documents")
+        .select("id, libelle, categorie, date_document, child_id")
+        .eq("procedure_id", procId)
+        .eq("etat", "actif"),
+
+      supabase
+        .from("garde_regles")
+        .select("id, type_garde, date_reference, enfant_id")
+        .eq("actif", true),
+    ]);
+
+    const sources = {
+      faits: (evRes.data ?? []) as FaitSource[],
+      frais: (frRes.data ?? []) as FraisSource[],
+      pensions: (peRes.data ?? []) as PensionSource[],
+      preuves: (prRes.data ?? []) as PreuveSource[],
+    };
+
+    const contexte = {
+      procedureId: procId,
+      enfantIds: listeEnfants.map((e) => e.id),
+    };
+
+    // Export PDF/CSV : inchangé, toujours sur les 4 sources historiques.
+    const resultat = fusionnerChronologie(sources, contexte);
+
+    // Affichage : timeline centrale enrichie (documents + règles de garde).
+    const items = collecterTimeline(
+      {
+        ...sources,
+        documents: (docRes.data ?? []) as DocumentSource[],
+        gardes: (gaRes.data ?? []) as GardeSource[],
+      },
+      contexte,
+    );
+
+    setEnfants(listeEnfants);
+    setEntrees(resultat);
+    setTimelineItems(items);
+    setChargement(false);
   }, []);
 
   useEffect(() => {
@@ -200,33 +272,146 @@ export default function ChronologiePage() {
       au: au || undefined,
       etiquetteProcedure: etiquette || undefined,
     });
+
     const nomFichier = `chronologie-parent-preuve-${new Date()
       .toISOString()
       .slice(0, 10)}.csv`;
+
     telechargerCsv(csv, nomFichier);
   }
 
   return (
     <main>
       <PageHeader
-        eyebrow="Mon dossier"
-        title="Chronologie"
-        subtitle="Vos faits, frais, paiements de pension et preuves de la procédure active, réunis sur une seule frise datée."
+        eyebrow="Organiser le dossier"
+        title="Chronologie intelligente"
+        subtitle="Vos faits, frais, pensions, documents, preuves et règles de garde, réunis dans une lecture chronologique de la procédure active."
       />
-      <div className="mx-auto max-w-4xl px-6 py-10">
+
+      <div className="mx-auto max-w-5xl px-6 py-10">
         {chargement ? (
           <p className="text-texte-doux">Chargement…</p>
         ) : (
           <>
-            {/* Encart : filtres d'export */}
-            <div className="carte mb-8 rounded-xl bg-[var(--surface)] p-5">
-              <p className="text-sm text-texte-doux">
-                Exportez la frise en PDF ou en CSV. Choisissez une période
-                (facultatif) et les types à inclure. L&apos;affichage ci-dessous
-                n&apos;est pas modifié.
-              </p>
+            <section className="carte mb-8 rounded-2xl bg-[var(--surface)] p-6">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-2xl">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
+                    Lecture centrale du dossier
+                  </p>
 
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <h2 className="mt-2 text-2xl font-bold text-texte">
+                    Comprendre ce qui s&apos;est passé, dans quel ordre, et avec
+                    quelles pièces.
+                  </h2>
+
+                  <p className="mt-3 text-sm leading-6 text-texte-doux">
+                    La chronologie rassemble les éléments déjà enregistrés dans
+                    les modules de Parent Preuve. Elle sert à relire le dossier,
+                    repérer les éléments à compléter et préparer un export de
+                    travail. Elle ne crée aucune donnée automatiquement.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-4 text-sm text-texte-doux">
+                  <p className="font-semibold text-texte">Procédure affichée</p>
+                  <p className="mt-1">{etiquette || "Procédure active"}</p>
+                  <p className="mt-3">
+                    {timelineItems.length} élément
+                    {timelineItems.length > 1 ? "s" : ""} dans la lecture
+                    chronologique.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3 md:grid-cols-3">
+                {ETAPES_DOSSIER.map((etape) => (
+                  <div
+                    key={etape.titre}
+                    className="rounded-xl border border-slate-200 bg-white/70 p-4"
+                  >
+                    <h3 className="font-semibold text-texte">{etape.titre}</h3>
+                    <p className="mt-2 text-sm leading-6 text-texte-doux">
+                      {etape.texte}
+                    </p>
+                    <Link
+                      href={etape.href}
+                      className="mt-3 inline-flex text-sm font-semibold text-[#15233F] underline underline-offset-4"
+                    >
+                      {etape.action}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="mb-8 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+              <div className="carte rounded-2xl bg-[var(--surface)] p-6">
+                <h2 className="text-xl font-bold text-texte">
+                  Ce que rassemble la chronologie
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-texte-doux">
+                  Les sources ci-dessous sont agrégées en lecture seule. Pour
+                  modifier un élément, ouvrez le module d&apos;origine depuis le
+                  détail de la ligne.
+                </p>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {SOURCES_CHRONOLOGIE.map((source) => (
+                    <div
+                      key={source.titre}
+                      className="rounded-xl border border-slate-200 bg-white/70 p-4"
+                    >
+                      <p className="font-semibold text-texte">{source.titre}</p>
+                      <p className="mt-1 text-sm leading-6 text-texte-doux">
+                        {source.texte}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <aside className="carte rounded-2xl bg-[var(--surface)] p-6">
+                <h2 className="text-xl font-bold text-texte">
+                  À vérifier avant export
+                </h2>
+
+                <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
+                  {POINTS_CONTROLE.map((point) => (
+                    <li key={point} className="flex gap-2">
+                      <span aria-hidden="true">•</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                  Les brouillons locaux issus de la collecte rapide ne sont pas
+                  encore intégrés automatiquement à la chronologie. Ils doivent
+                  être relus, ouverts dans le bon module, puis enregistrés
+                  manuellement.
+                </div>
+              </aside>
+            </section>
+
+            {/* Encart : filtres d'export */}
+            <section className="carte mb-8 rounded-2xl bg-[var(--surface)] p-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-texte">
+                    Exporter une chronologie de travail
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-texte-doux">
+                    Choisissez une période facultative et les types à inclure.
+                    Ces filtres concernent l&apos;export PDF ou CSV. L&apos;affichage
+                    détaillé ci-dessous reste inchangé.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium">Du</label>
                   <input
@@ -236,6 +421,7 @@ export default function ChronologiePage() {
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium">Au</label>
                   <input
@@ -262,19 +448,22 @@ export default function ChronologiePage() {
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={exporter}
                   className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
                 >
                   Exporter la frise en PDF
                 </button>
+
                 <button
+                  type="button"
                   onClick={exporterCsv}
                   className="rounded-lg border border-[#15233F] px-5 py-2 text-[#15233F] hover:bg-[#15233F] hover:text-white"
                 >
                   Exporter en CSV
                 </button>
               </div>
-            </div>
+            </section>
 
             {/* Timeline centrale : agrégation lecture seule des 6 sources */}
             <TimelineDossier
@@ -287,4 +476,4 @@ export default function ChronologiePage() {
       </div>
     </main>
   );
-                    }
+}
