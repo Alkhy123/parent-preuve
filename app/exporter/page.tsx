@@ -31,12 +31,12 @@ const EXPORTS_PRIORITAIRES = [
     description:
       "Préparer, vérifier puis exporter une lecture datée des faits, frais, pensions, documents et preuves.",
   },
-  {
-    href: "/note-synthese",
+    {
+    href: "/exporter/note-synthese",
     titre: "Note de synthèse",
     badge: "Vue globale",
     description:
-      "Obtenir une présentation claire et factuelle des informations importantes du dossier.",
+      "Préparer une note courte et factuelle à relire avant un échange, un rendez-vous ou un export.",
   },
   {
     href: "/exporter/dossier-avocat",
