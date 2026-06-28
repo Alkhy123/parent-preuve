@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
 import BrouillonsChronologieInfo from "@/components/timeline/BrouillonsChronologieInfo";
+import ApercuExportChronologie from "@/components/chronologie/ApercuExportChronologie";
 
 import {
   fusionnerChronologie,
@@ -446,6 +447,7 @@ export default function ChronologiePage() {
                   </label>
                 ))}
               </div>
+              <ApercuExportChronologie lignes={lignesFiltrees()} />
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
@@ -464,6 +466,8 @@ export default function ChronologiePage() {
                   Exporter en CSV
                 </button>
               </div>
+
+              
             </section>
 
             <BrouillonsChronologieInfo />
