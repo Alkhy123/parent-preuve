@@ -427,7 +427,6 @@ Je collecte vite → je classe proprement → je lis ma chronologie → j’expo
 Le prochain chantier doit donc renforcer la chronologie, puis seulement ensuite les exports avancés.
 
 ---
-````
 ---
 
 
