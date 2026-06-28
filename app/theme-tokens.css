@@ -1,14 +1,14 @@
 /*
-  Tokens de thème applicatifs.
+  Application theme tokens.
 
-  Objectif :
-  - préparer la refonte visuelle sans modifier la logique métier ;
-  - appliquer des thèmes via l'attribut data-theme ;
-  - conserver les routes et composants existants.
+  Goal:
+  - prepare the visual refactor without changing business logic;
+  - apply themes with the data-theme attribute;
+  - preserve existing routes and components.
 
-  Aucun accès Supabase.
-  Aucune logique juridique.
-  Aucune modification métier.
+  No Supabase access.
+  No legal logic.
+  No business logic change.
 */
 
 :root,
