@@ -77,6 +77,363 @@ Reste hors code (dépend du propriétaire) : pousser la migration 013 ; promouvo
 
 ---
 
+## 0.3. Mise à jour — Refonte structurelle Collecter / Organiser / Exporter
+
+**Date :** 28 juin 2026
+**Statut :** socle structurel livré et mergé sur `main`.
+
+Cette mise à jour complète la roadmap existante avec l’évolution structurelle décidée pour Parent Preuve.
+
+L’application ne doit plus être pensée comme une accumulation de modules visibles au même niveau, mais comme un parcours utilisateur simple :
+
+```text
+Collecter → Organiser → Exporter
+```
+
+Cette logique devient l’axe principal de la refonte produit et UX.
+
+---
+
+### 0.3.1. Objectif de la refonte structurelle
+
+Parent Preuve doit permettre à l’utilisateur de comprendre immédiatement qu’il peut :
+
+1. **Collecter** les faits, preuves, documents, frais, pensions et échéances ;
+2. **Organiser** ces éléments par dossier, enfant, procédure, date, thème et pièce associée ;
+3. **Exporter** un dossier clair sous forme de chronologie, courrier, note, tableau ou PDF.
+
+Cette structure vise à éviter l’effet “fourre-tout” et à rendre l’application plus lisible pour un parent stressé ou en conflit.
+
+---
+
+### 0.3.2. Éléments réalisés
+
+#### Sécurisation du travail sans Vercel
+
+* GitHub Actions ajouté.
+* Vérification automatique à chaque Pull Request :
+
+  * lint ;
+  * tests si présents ;
+  * build.
+* Les tests sont ignorés proprement si aucun fichier `tests/**/*.test.ts` n’est encore présent.
+* Node.js 22 utilisé dans la CI.
+* Objectif atteint : pouvoir continuer à travailler sans dépendre de Vercel Preview.
+
+#### Pages passerelles créées
+
+Trois nouvelles pages ont été ajoutées :
+
+```text
+/collecter
+/organiser
+/exporter
+```
+
+Ces pages servent de hubs vers les modules existants, sans modifier la base de données ni casser les routes actuelles.
+
+#### Accueil restructuré
+
+L’accueil connecté met désormais en avant les trois pôles principaux :
+
+* Collecter ;
+* Organiser ;
+* Exporter.
+
+L’objectif est que l’utilisateur comprenne rapidement la promesse de Parent Preuve :
+
+```text
+Vous vivez les faits.
+Parent Preuve les organise.
+```
+
+#### Navigation restructurée
+
+La navigation principale a été réorganisée autour de :
+
+* Accueil ;
+* Collecter ;
+* Organiser ;
+* Exporter ;
+* Assistant ;
+* Compte.
+
+Les anciens modules restent accessibles, mais ils sont rangés dans des groupes plus cohérents.
+
+#### Pages passerelles améliorées
+
+Les pages suivantes ont été enrichies :
+
+* `/collecter` ;
+* `/organiser` ;
+* `/exporter`.
+
+Chaque page présente désormais :
+
+* un objectif clair ;
+* des étapes pédagogiques ;
+* des cartes d’action ;
+* des rappels de méthode ;
+* une logique mobile-first ;
+* des textes sobres, factuels et non anxiogènes.
+
+---
+
+### 0.3.3. État actuel après refonte structurelle
+
+Le socle UX actuel est considéré comme validé pour cette phase :
+
+```text
+✅ CI sans Vercel
+✅ Pages /collecter /organiser /exporter
+✅ Accueil restructuré
+✅ Navigation restructurée
+✅ Page Collecter améliorée
+✅ Page Organiser améliorée
+✅ Page Exporter améliorée
+```
+
+La refonte structurelle est donc suffisamment posée pour passer au chantier suivant.
+
+---
+
+### 0.3.4. Prochaine priorité produit
+
+Le prochain chantier prioritaire est :
+
+```text
+Bloc 3 — Collecte rapide
+```
+
+Objectif :
+
+Permettre à l’utilisateur d’ajouter rapidement un élément depuis l’espace Collecter, sans formulaire trop lourd.
+
+Types d’éléments prioritaires :
+
+* fait ;
+* preuve ;
+* document ;
+* frais ;
+* pension ;
+* échéance ;
+* incident ;
+* remise enfant ;
+* échange.
+
+Critère de réussite :
+
+```text
+Un utilisateur doit pouvoir ajouter un élément important en moins de 30 secondes.
+```
+
+Le classement détaillé pourra se faire ensuite dans l’espace Organiser.
+
+---
+
+### 0.3.5. Ordre de priorité des chantiers à partir de maintenant
+
+#### P1 — Collecte rapide
+
+Créer une expérience d’ajout rapide depuis `/collecter`.
+
+Objectifs :
+
+* réduire le temps de saisie ;
+* éviter les formulaires trop longs ;
+* permettre une saisie incomplète mais exploitable ;
+* orienter ensuite vers le rattachement ou la complétion.
+
+À prévoir :
+
+* choix du type d’élément ;
+* saisie minimale ;
+* date ;
+* enfant concerné si disponible ;
+* note factuelle ;
+* pièce jointe facultative ;
+* statut “à compléter” si nécessaire.
+
+---
+
+#### P2 — Chronologie intelligente
+
+Améliorer la chronologie pour qu’elle devienne le cœur de lecture du dossier.
+
+Objectifs :
+
+* afficher les faits dans l’ordre ;
+* filtrer par enfant ;
+* filtrer par procédure ;
+* filtrer par thème ;
+* filtrer par période ;
+* afficher les pièces liées ;
+* préparer les futurs exports.
+
+La chronologie doit devenir l’écran de référence pour comprendre l’évolution du dossier.
+
+---
+
+#### P3 — Rapport JAF / note avocat
+
+Préparer un export structuré à partir des données déjà collectées et organisées.
+
+Structure cible :
+
+1. page de garde ;
+2. résumé neutre ;
+3. informations du dossier ;
+4. chronologie ;
+5. tableau des incidents ;
+6. tableau des frais ;
+7. tableau pension ;
+8. liste des pièces ;
+9. annexes ;
+10. avertissement juridique.
+
+Attention :
+
+Parent Preuve ne doit jamais garantir la recevabilité d’une preuve ni l’issue d’une procédure.
+
+Formulation à privilégier :
+
+```text
+Dossier structuré, daté, clair et exportable.
+```
+
+---
+
+#### P4 — Packs dossier
+
+Préparer la monétisation des exports avancés.
+
+Packs envisagés :
+
+* Pack Chronologie ;
+* Pack Pension / ARIPA ;
+* Pack Frais ;
+* Pack Dossier JAF ;
+* Pack Avocat ;
+* Pack Urgence audience.
+
+Logique recommandée :
+
+```text
+Aperçu gratuit
+→ paiement
+→ génération PDF/ZIP
+→ téléchargement
+→ conservation dans l’historique
+```
+
+---
+
+#### P5 — Pension / ARIPA
+
+Renforcer le suivi financier français.
+
+Objectifs :
+
+* montant dû ;
+* montant reçu ;
+* paiements partiels ;
+* retards ;
+* reste dû ;
+* justificatifs CAF / ARIPA ;
+* tableau mensuel exportable.
+
+Ce module est important pour différencier Parent Preuve sur le marché français.
+
+---
+
+#### P6 — Import échanges
+
+Préparer l’import ou l’ajout guidé des échanges conflictuels.
+
+Éléments ciblés :
+
+* SMS ;
+* WhatsApp ;
+* e-mails ;
+* captures d’écran ;
+* messages copiés-collés.
+
+Objectifs :
+
+* classer par thème ;
+* rattacher à un enfant ou une procédure ;
+* conserver une trace ;
+* intégrer à la chronologie ;
+* permettre une synthèse factuelle.
+
+---
+
+#### P7 — Jugement et obligations
+
+Transformer les décisions de justice en règles pratiques.
+
+Objectifs :
+
+* importer un jugement ;
+* extraire les horaires ;
+* extraire les lieux ;
+* extraire les pensions ;
+* extraire les frais ;
+* créer des rappels ;
+* signaler les éléments à vérifier.
+
+Ce chantier est puissant mais plus complexe. Il doit venir après la stabilisation de la collecte rapide, de la chronologie et des premiers exports.
+
+---
+
+#### P8 — Accès avocat / professionnel
+
+Préparer une couche professionnelle.
+
+Objectifs :
+
+* lien lecture seule ;
+* sélection des pièces visibles ;
+* expiration automatique ;
+* historique des accès ;
+* pack avocat complet.
+
+Ce chantier doit rester secondaire tant que l’expérience parent solo n’est pas parfaitement stable.
+
+---
+
+### 0.3.6. Garde-fous pour les prochains chantiers
+
+Pour chaque nouveau bloc :
+
+1. créer une branche dédiée ;
+2. limiter le périmètre ;
+3. ne pas casser les routes existantes ;
+4. conserver les données existantes ;
+5. ne pas dupliquer les objets métier ;
+6. vérifier la CI ;
+7. rester mobile-first ;
+8. garder un ton factuel ;
+9. éviter toute promesse juridique ;
+10. merger uniquement si tout est vert.
+
+---
+
+### 0.3.7. Décision produit actuelle
+
+La priorité n’est plus d’ajouter de nouveaux menus.
+
+La priorité est maintenant de rendre le parcours suivant réellement fluide :
+
+```text
+Je collecte vite
+→ je classe proprement
+→ j’exporte un dossier clair
+```
+
+Le prochain chantier doit donc commencer par la collecte rapide, puis seulement ensuite renforcer la chronologie et les exports avancés.
+
+
 # 1. Vision produit
 
 ## 1.1. Boussole
