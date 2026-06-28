@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+
 import { euros } from "@/lib/dossierCalculs";
+import {
+  construireResumeTimeline,
+  type ResumeTimeline,
+} from "@/lib/timeline/resumeTimeline";
 import type { TimelineItem, TimelineSource } from "@/lib/timeline/types";
 import FiltresTimeline, {
   SOURCES_TIMELINE,
@@ -26,61 +31,168 @@ function metaSource(source: TimelineSource) {
   return SOURCES_TIMELINE.find((s) => s.cle === source);
 }
 
-// Classe de badge selon le statut factuel (réglé = succès, en attente = attention).
+// Classe de badge selon le statut factuel.
 function badgeStatut(statut: string): string {
   if (statut === "Payé" || statut === "Remboursé") return "badge badge-succes";
-  if (statut === "Impayé" || statut === "Non remboursé") return "badge badge-erreur";
-  if (statut === "Partiel") return "badge badge-attention";
+  if (statut === "Impayé" || statut === "Non remboursé") {
+    return "badge badge-erreur";
+  }
+  if (statut === "Partiel" || statut === "Horodatage à refaire") {
+    return "badge badge-attention";
+  }
   return "badge badge-neutre";
 }
 
-// Clé d'ordre : "AAAA-MM-JJTHH:MM" (les chaînes ISO se trient comme des dates).
+// Clé d'ordre : "AAAA-MM-JJTHH:MM".
+// Les chaînes ISO se trient comme des dates.
 function cleTri(item: TimelineItem): string {
-  return `${item.date}T${item.heure ?? "00:00"}`;
+  return `${item.date ?? "0000-00-00"}T${item.heure ?? "00:00"}`;
 }
 
-export default function TimelineDossier({ items, enfants, onRecharger }: Props) {
-  // Sources actives (toutes par défaut) et sens de tri.
+function CarteResume({
+  label,
+  valeur,
+  aide,
+}: {
+  label: string;
+  valeur: string | number;
+  aide: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
+      <p className="text-sm text-texte-doux">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-texte">{valeur}</p>
+      <p className="mt-1 text-xs leading-5 text-texte-doux">{aide}</p>
+    </div>
+  );
+}
+
+function ResumeLecture({ resume }: { resume: ResumeTimeline }) {
+  const sources = resume.sourcesAlimentees
+    .map((source) => metaSource(source)?.libelle ?? source)
+    .join(", ");
+
+  return (
+    <section className="carte rounded-2xl bg-[var(--surface)] p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
+            Résumé de lecture
+          </p>
+
+          <h2 className="mt-1 text-xl font-bold text-texte">
+            Vue d’ensemble de la chronologie
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-texte-doux">
+            Ce résumé est calculé automatiquement à partir des éléments déjà
+            enregistrés. Il sert à repérer les zones à compléter avant un export
+            de travail.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white/70 p-4 text-sm text-texte-doux md:max-w-xs">
+          <p className="font-semibold text-texte">Période couverte</p>
+          <p className="mt-1">{resume.periodeLisible}</p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CarteResume
+          label="Éléments"
+          valeur={resume.total}
+          aide="Nombre total de lignes visibles dans la chronologie."
+        />
+
+        <CarteResume
+          label="Datés"
+          valeur={resume.totalDates}
+          aide="Éléments pouvant être placés directement dans la frise."
+        />
+
+        <CarteResume
+          label="À vérifier"
+          valeur={resume.totalPointsAttention}
+          aide="Éléments sans date ou avec un statut nécessitant un contrôle."
+        />
+
+        <CarteResume
+          label="Pièces"
+          valeur={resume.totalPiecesLiees}
+          aide="Documents, justificatifs ou preuves déjà rattachés."
+        />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+        <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
+          <p className="font-semibold text-texte">Sources alimentées</p>
+          <p className="mt-2 text-sm leading-6 text-texte-doux">
+            {sources || "Aucune source alimentée pour le moment."}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="font-semibold text-amber-950">Points d’attention</p>
+          <ul className="mt-2 space-y-2 text-sm leading-6 text-amber-900">
+            {resume.pointsAttention.map((point) => (
+              <li key={point} className="flex gap-2">
+                <span aria-hidden="true">•</span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function TimelineDossier({
+  items,
+  enfants,
+  onRecharger,
+}: Props) {
+  const resume = useMemo(() => construireResumeTimeline(items), [items]);
+
+  // Sources actives, toutes cochées par défaut.
   const [actives, setActives] = useState<Set<TimelineSource>>(
     () => new Set(SOURCES_TIMELINE.map((s) => s.cle)),
   );
+
   const [tri, setTri] = useState<TriTimeline>("recent");
 
-  // Item ouvert dans la modale de détail (null = fermée).
+  // Item ouvert dans la modale de détail.
   const [itemActif, setItemActif] = useState<TimelineItem | null>(null);
 
   const nomEnfant = useMemo(() => {
     const map = new Map(enfants.map((e) => [e.id, e.prenom_ou_alias]));
+
     return (id: string | null | undefined) =>
       id ? map.get(id) ?? "Enfant" : null;
   }, [enfants]);
 
-  // Compteur par source sur l'ensemble (indépendant du filtre actif).
-  const compte = useMemo(() => {
-    const c = Object.fromEntries(
-      SOURCES_TIMELINE.map((s) => [s.cle, 0]),
-    ) as Record<TimelineSource, number>;
-    for (const it of items) c[it.source]++;
-    return c;
-  }, [items]);
-
   // Filtrage par source active, puis séparation daté / à dater + tri.
   const { dates, sansDate } = useMemo(() => {
     const visibles = items.filter((it) => actives.has(it.source));
+
     const dates = visibles.filter((it) => it.date !== null);
     const sansDate = visibles.filter((it) => it.date === null);
+
     dates.sort((a, b) => {
       const cmp = cleTri(a).localeCompare(cleTri(b));
       return tri === "recent" ? -cmp : cmp;
     });
+
     return { dates, sansDate };
   }, [items, actives, tri]);
 
   function basculer(source: TimelineSource) {
     setActives((prev) => {
       const suivant = new Set(prev);
+
       if (suivant.has(source)) suivant.delete(source);
       else suivant.add(source);
+
       return suivant;
     });
   }
@@ -92,89 +204,101 @@ export default function TimelineDossier({ items, enfants, onRecharger }: Props) 
   function ligne(item: TimelineItem) {
     const meta = metaSource(item.source);
     const enfant = nomEnfant(item.childId);
-    const contenu = (
-      <div className="flex items-start gap-3">
-        <span
-          className={"mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full " + (meta?.pastille ?? "bg-texte-doux")}
-          aria-hidden
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <p className="font-display text-lg text-texte">{item.titre}</p>
-            <p className="text-sm text-texte-doux">
-              {item.date ? dateFr(item.date) : "Sans date"}
-              {item.heure ? ` · ${item.heure}` : ""}
-            </p>
+
+    return (
+      <button
+        key={`${item.source}-${item.id}`}
+        type="button"
+        onClick={() => setItemActif(item)}
+        className="carte block w-full p-4 text-left transition hover:opacity-90"
+      >
+        <div className="space-y-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="font-semibold text-texte">{item.titre}</h3>
+
+              <p className="mt-1 text-sm text-texte-doux">
+                {item.date ? dateFr(item.date) : "Sans date"}
+                {item.heure ? ` · ${item.heure}` : ""}
+              </p>
+            </div>
+
+            {meta && (
+              <span className="badge badge-neutre inline-flex w-fit items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={`h-2 w-2 rounded-full ${meta.pastille}`}
+                />
+                {meta.libelle}
+              </span>
+            )}
           </div>
 
           {item.description && (
-            <p className="mt-1 text-sm text-texte-doux">{item.description}</p>
+            <p className="text-sm leading-6 text-texte-doux">
+              {item.description}
+            </p>
           )}
 
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="badge badge-info">{meta?.libelle ?? item.source}</span>
-            {enfant && <span className="text-texte-doux">Enfant : {enfant}</span>}
+          <div className="flex flex-wrap gap-2 text-sm">
+            {enfant && <span className="badge badge-neutre">Enfant : {enfant}</span>}
+
             {item.montant != null && (
-              <span className="text-texte">{euros(item.montant)}</span>
+              <span className="badge badge-neutre">{euros(item.montant)}</span>
             )}
+
             {item.statut && (
               <span className={badgeStatut(item.statut)}>{item.statut}</span>
             )}
+
+            {item.pieceLiee && (
+              <span className="badge badge-neutre">Pièce liée</span>
+            )}
           </div>
         </div>
-      </div>
-    );
-
-    // Le clic ouvre la modale de détail (au lieu de naviguer vers la page).
-    return (
-      <li key={`${item.source}-${item.id}`}>
-        <button
-          type="button"
-          onClick={() => setItemActif(item)}
-          className="carte block w-full p-4 text-left transition hover:opacity-90"
-        >
-          {contenu}
-        </button>
-      </li>
+      </button>
     );
   }
 
-  const total = items.length;
   const vide = dates.length === 0 && sansDate.length === 0;
 
   return (
-    <div>
+    <section className="space-y-6">
+      <ResumeLecture resume={resume} />
+
       <FiltresTimeline
         actives={actives}
         basculer={basculer}
         toutAfficher={toutAfficher}
-        compte={compte}
-        total={total}
+        compte={resume.compteParSource}
+        total={resume.total}
         tri={tri}
         setTri={setTri}
       />
 
       {vide ? (
-        <p className="rounded-lg bg-surface px-4 py-8 text-center text-texte-doux">
+        <div className="carte p-6 text-texte-doux">
           Aucun élément à afficher pour cette sélection.
-        </p>
+        </div>
       ) : (
         <>
-          {dates.length > 0 && (
-            <ol className="space-y-3">{dates.map(ligne)}</ol>
-          )}
+          {dates.length > 0 && <div className="space-y-3">{dates.map(ligne)}</div>}
 
           {sansDate.length > 0 && (
-            <div className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-texte-doux">
-                À dater / à vérifier
-              </h2>
-              <p className="mb-3 text-sm text-texte-doux">
-                Ces éléments n&apos;ont pas de date. Ouvrez la pièce d&apos;origine
-                pour compléter cette information.
-              </p>
-              <ol className="space-y-3">{sansDate.map(ligne)}</ol>
-            </div>
+            <section className="space-y-3">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <h2 className="font-semibold text-amber-950">
+                  À dater / à vérifier
+                </h2>
+
+                <p className="mt-1 text-sm leading-6 text-amber-900">
+                  Ces éléments n’ont pas de date. Ouvrez la pièce d’origine pour
+                  compléter cette information.
+                </p>
+              </div>
+
+              {sansDate.map(ligne)}
+            </section>
           )}
         </>
       )}
@@ -185,6 +309,6 @@ export default function TimelineDossier({ items, enfants, onRecharger }: Props) 
         onRecharger={onRecharger}
         nomEnfant={nomEnfant}
       />
-    </div>
+    </section>
   );
 }
