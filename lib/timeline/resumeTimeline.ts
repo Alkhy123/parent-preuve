@@ -1,3 +1,4 @@
+import { elementTimelineAControler } from "@/lib/timeline/filtrerTimeline";
 import type { TimelineItem, TimelineSource } from "@/lib/timeline/types";
 
 export const ORDRE_SOURCES_TIMELINE: TimelineSource[] = [
@@ -39,15 +40,6 @@ function dateFr(date: string): string {
   return jour && mois && annee ? `${jour}/${mois}/${annee}` : date;
 }
 
-function statutAControler(statut: string | undefined): boolean {
-  return (
-    statut === "Impayé" ||
-    statut === "Partiel" ||
-    statut === "Non remboursé" ||
-    statut === "Horodatage à refaire"
-  );
-}
-
 function cleUnique(item: TimelineItem): string {
   return `${item.source}:${item.id}`;
 }
@@ -64,15 +56,13 @@ export function construireResumeTimeline(items: TimelineItem[]): ResumeTimeline 
 
     if (item.date) {
       dates.push(item.date.slice(0, 10));
-    } else {
-      elementsAControler.add(cleUnique(item));
     }
 
     if (item.pieceLiee) {
       totalPiecesLiees++;
     }
 
-    if (statutAControler(item.statut)) {
+    if (elementTimelineAControler(item)) {
       elementsAControler.add(cleUnique(item));
     }
   }

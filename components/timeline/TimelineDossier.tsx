@@ -4,6 +4,10 @@ import { useMemo, useState } from "react";
 
 import { euros } from "@/lib/dossierCalculs";
 import {
+  filtrerTimelineParMode,
+  type ModeLectureTimeline,
+} from "@/lib/timeline/filtrerTimeline";
+import {
   construireResumeTimeline,
   type ResumeTimeline,
 } from "@/lib/timeline/resumeTimeline";
@@ -160,6 +164,7 @@ export default function TimelineDossier({
   );
 
   const [tri, setTri] = useState<TriTimeline>("recent");
+  const [modeLecture, setModeLecture] = useState<ModeLectureTimeline>("tout");
 
   // Item ouvert dans la modale de détail.
   const [itemActif, setItemActif] = useState<TimelineItem | null>(null);
@@ -171,9 +176,24 @@ export default function TimelineDossier({
       id ? map.get(id) ?? "Enfant" : null;
   }, [enfants]);
 
-  // Filtrage par source active, puis séparation daté / à dater + tri.
+  const itemsSourcesActives = useMemo(
+    () => items.filter((it) => actives.has(it.source)),
+    [items, actives],
+  );
+
+  const compteModes = useMemo<Record<ModeLectureTimeline, number>>(
+    () => ({
+      tout: itemsSourcesActives.length,
+      dates: filtrerTimelineParMode(itemsSourcesActives, "dates").length,
+      sans_date: filtrerTimelineParMode(itemsSourcesActives, "sans_date").length,
+      attention: filtrerTimelineParMode(itemsSourcesActives, "attention").length,
+    }),
+    [itemsSourcesActives],
+  );
+
+  // Filtrage par source active, mode de lecture, puis séparation daté / à dater + tri.
   const { dates, sansDate } = useMemo(() => {
-    const visibles = items.filter((it) => actives.has(it.source));
+    const visibles = filtrerTimelineParMode(itemsSourcesActives, modeLecture);
 
     const dates = visibles.filter((it) => it.date !== null);
     const sansDate = visibles.filter((it) => it.date === null);
@@ -184,7 +204,7 @@ export default function TimelineDossier({
     });
 
     return { dates, sansDate };
-  }, [items, actives, tri]);
+  }, [itemsSourcesActives, modeLecture, tri]);
 
   function basculer(source: TimelineSource) {
     setActives((prev) => {
@@ -274,6 +294,9 @@ export default function TimelineDossier({
         total={resume.total}
         tri={tri}
         setTri={setTri}
+        mode={modeLecture}
+        setMode={setModeLecture}
+        compteModes={compteModes}
       />
 
       {vide ? (
