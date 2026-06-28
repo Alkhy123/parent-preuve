@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
+import BrouillonsChronologieInfo from "@/components/timeline/BrouillonsChronologieInfo";
 
 import {
   fusionnerChronologie,
@@ -464,6 +465,8 @@ export default function ChronologiePage() {
                 </button>
               </div>
             </section>
+
+            <BrouillonsChronologieInfo />
 
             {/* Timeline centrale : agrégation lecture seule des 6 sources */}
             <TimelineDossier
