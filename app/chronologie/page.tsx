@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
 import BrouillonsChronologieInfo from "@/components/timeline/BrouillonsChronologieInfo";
 import ApercuExportChronologie from "@/components/chronologie/ApercuExportChronologie";
+import EtatExportChronologie from "@/components/chronologie/EtatExportChronologie";
 
 import {
   fusionnerChronologie,
@@ -260,7 +261,13 @@ export default function ChronologiePage() {
 
   // Clic export PDF : on filtre/formate en mémoire, puis on génère le PDF.
   function exporter() {
-    genererPdfChronologie(lignesFiltrees(), {
+    const lignes = lignesFiltrees();
+
+    if (lignes.length === 0) {
+      return;
+    }
+
+    genererPdfChronologie(lignes, {
       du: du || undefined,
       au: au || undefined,
       etiquetteProcedure: etiquette || undefined,
@@ -269,7 +276,13 @@ export default function ChronologiePage() {
 
   // Clic export CSV : mêmes lignes que le PDF, construites en CSV puis téléchargées.
   function exporterCsv() {
-    const csv = construireCsvChronologie(lignesFiltrees(), {
+    const lignes = lignesFiltrees();
+
+    if (lignes.length === 0) {
+      return;
+    }
+
+    const csv = construireCsvChronologie(lignes, {
       du: du || undefined,
       au: au || undefined,
       etiquetteProcedure: etiquette || undefined,
@@ -281,6 +294,9 @@ export default function ChronologiePage() {
 
     telechargerCsv(csv, nomFichier);
   }
+
+  const lignesExport = lignesFiltrees();
+  const exportDesactive = lignesExport.length === 0;
 
   return (
     <main>
@@ -447,13 +463,19 @@ export default function ChronologiePage() {
                   </label>
                 ))}
               </div>
-              <ApercuExportChronologie lignes={lignesFiltrees()} />
+              <ApercuExportChronologie lignes={lignesExport} />
+              <EtatExportChronologie lignes={lignesExport} />
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={exporter}
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+                  disabled={exportDesactive}
+                  className={
+                    exportDesactive
+                      ? "cursor-not-allowed rounded-lg bg-slate-300 px-5 py-2 text-slate-600"
+                      : "rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+                  }
                 >
                   Exporter la frise en PDF
                 </button>
@@ -461,7 +483,12 @@ export default function ChronologiePage() {
                 <button
                   type="button"
                   onClick={exporterCsv}
-                  className="rounded-lg border border-[#15233F] px-5 py-2 text-[#15233F] hover:bg-[#15233F] hover:text-white"
+                  disabled={exportDesactive}
+                  className={
+                    exportDesactive
+                      ? "cursor-not-allowed rounded-lg border border-slate-200 px-5 py-2 text-slate-400"
+                      : "rounded-lg border border-[#15233F] px-5 py-2 text-[#15233F] hover:bg-[#15233F] hover:text-white"
+                  }
                 >
                   Exporter en CSV
                 </button>
