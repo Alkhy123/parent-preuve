@@ -14,7 +14,13 @@ export default function ThemeSelector() {
   const [actif, setActif] = useState<ThemeId>(THEME_DEFAUT);
 
   useEffect(() => {
-    setActif(lireTheme());
+    const animation = window.requestAnimationFrame(() => {
+      setActif(lireTheme());
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animation);
+    };
   }, []);
 
   function choisir(theme: ThemeId) {
@@ -46,9 +52,9 @@ export default function ThemeSelector() {
               ].join(" ")}
             >
               <div className="mb-3 flex items-center gap-2">
-                {theme.pastilles.map((couleur, index) => (
+                {theme.pastilles.map((couleur) => (
                   <span
-                    key={`${theme.id}-${index}`}
+                    key={`${theme.id}-${couleur}`}
                     className="h-5 w-5 rounded-full border border-black/10"
                     style={{ backgroundColor: couleur }}
                     aria-hidden="true"
@@ -57,13 +63,16 @@ export default function ThemeSelector() {
               </div>
 
               <div className="font-semibold text-[#15233F]">{theme.label}</div>
-              <p className="mt-1 text-sm text-slate-600">{theme.description}</p>
 
-              {selectionne && (
+              <p className="mt-1 text-sm text-slate-600">
+                {theme.description}
+              </p>
+
+              {selectionne ? (
                 <p className="mt-3 text-xs font-semibold text-[var(--pp-primary)]">
                   Theme actif sur cet appareil
                 </p>
-              )}
+              ) : null}
             </button>
           );
         })}
