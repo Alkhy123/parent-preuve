@@ -27,6 +27,7 @@ const GROUPES: GroupeNavigation[] = [
     hrefPrincipal: "/collecter",
     liens: [
       { href: "/collecter", label: "Vue Collecter" },
+      { href: "/collecter/rapide", label: "Collecte rapide" },
       { href: "/journal", label: "Noter un fait" },
       { href: "/preuves", label: "Ajouter une preuve" },
       { href: "/documents", label: "Importer un document" },
