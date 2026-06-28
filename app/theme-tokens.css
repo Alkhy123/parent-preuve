@@ -1,7 +1,171 @@
 /*
   Tokens de thème applicatifs.
 
-  Ce fichier est volontairement presque vide au premier lot.
-  Les variables CSS de la preview seront intégrées progressivement,
-  sans écraser app/globals.css ni modifier la logique métier.
+  Objectif :
+  - préparer la refonte visuelle sans modifier la logique métier ;
+  - appliquer des thèmes via l'attribut data-theme ;
+  - conserver les routes et composants existants.
+
+  Aucun accès Supabase.
+  Aucune logique juridique.
+  Aucune modification métier.
 */
+
+:root,
+html[data-theme="classique-bleu"] {
+  --pp-bg: #ece7dc;
+  --pp-fg: #15233f;
+  --pp-surface: #f8f6f1;
+  --pp-surface-soft: #f3efe7;
+  --pp-border: rgba(21, 35, 63, 0.16);
+
+  --pp-primary: #15233f;
+  --pp-primary-hover: #0f1a30;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #c2a24c;
+  --pp-accent-strong: #7a6326;
+  --pp-accent-soft: rgba(194, 162, 76, 0.14);
+
+  --pp-muted: #5a6473;
+  --pp-success: #2e6a4d;
+  --pp-warning: #8a5a12;
+  --pp-danger: #9b2c2c;
+
+  --pp-radius-card: 1.5rem;
+  --pp-radius-control: 9999px;
+
+  --pp-shadow-card:
+    0 1px 2px rgba(21, 35, 63, 0.14),
+    0 10px 24px -16px rgba(21, 35, 63, 0.45);
+}
+
+html[data-theme="ivoire-greffe"] {
+  --pp-bg: #f7f2ea;
+  --pp-fg: #2d2418;
+  --pp-surface: #fffaf2;
+  --pp-surface-soft: #f0e6d6;
+  --pp-border: rgba(80, 58, 28, 0.18);
+
+  --pp-primary: #5a3d1c;
+  --pp-primary-hover: #432d15;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #d5be98;
+  --pp-accent-strong: #875a20;
+  --pp-accent-soft: rgba(213, 190, 152, 0.22);
+
+  --pp-muted: #6f6255;
+  --pp-success: #426b4f;
+  --pp-warning: #94631d;
+  --pp-danger: #963a2d;
+}
+
+html[data-theme="noir-or-sombre"] {
+  --pp-bg: #080b10;
+  --pp-fg: #f7f2e8;
+  --pp-surface: #121722;
+  --pp-surface-soft: #1b2230;
+  --pp-border: rgba(216, 170, 79, 0.22);
+
+  --pp-primary: #d8aa4f;
+  --pp-primary-hover: #f0c76a;
+  --pp-primary-fg: #111827;
+
+  --pp-accent: #d8aa4f;
+  --pp-accent-strong: #f0c76a;
+  --pp-accent-soft: rgba(216, 170, 79, 0.18);
+
+  --pp-muted: #c9c1b3;
+  --pp-success: #7bc99b;
+  --pp-warning: #f0c76a;
+  --pp-danger: #f08a8a;
+
+  --pp-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 18px 40px -20px rgba(0, 0, 0, 0.8);
+}
+
+html[data-theme="marine-laiton"] {
+  --pp-bg: #f1f4f8;
+  --pp-fg: #15263f;
+  --pp-surface: #ffffff;
+  --pp-surface-soft: #e8edf4;
+  --pp-border: rgba(21, 38, 63, 0.16);
+
+  --pp-primary: #15263f;
+  --pp-primary-hover: #0f1b2d;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #b08d3c;
+  --pp-accent-strong: #806529;
+  --pp-accent-soft: rgba(176, 141, 60, 0.16);
+
+  --pp-muted: #5d6877;
+  --pp-success: #2f6b55;
+  --pp-warning: #8b651e;
+  --pp-danger: #96313b;
+}
+
+html[data-theme="bordeaux-juridique"] {
+  --pp-bg: #f5f1ec;
+  --pp-fg: #321018;
+  --pp-surface: #fffaf6;
+  --pp-surface-soft: #eee4da;
+  --pp-border: rgba(88, 22, 32, 0.18);
+
+  --pp-primary: #581620;
+  --pp-primary-hover: #411018;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #a9852f;
+  --pp-accent-strong: #765c20;
+  --pp-accent-soft: rgba(169, 133, 47, 0.16);
+
+  --pp-muted: #6e5960;
+  --pp-success: #3f6b4e;
+  --pp-warning: #8a5f19;
+  --pp-danger: #8f2633;
+}
+
+html[data-theme="ardoise-parchemin"] {
+  --pp-bg: #eae6dc;
+  --pp-fg: #2d343c;
+  --pp-surface: #f9f6ef;
+  --pp-surface-soft: #ded8cc;
+  --pp-border: rgba(45, 52, 60, 0.18);
+
+  --pp-primary: #2d343c;
+  --pp-primary-hover: #1f252b;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #9c8456;
+  --pp-accent-strong: #6f5d3c;
+  --pp-accent-soft: rgba(156, 132, 86, 0.16);
+
+  --pp-muted: #626a73;
+  --pp-success: #456b55;
+  --pp-warning: #856221;
+  --pp-danger: #8f3333;
+}
+
+html[data-theme="vert-ministere"] {
+  --pp-bg: #f2f3ec;
+  --pp-fg: #16382a;
+  --pp-surface: #ffffff;
+  --pp-surface-soft: #e7eadf;
+  --pp-border: rgba(22, 56, 42, 0.18);
+
+  --pp-primary: #16382a;
+  --pp-primary-hover: #10291f;
+  --pp-primary-fg: #ffffff;
+
+  --pp-accent: #a98f3c;
+  --pp-accent-strong: #765f25;
+  --pp-accent-soft: rgba(169, 143, 60, 0.16);
+
+  --pp-muted: #5f6d63;
+  --pp-success: #2f704f;
+  --pp-warning: #80601d;
+  --pp-danger: #8f3333;
+}
