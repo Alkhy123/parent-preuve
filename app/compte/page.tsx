@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import PageHeader from "@/components/PageHeader";
+import ThemeSelector from "@/components/theme/ThemeSelector";
 
 export default function ComptePage() {
   const router = useRouter();
@@ -110,6 +111,19 @@ export default function ComptePage() {
             </Link>
             .
           </p>
+        </section>
+
+          {/* Apparence */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-[#15233F]">Apparence</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Choisissez le style visuel de votre espace Parent Preuve. Ce réglage
+            modifie uniquement l’apparence de l’application sur cet appareil.
+          </p>
+
+          <div className="mt-4">
+            <ThemeSelector />
+          </div>
         </section>
 
         {/* Export de portabilité (RGPD) */}
