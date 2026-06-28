@@ -49,10 +49,10 @@ const EXPORTS_PRIORITAIRES = [
 
 const EXPORTS_COMPLEMENTAIRES = [
   {
-    href: "/courriers",
+    href: "/exporter/courriers",
     titre: "Courriers factuels",
     description:
-      "Générer des courriers neutres à partir des informations déjà présentes dans le dossier.",
+      "Préparer un courrier sobre, daté et factuel avant de choisir un modèle de rédaction.",
   },
   {
     href: "/resume-mois",
