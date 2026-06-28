@@ -60,7 +60,7 @@ const GROUPES: GroupeNavigation[] = [
       { href: "/resume-mois", label: "Résumé du mois" },
       { href: "/courriers", label: "Courriers factuels" },
       { href: "/note-synthese", label: "Note de synthèse" },
-      { href: "/dossier-avocat", label: "Dossier avocat" },
+      { href: "/exporter/dossier-avocat", label: "Dossier avocat" },
       { href: "/export", label: "Export PDF" },
     ],
   },
