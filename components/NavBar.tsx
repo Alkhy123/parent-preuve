@@ -41,6 +41,7 @@ const GROUPES: GroupeNavigation[] = [
     hrefPrincipal: "/organiser",
     liens: [
       { href: "/organiser", label: "Vue Organiser" },
+      { href: "/organiser/brouillons", label: "Brouillons locaux" },
       { href: "/dossier", label: "Dossier" },
       { href: "/enfants", label: "Enfants" },
       { href: "/procedure", label: "Procédure et jugement" },
