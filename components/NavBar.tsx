@@ -56,7 +56,7 @@ const GROUPES: GroupeNavigation[] = [
     hrefPrincipal: "/exporter",
     liens: [
       { href: "/exporter", label: "Vue Exporter" },
-      { href: "/chronologie", label: "Chronologie" },
+      { href: "/exporter/chronologie", label: "Export chronologie" },
       { href: "/resume-mois", label: "Résumé du mois" },
       { href: "/courriers", label: "Courriers factuels" },
       { href: "/note-synthese", label: "Note de synthèse" },

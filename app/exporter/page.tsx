@@ -25,11 +25,11 @@ const PILIERS = [
 
 const EXPORTS_PRIORITAIRES = [
   {
-    href: "/chronologie",
+    href: "/exporter/chronologie",
     titre: "Chronologie",
     badge: "Base du dossier",
     description:
-      "Préparer une lecture datée des faits importants pour comprendre l’évolution du dossier.",
+      "Préparer, vérifier puis exporter une lecture datée des faits, frais, pensions, documents et preuves.",
   },
   {
     href: "/note-synthese",
