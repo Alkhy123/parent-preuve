@@ -429,6 +429,72 @@ Le prochain chantier doit donc renforcer la chronologie, puis seulement ensuite 
 ---
 ---
 
+### 0.3.8. Mise à jour — Espace Exporter stabilisé
+
+Date : 28 juin 2026  
+Statut : livré et mergé sur `main`.
+
+L’espace Exporter est désormais structuré autour de pages guides et d’une checklist globale.
+
+Pages guides livrées :
+
+- `/exporter/checklist`
+- `/exporter/chronologie`
+- `/exporter/note-synthese`
+- `/exporter/dossier-avocat`
+- `/exporter/courriers`
+- `/exporter/resume-mois`
+- `/exporter/pdf`
+
+Les outils existants restent accessibles :
+
+- `/chronologie`
+- `/note-synthese`
+- `/dossier-avocat`
+- `/courriers`
+- `/resume-mois`
+- `/export`
+
+Principe retenu :
+
+- les pages `/exporter/...` expliquent et orientent ;
+- les routes outils continuent à produire ou afficher les documents ;
+- les exports restent factuels, relus et sans promesse juridique.
+
+Le parcours Exporter est donc stabilisé pour cette phase.
+
+---
+
+### 0.3.9. Prochaine priorité — Réintégration de la refonte UI preview
+
+La prochaine priorité recommandée est l’intégration contrôlée de la refonte UI actuellement en preview.
+
+Branche concernée :
+
+`preview/refonte-ui-appshell`
+
+Objectif :
+
+Passer progressivement la refonte AppShell, les thèmes et les améliorations visuelles sur `main`, sans écraser les blocs livrés récemment.
+
+Attention :
+
+Cette refonte doit être traitée comme un chantier séparé. Elle ne doit pas être mergée directement sans audit, car `main` a fortement évolué depuis la création de la preview.
+
+Garde-fous spécifiques :
+
+- créer une branche d’intégration depuis `main` ;
+- comparer `main` avec `preview/refonte-ui-appshell` ;
+- préserver les routes Collecter / Organiser / Exporter ;
+- préserver les guides Exporter ;
+- préserver la chronologie intelligente ;
+- vérifier la navigation mobile ;
+- vérifier les thèmes ;
+- vérifier la CI ;
+- merger uniquement si les tests, le lint et le build sont verts.
+
+---
+
 
 # 1. Vision produit
 
