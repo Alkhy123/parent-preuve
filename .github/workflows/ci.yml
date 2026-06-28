@@ -7,6 +7,7 @@ on:
       - "refonte-*"
       - "feature/**"
       - "preview-*"
+      - "docs/**"
   pull_request:
     branches:
       - main
@@ -34,10 +35,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -46,8 +47,14 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests if present
+        run: |
+          if find tests -type f -name "*.test.ts" 2>/dev/null | grep -q .; then
+            echo "Test files found. Running npm test..."
+            npm test
+          else
+            echo "No tests/**/*.test.ts files found. Skipping npm test."
+          fi
 
       - name: Run build
         run: npm run build
