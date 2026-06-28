@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
+
 import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display } from "next/font/google";
+
 import "./globals.css";
+
 import NavBar from "@/components/NavBar";
 import BandeauProcedure from "@/components/BandeauProcedure";
 import Footer from "@/components/Footer";
@@ -9,7 +13,7 @@ import BienvenueRGPD from "@/components/BienvenueRGPD";
 import MajServiceWorker from "@/components/MajServiceWorker";
 import BoutonCaptureRapide from "@/components/BoutonCaptureRapide";
 import AssistantFlottant from "@/components/AssistantFlottant";
-import { Playfair_Display } from "next/font/google";
+import ThemeProvider from "@/components/theme/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +24,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -54,14 +59,27 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* No-flash : applique le thème mémorisé avant le rendu React. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('parent-preuve-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}",
+          }}
+        />
+
+        <ThemeProvider />
+
         <NavBar />
         <BandeauProcedure />
+
         <main className="flex-1">
           <GardeAcces>{children}</GardeAcces>
         </main>
+
         <Footer />
         <BienvenueRGPD />
         <MajServiceWorker />
