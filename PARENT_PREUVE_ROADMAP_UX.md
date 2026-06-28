@@ -194,6 +194,242 @@ Le socle UX actuel est considéré comme validé pour cette phase :
 ✅ Page /collecter/rapide livrée
 ✅ Brouillons locaux livrés
 ✅ Préremplissage manuel depuis brouillon vers Journal / Frais / Pension
+```
+
+La refonte structurelle est donc suffisamment posée pour passer au chantier suivant.
+
+La collecte rapide est livrée en V1 locale :
+
+- saisie guidée d’un élément rapide ;
+- génération d’un brouillon copiable ;
+- conservation locale via `localStorage` ;
+- historique local ;
+- transfert manuel vers les modules existants via `sessionStorage` ;
+- vérification et enregistrement final toujours faits par l’utilisateur.
+
+Cette V1 ne crée aucune table dédiée et ne synchronise pas encore les brouillons côté serveur.
+
+---
+
+### 0.3.4. Prochaine priorité produit
+
+Le prochain chantier prioritaire est désormais :
+
+```text
+Bloc 4 — Chronologie intelligente
+```
+
+Objectif :
+
+Faire de la chronologie le cœur de lecture du dossier.
+
+La chronologie doit aider l’utilisateur à comprendre rapidement :
+
+- ce qui s’est passé ;
+- quand les éléments ont été ajoutés ou datés ;
+- quels frais, pensions, documents, preuves et règles de garde existent déjà ;
+- quels éléments semblent incomplets ou à vérifier ;
+- quels éléments pourront ensuite être exportés.
+
+Principe important :
+
+```text
+La chronologie reste une lecture agrégée du dossier.
+Elle ne crée aucune donnée et ne remplace pas les modules métier.
+```
+
+---
+
+### 0.3.5. Ordre de priorité des chantiers à partir de maintenant
+
+#### P1 — Chronologie intelligente
+
+Améliorer la chronologie pour qu’elle devienne le cœur de lecture du dossier.
+
+Objectifs :
+
+- afficher les faits dans l’ordre ;
+- expliquer clairement quelles sources sont rassemblées ;
+- filtrer par source ;
+- distinguer les éléments datés des éléments à compléter ;
+- préparer les futurs exports ;
+- préparer la future intégration des brouillons validés ;
+- conserver une logique lecture seule dans un premier temps.
+
+Sources concernées actuellement :
+
+- journal ;
+- frais ;
+- pension ;
+- documents ;
+- preuves photo ;
+- règles de garde.
+
+À ne pas faire dans ce premier lot :
+
+- ne pas créer de table `timeline` ;
+- ne pas modifier les migrations Supabase ;
+- ne pas enregistrer automatiquement les brouillons locaux ;
+- ne pas changer les règles de cloisonnement par procédure ;
+- ne pas promettre de valeur juridique.
+
+---
+
+#### P2 — Rapport JAF / note avocat
+
+Préparer un export structuré à partir des données déjà collectées et organisées.
+
+Structure cible :
+
+1. page de garde ;
+2. résumé neutre ;
+3. informations du dossier ;
+4. chronologie ;
+5. tableau des incidents ;
+6. tableau des frais ;
+7. tableau pension ;
+8. liste des pièces ;
+9. annexes ;
+10. avertissement juridique.
+
+Attention : Parent Preuve ne doit jamais garantir la recevabilité d’une preuve ni l’issue d’une procédure.
+
+Formulation à privilégier :
+
+```text
+Dossier structuré, daté, clair et exportable.
+```
+
+---
+
+#### P3 — Packs dossier
+
+Préparer la monétisation des exports avancés.
+
+Packs envisagés :
+
+- Pack Chronologie ;
+- Pack Pension / ARIPA ;
+- Pack Frais ;
+- Pack Dossier JAF ;
+- Pack Avocat ;
+- Pack Urgence audience.
+
+Logique recommandée :
+
+```text
+Aperçu gratuit → paiement → génération PDF/ZIP → téléchargement → conservation dans l’historique
+```
+
+---
+
+#### P4 — Pension / ARIPA
+
+Renforcer le suivi financier français.
+
+Objectifs :
+
+- montant dû ;
+- montant reçu ;
+- paiements partiels ;
+- retards ;
+- reste dû ;
+- justificatifs CAF / ARIPA ;
+- tableau mensuel exportable.
+
+Ce module est important pour différencier Parent Preuve sur le marché français.
+
+---
+
+#### P5 — Import échanges
+
+Préparer l’import ou l’ajout guidé des échanges conflictuels.
+
+Éléments ciblés :
+
+- SMS ;
+- WhatsApp ;
+- e-mails ;
+- captures d’écran ;
+- messages copiés-collés.
+
+Objectifs :
+
+- classer par thème ;
+- rattacher à un enfant ou une procédure ;
+- conserver une trace ;
+- intégrer à la chronologie ;
+- permettre une synthèse factuelle.
+
+---
+
+#### P6 — Jugement et obligations
+
+Transformer les décisions de justice en règles pratiques.
+
+Objectifs :
+
+- importer un jugement ;
+- extraire les horaires ;
+- extraire les lieux ;
+- extraire les pensions ;
+- extraire les frais ;
+- créer des rappels ;
+- signaler les éléments à vérifier.
+
+Ce chantier est puissant mais plus complexe. Il doit venir après la stabilisation de la collecte rapide, de la chronologie et des premiers exports.
+
+---
+
+#### P7 — Accès avocat / professionnel
+
+Préparer une couche professionnelle.
+
+Objectifs :
+
+- lien lecture seule ;
+- sélection des pièces visibles ;
+- expiration automatique ;
+- historique des accès ;
+- pack avocat complet.
+
+Ce chantier doit rester secondaire tant que l’expérience parent solo n’est pas parfaitement stable.
+
+---
+
+### 0.3.6. Garde-fous pour les prochains chantiers
+
+Pour chaque nouveau bloc :
+
+1. créer une branche dédiée ;
+2. limiter le périmètre ;
+3. ne pas casser les routes existantes ;
+4. conserver les données existantes ;
+5. ne pas dupliquer les objets métier ;
+6. vérifier la CI ;
+7. rester mobile-first ;
+8. garder un ton factuel ;
+9. éviter toute promesse juridique ;
+10. merger uniquement si tout est vert.
+
+---
+
+### 0.3.7. Décision produit actuelle
+
+La priorité n’est plus d’ajouter de nouveaux menus.
+
+La priorité est maintenant de rendre le parcours suivant réellement fluide :
+
+```text
+Je collecte vite → je classe proprement → je lis ma chronologie → j’exporte un dossier clair
+```
+
+Le prochain chantier doit donc renforcer la chronologie, puis seulement ensuite les exports avancés.
+
+---
+````
+---
+
 
 # 1. Vision produit
 
