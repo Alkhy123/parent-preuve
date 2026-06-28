@@ -463,6 +463,7 @@ export default function ChronologiePage() {
                   </label>
                 ))}
               </div>
+
               <ApercuExportChronologie lignes={lignesExport} />
               <EtatExportChronologie lignes={lignesExport} />
 
@@ -493,7 +494,6 @@ export default function ChronologiePage() {
                   Exporter en CSV
                 </button>
               </div>
-
               
             </section>
 
