@@ -115,9 +115,13 @@ export default function NavBar() {
     };
   }, []);
 
-  useEffect(() => {
-    setMenuOuvert(null);
-    setMobileOuvert(false);
+    useEffect(() => {
+    const animationFrame = window.requestAnimationFrame(() => {
+      setMenuOuvert(null);
+      setMobileOuvert(false);
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
   }, [pathname]);
 
   async function seDeconnecter() {
