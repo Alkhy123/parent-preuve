@@ -3,54 +3,71 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+
+import SelecteurProcedure from "@/components/SelecteurProcedure";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import SelecteurProcedure from "@/components/SelecteurProcedure";
 
-// Lien direct vers l'accueil (premier pôle de navigation).
+type LienNavigation = {
+  href: string;
+  label: string;
+};
+
+type GroupeNavigation = {
+  label: string;
+  hrefPrincipal: string;
+  liens: LienNavigation[];
+};
+
 const ACCUEIL = { href: "/", label: "Accueil" };
 
-// Chaque entrée de la barre est une "famille" qui regroupe plusieurs liens.
-// Quatre pôles thématiques + l'accueil pour limiter l'effet fourre-tout.
-const GROUPES = [
+const GROUPES: GroupeNavigation[] = [
   {
-    label: "Suivi quotidien",
+    label: "Collecter",
+    hrefPrincipal: "/collecter",
     liens: [
+      { href: "/collecter", label: "Vue Collecter" },
       { href: "/journal", label: "Noter un fait" },
-      { href: "/frais", label: "Ajouter une dépense" },
+      { href: "/preuves", label: "Ajouter une preuve" },
+      { href: "/documents", label: "Importer un document" },
+      { href: "/frais", label: "Ajouter un frais" },
       { href: "/pension", label: "Paiement de pension" },
-      { href: "/calendrier", label: "Calendrier de garde" },
+      { href: "/calendrier", label: "Ajouter une échéance" },
     ],
   },
   {
-    label: "Dossier & règles",
+    label: "Organiser",
+    hrefPrincipal: "/organiser",
     liens: [
-      { href: "/dossier", label: "Vos informations" },
+      { href: "/organiser", label: "Vue Organiser" },
+      { href: "/dossier", label: "Dossier" },
       { href: "/enfants", label: "Enfants" },
-      { href: "/procedure", label: "Autre parent et jugement" },
+      { href: "/procedure", label: "Procédure et jugement" },
       { href: "/rattacher", label: "Éléments à rattacher" },
-      { href: "/dossier/importer-pdf", label: "Importer un jugement" },
-      { href: "/dossier/extraire", label: "Extraire les règles du jugement" },
-    ],
-  },
-  {
-    label: "Pièces & preuves",
-    liens: [
-      { href: "/documents", label: "Documents et justificatifs" },
-      { href: "/documents/coffre-fort", label: "Pièces rangées" },
-      { href: "/preuves", label: "Preuves photo horodatées" },
-    ],
-  },
-  {
-    label: "Synthèses & exports",
-    liens: [
-      { href: "/resume-mois", label: "Résumé du mois" },
+      { href: "/documents/coffre-fort", label: "Coffre-fort documentaire" },
       { href: "/chronologie", label: "Chronologie" },
+      { href: "/calendrier", label: "Calendrier" },
+    ],
+  },
+  {
+    label: "Exporter",
+    hrefPrincipal: "/exporter",
+    liens: [
+      { href: "/exporter", label: "Vue Exporter" },
+      { href: "/chronologie", label: "Chronologie" },
+      { href: "/resume-mois", label: "Résumé du mois" },
       { href: "/courriers", label: "Courriers factuels" },
-      { href: "/note-synthese", label: "Note de synthèse factuelle" },
-      { href: "/dossier-avocat", label: "Dossier pour l'avocat" },
+      { href: "/note-synthese", label: "Note de synthèse" },
+      { href: "/dossier-avocat", label: "Dossier avocat" },
       { href: "/export", label: "Export PDF" },
-      { href: "/reformuler", label: "Reformulation" },
+    ],
+  },
+  {
+    label: "Assistant",
+    hrefPrincipal: "/copilote",
+    liens: [
+      { href: "/copilote", label: "Copilote dossier" },
+      { href: "/reformuler", label: "Reformuler un message" },
       { href: "/implication-parentale", label: "Implication parentale" },
     ],
   },
@@ -60,14 +77,17 @@ export default function NavBar() {
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null);
   const [mobileOuvert, setMobileOuvert] = useState(false);
-  const navRef = useRef<HTMLElement | null>(null);
+
+  const navRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUtilisateur(data.user));
+
     const { data: ecouteur } = supabase.auth.onAuthStateChange(
-      (_event, session) => setUtilisateur(session?.user ?? null)
+      (_event, session) => setUtilisateur(session?.user ?? null),
     );
+
     return () => ecouteur.subscription.unsubscribe();
   }, []);
 
@@ -78,14 +98,17 @@ export default function NavBar() {
         setMobileOuvert(false);
       }
     }
+
     function toucheEchap(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setMenuOuvert(null);
         setMobileOuvert(false);
       }
     }
+
     document.addEventListener("mousedown", clicDehors);
     document.addEventListener("keydown", toucheEchap);
+
     return () => {
       document.removeEventListener("mousedown", clicDehors);
       document.removeEventListener("keydown", toucheEchap);
@@ -93,8 +116,6 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
-    // Réinitialisation d'UI au changement de route (pas de cascade de rendu).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuOuvert(null);
     setMobileOuvert(false);
   }, [pathname]);
@@ -104,36 +125,41 @@ export default function NavBar() {
   }
 
   function estActif(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
     return pathname === href || pathname.startsWith(href + "/");
   }
-  function familleActive(liens: { href: string }[]) {
-    return liens.some((l) => estActif(l.href));
+
+  function groupeActif(groupe: GroupeNavigation) {
+    return (
+      estActif(groupe.hrefPrincipal) ||
+      groupe.liens.some((lien) => estActif(lien.href))
+    );
   }
 
   return (
-    <nav ref={navRef} className="bg-[#15233F] text-[#F8F6F1]">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-6 py-3">
+    <nav ref={navRef} className="bg-[#15233F] text-[#F8F6F1] shadow-sm">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link
           href="/"
-          className="font-display font-bold transition"
-          style={{ color: "#C2A24C" }}
           onClick={() => {
             setMenuOuvert(null);
             setMobileOuvert(false);
           }}
+          className="text-base font-semibold tracking-tight text-[#F8F6F1] transition hover:text-[#C2A24C]"
         >
           Parent Preuve
         </Link>
 
-        {/* ===== Version BUREAU (à partir de md) ===== */}
-        <div className="hidden flex-wrap items-center gap-2 md:flex">
-          {/* Les modules ne s'affichent que pour un utilisateur connecté. */}
+        <div className="hidden items-center gap-2 md:flex">
           {utilisateur && (
             <Link
               href={ACCUEIL.href}
               onClick={() => setMenuOuvert(null)}
               className={`rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
-                pathname === ACCUEIL.href
+                estActif(ACCUEIL.href)
                   ? "text-[#C2A24C]"
                   : "text-[#F8F6F1]/80"
               }`}
@@ -145,39 +171,35 @@ export default function NavBar() {
           {utilisateur &&
             GROUPES.map((groupe) => {
               const ouvert = menuOuvert === groupe.label;
-              const actif = familleActive(groupe.liens);
+              const actif = groupeActif(groupe);
+
               return (
                 <div key={groupe.label} className="relative">
                   <button
+                    type="button"
                     onClick={() => setMenuOuvert(ouvert ? null : groupe.label)}
                     className={`flex items-center gap-1 rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
                       actif ? "text-[#C2A24C]" : "text-[#F8F6F1]/80"
                     }`}
                   >
                     {groupe.label}
-                    <span
-                      className={`text-[10px] transition-transform ${
-                        ouvert ? "rotate-180" : ""
-                      }`}
-                    >
-                      ▾
-                    </span>
+                    <span aria-hidden="true">▾</span>
                   </button>
 
                   {ouvert && (
-                    <div className="absolute right-0 z-50 mt-2 min-w-[11rem] overflow-hidden rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] py-1 shadow-lg">
-                      {groupe.liens.map((l) => (
+                    <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 text-[#1F2733] shadow-lg">
+                      {groupe.liens.map((lien) => (
                         <Link
-                          key={l.href}
-                          href={l.href}
+                          key={lien.href}
+                          href={lien.href}
                           onClick={() => setMenuOuvert(null)}
                           className={`block px-4 py-2 text-sm transition hover:bg-[#15233F]/5 hover:text-[#15233F] ${
-                            estActif(l.href)
+                            estActif(lien.href)
                               ? "font-semibold text-[#15233F]"
                               : "text-[#1F2733]"
                           }`}
                         >
-                          {l.label}
+                          {lien.label}
                         </Link>
                       ))}
                     </div>
@@ -186,7 +208,6 @@ export default function NavBar() {
               );
             })}
 
-          {/* Sélecteur de procédure active (visible si >= 2 procédures). */}
           {utilisateur && <SelecteurProcedure />}
 
           {utilisateur ? (
@@ -198,7 +219,9 @@ export default function NavBar() {
               >
                 Mon compte
               </Link>
+
               <button
+                type="button"
                 onClick={seDeconnecter}
                 className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
               >
@@ -216,23 +239,17 @@ export default function NavBar() {
           )}
         </div>
 
-        {/* ===== Zone mobile (< md) : hamburger si connecté, sinon lien Connexion ===== */}
         {utilisateur ? (
           <button
-            onClick={() => setMobileOuvert((o) => !o)}
+            type="button"
+            onClick={() => setMobileOuvert((ouvert) => !ouvert)}
             aria-label="Ouvrir le menu"
             aria-expanded={mobileOuvert}
             className="rounded p-1 text-[#F8F6F1] transition hover:text-[#C2A24C] md:hidden"
           >
-            {mobileOuvert ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            )}
+            <span className="text-2xl leading-none">
+              {mobileOuvert ? "×" : "☰"}
+            </span>
           </button>
         ) : (
           <Link
@@ -244,72 +261,77 @@ export default function NavBar() {
         )}
       </div>
 
-      {/* ===== Panneau MOBILE déroulé (uniquement si connecté) ===== */}
       {mobileOuvert && utilisateur && (
-        <div className="border-t border-[#C2A24C]/30 px-6 pb-4 md:hidden">
-          <div className="space-y-4 pt-3">
-            {/* Sélecteur de procédure active (visible si >= 2 procédures). */}
+        <div className="border-t border-[#F8F6F1]/10 px-4 py-4 md:hidden">
+          <div className="mb-4">
             <SelecteurProcedure />
+          </div>
 
-            <Link
-              href={ACCUEIL.href}
-              onClick={() => setMobileOuvert(false)}
-              className={`block rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
-                pathname === ACCUEIL.href
-                  ? "font-semibold text-[#C2A24C]"
-                  : "text-[#F8F6F1]/80"
-              }`}
-            >
-              {ACCUEIL.label}
-            </Link>
+          <Link
+            href={ACCUEIL.href}
+            onClick={() => setMobileOuvert(false)}
+            className={`block rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
+              estActif(ACCUEIL.href)
+                ? "font-semibold text-[#C2A24C]"
+                : "text-[#F8F6F1]/80"
+            }`}
+          >
+            {ACCUEIL.label}
+          </Link>
 
-            {GROUPES.map((groupe) => (
-              <div key={groupe.label}>
-                <p className="text-xs uppercase tracking-wide text-[#C2A24C]/80">
-                  {groupe.label}
-                </p>
-                <div className="mt-1 flex flex-col">
-                  {groupe.liens.map((l) => (
-                    <Link
-                      key={l.href}
-                      href={l.href}
-                      onClick={() => setMobileOuvert(false)}
-                      className={`rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
-                        estActif(l.href)
-                          ? "font-semibold text-[#C2A24C]"
-                          : "text-[#F8F6F1]/80"
-                      }`}
-                    >
-                      {l.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
+          {GROUPES.map((groupe) => (
+            <div key={groupe.label} className="mt-4">
+              <p
+                className={`px-2 text-xs font-semibold uppercase tracking-wide ${
+                  groupeActif(groupe)
+                    ? "text-[#C2A24C]"
+                    : "text-[#F8F6F1]/60"
+                }`}
+              >
+                {groupe.label}
+              </p>
 
-            <div className="border-t border-[#C2A24C]/20 pt-3">
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/compte"
-                  onClick={() => setMobileOuvert(false)}
-                  className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-                >
-                  Mon compte
-                </Link>
-                <button
-                  onClick={() => {
-                    setMobileOuvert(false);
-                    seDeconnecter();
-                  }}
-                  className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
-                >
-                  Se déconnecter
-                </button>
+              <div className="mt-2 grid gap-1">
+                {groupe.liens.map((lien) => (
+                  <Link
+                    key={lien.href}
+                    href={lien.href}
+                    onClick={() => setMobileOuvert(false)}
+                    className={`rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
+                      estActif(lien.href)
+                        ? "font-semibold text-[#C2A24C]"
+                        : "text-[#F8F6F1]/80"
+                    }`}
+                  >
+                    {lien.label}
+                  </Link>
+                ))}
               </div>
             </div>
+          ))}
+
+          <div className="mt-5 flex flex-col gap-3 border-t border-[#F8F6F1]/10 pt-4">
+            <Link
+              href="/compte"
+              onClick={() => setMobileOuvert(false)}
+              className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+            >
+              Mon compte
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOuvert(false);
+                seDeconnecter();
+              }}
+              className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+            >
+              Se déconnecter
+            </button>
           </div>
         </div>
       )}
     </nav>
   );
-                            }
+}
