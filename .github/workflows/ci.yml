@@ -1,0 +1,60 @@
+name: Parent Preuve CI
+
+on:
+  push:
+    branches:
+      - main
+      - "refonte-*"
+      - "feature/**"
+      - "preview-*"
+      - "docs/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  checks:
+    name: Build, lint and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+      # Valeurs factices uniquement pour permettre le build CI.
+      # Les vraies valeurs restent dans l'environnement local / production.
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "ci_dummy_publishable_key"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci_dummy_anon_key"
+      SUPABASE_SERVICE_ROLE_KEY: "ci_dummy_service_role_key"
+      MISTRAL_API_KEY: "ci_dummy_mistral_key"
+      HORODATAGE_SECRET: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests if present
+        run: |
+          if find tests -type f -name "*.test.ts" 2>/dev/null | grep -q .; then
+            echo "Test files found. Running npm test..."
+            npm test
+          else
+            echo "No tests/**/*.test.ts files found. Skipping npm test."
+          fi
+
+      - name: Run build
+        run: npm run build
