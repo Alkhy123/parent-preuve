@@ -90,6 +90,31 @@ export default function CollecterPage() {
         </p>
       </section>
 
+            <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
+              Nouveau parcours
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
+              Commencer par la collecte rapide
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Vous ne savez pas encore dans quel module aller ? La collecte
+              rapide vous aide à choisir le bon type d’élément sans perdre de
+              temps.
+            </p>
+          </div>
+
+          <Link
+            href="/collecter/rapide"
+            className="inline-flex items-center justify-center rounded-full bg-[#15233F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
+          >
+            Lancer la collecte rapide
+          </Link>
+        </div>
+      </section>
+
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         {ETAPES.map((etape) => (
           <div
