@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 import { supabase } from "@/lib/supabase";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 
@@ -172,14 +173,21 @@ export default function CoffreFortPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Pièces"
-        title="Coffre-fort"
-        subtitle="Toutes vos pièces au même endroit : justificatifs et preuves scellées. Vue de consultation."
-      />
-
-      <div className="mx-auto max-w-3xl px-6 pt-10 pb-12">
+    <AppShell
+      titre="Coffre-fort des pieces"
+      description="Regrouper les documents et preuves rattaches a la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/documents" variant="secondary">
+            Retour Documents
+          </AppButtonLink>
+          <AppButtonLink href="/exporter/checklist" variant="secondary">
+            Checklist export
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="mx-auto max-w-3xl px-6 pt-10 pb-12 text-[#1F2733]">
         {/* Barre de filtres */}
         <div className="carte rounded-xl border border-slate-200 bg-white p-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -187,7 +195,7 @@ export default function CoffreFortPage() {
               <label className="block text-sm font-medium text-slate-700">Recherche</label>
               <input
                 type="text"
-                placeholder="Rechercher par libellé…"
+                placeholder="Rechercher par libellé..."
                 value={recherche}
                 onChange={(e) => setRecherche(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
@@ -227,7 +235,7 @@ export default function CoffreFortPage() {
               >
                 <option value="tous">Tous</option>
                 {enfants.map((e) => (
-                  <option key={e.id} value={e.id}>{e.prenom_ou_alias ?? "—"}</option>
+                  <option key={e.id} value={e.id}>{e.prenom_ou_alias ?? "-"}</option>
                 ))}
               </select>
             </div>
@@ -236,7 +244,7 @@ export default function CoffreFortPage() {
 
         <p className="mt-4 text-sm text-slate-500">
           {chargement
-            ? "Chargement…"
+            ? "Chargement..."
             : `${piecesFiltrees.length} pièce(s) affichée(s) sur ${pieces.length} au total.`}
         </p>
 
@@ -296,6 +304,6 @@ export default function CoffreFortPage() {
           pièces ; leur portée reste soumise à l&apos;appréciation du juge.
         </p>
       </div>
-    </main>
+    </AppShell>
   );
 }
