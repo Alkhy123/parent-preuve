@@ -1,166 +1,115 @@
-import Link from "next/link";
-
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 const ETAPES = [
   {
     numero: "1",
     titre: "Choisir le mois",
     description:
-      "Sélectionner le mois à analyser pour afficher uniquement les frais, pensions et faits concernés.",
+      "Selectionner le mois a analyser pour afficher uniquement les frais, pensions et faits concernes.",
   },
   {
     numero: "2",
-    titre: "Contrôler les chiffres",
+    titre: "Controler les chiffres",
     description:
-      "Vérifier les frais du mois, les paiements de pension et les faits enregistrés dans la procédure active.",
+      "Verifier les frais du mois, les paiements de pension et les faits enregistres dans la procedure active.",
   },
   {
     numero: "3",
-    titre: "Utiliser le résumé",
+    titre: "Utiliser le resume",
     description:
-      "S’appuyer sur cette vue pour préparer un échange, compléter le dossier ou vérifier les éléments avant export.",
+      "S appuyer sur cette vue pour preparer un echange, completer le dossier ou verifier les elements avant export.",
   },
 ];
 
 const CONTENU = [
   {
     titre: "Frais du mois",
-    texte: "Montants demandés, montants remboursés, reste dû et nombre de frais enregistrés.",
+    texte:
+      "Montants demandes, montants rembourses, reste du et nombre de frais enregistres.",
   },
   {
     titre: "Pension du mois",
-    texte: "Montant dû, montant payé, solde restant ou situation à jour selon les paiements saisis.",
+    texte:
+      "Montant du, montant paye, solde restant ou situation a jour selon les paiements saisis.",
   },
   {
-    titre: "Faits notés",
-    texte: "Nombre de faits enregistrés sur le mois et répartition par catégorie.",
+    titre: "Faits notes",
+    texte:
+      "Nombre de faits enregistres sur le mois et repartition par categorie.",
   },
 ];
 
 const CONTROLES = [
-  "Le mois sélectionné est-il le bon ?",
-  "Les frais du mois sont-ils tous enregistrés ?",
-  "Les remboursements sont-ils à jour ?",
+  "Le mois selectionne est-il le bon ?",
+  "Les frais du mois sont-ils tous enregistres ?",
+  "Les remboursements sont-ils a jour ?",
   "Les paiements de pension sont-ils complets ?",
-  "Les faits importants du mois ont-ils été notés ?",
-  "La procédure active est-elle bien celle à contrôler ?",
+  "Les faits importants du mois ont-ils ete notes ?",
+  "La procedure active est-elle bien celle a controler ?",
 ];
 
 export default function ExporterResumeMoisPage() {
   return (
-    <main>
-      <PageHeader
-        eyebrow="Exporter"
-        title="Résumé du mois"
-        subtitle="Préparer une lecture mensuelle des frais, pensions et faits enregistrés dans la procédure active."
-      />
+    <AppShell
+      titre="Resume du mois"
+      description="Preparer une lecture mensuelle des frais, pensions et faits enregistres dans la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
+          <AppButtonLink href="/resume-mois">
+            Ouvrir le resume du mois
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Rappel important">
+          <p>
+            Le resume du mois affiche des chiffres issus des saisies existantes.
+            Il ne modifie aucune donnee et doit etre relu avant d etre utilise
+            dans un export ou un echange.
+          </p>
+        </AppNotice>
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <section className="carte rounded-2xl bg-[var(--surface)] p-6">
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
-                Vue mensuelle
-              </p>
-
-              <h2 className="mt-2 text-2xl font-bold text-texte">
-                Contrôler rapidement un mois du dossier
-              </h2>
-
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                Le résumé du mois regroupe les frais, les pensions et les faits
-                enregistrés sur une période mensuelle. Il aide à repérer un
-                reste dû, un paiement partiel ou un mois peu documenté.
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                Cette page sert de guide d’entrée. Le calcul et l’affichage des
-                chiffres restent dans l’outil existant Résumé du mois.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/resume-mois"
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-                >
-                  Ouvrir le résumé du mois
-                </Link>
-
-                <Link
-                  href="/chronologie"
-                  className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-[#15233F] hover:border-[#C2A24C]/70"
-                >
-                  Relire la chronologie
-                </Link>
-              </div>
-            </div>
-
-            <aside className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              <p className="font-semibold text-amber-950">Rappel important</p>
-
-              <p className="mt-2">
-                Le résumé du mois affiche des chiffres issus des saisies
-                existantes. Il ne modifie aucune donnée et doit être relu avant
-                d’être utilisé dans un export ou un échange.
-              </p>
-            </aside>
-          </div>
-        </section>
-
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-3">
           {ETAPES.map((etape) => (
-            <article
+            <AppCard
               key={etape.numero}
-              className="carte rounded-2xl bg-[var(--surface)] p-5"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#15233F] text-sm font-bold text-white">
-                {etape.numero}
-              </div>
-
-              <h2 className="mt-4 text-xl font-bold text-texte">
-                {etape.titre}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-texte-doux">
-                {etape.description}
-              </p>
-            </article>
+              titre={`${etape.numero}. ${etape.titre}`}
+              description={etape.description}
+            />
           ))}
         </section>
 
-        <section className="mt-8 carte rounded-2xl bg-[var(--surface)] p-6">
-          <h2 className="text-xl font-bold text-texte">
-            Ce que le résumé mensuel affiche
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
-            Le résumé se concentre sur les éléments utiles pour comprendre un
-            mois précis du dossier.
-          </p>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <AppCard
+          titre="Ce que le resume mensuel affiche"
+          description="Le resume se concentre sur les elements utiles pour comprendre un mois precis du dossier."
+        >
+          <div className="grid gap-4 md:grid-cols-3">
             {CONTENU.map((item) => (
               <article
                 key={item.titre}
-                className="rounded-xl border border-slate-200 bg-white/70 p-4"
+                className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4"
               >
-                <h3 className="font-semibold text-texte">{item.titre}</h3>
-                <p className="mt-2 text-sm leading-6 text-texte-doux">
+                <h3 className="font-semibold text-[var(--app-text)]">
+                  {item.titre}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                   {item.texte}
                 </p>
               </article>
             ))}
           </div>
-        </section>
+        </AppCard>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Contrôles à faire
-            </h2>
-
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
+        <section className="grid gap-6 lg:grid-cols-2">
+          <AppCard titre="Controles a faire">
+            <ul className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
               {CONTROLES.map((controle) => (
                 <li key={controle} className="flex gap-2">
                   <span aria-hidden="true">•</span>
@@ -168,29 +117,26 @@ export default function ExporterResumeMoisPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </AppCard>
 
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Où se consulte le résumé ?
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-texte-doux">
-              La consultation reste dans l’outil existant
-              <span className="font-semibold"> Résumé du mois</span>. Cette
-              page sert uniquement de point d’entrée clair depuis l’espace
-              Exporter.
+          <AppCard titre="Ou se consulte le resume ?">
+            <p className="text-sm leading-6 text-[var(--app-text-muted)]">
+              La consultation reste dans l outil existant{" "}
+              <span className="font-semibold text-[var(--app-text)]">
+                Resume du mois
+              </span>
+              . Cette page sert uniquement de point d entree clair depuis l
+              espace Exporter.
             </p>
 
-            <Link
-              href="/resume-mois"
-              className="mt-5 inline-flex rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-            >
-              Consulter le résumé du mois
-            </Link>
-          </div>
+            <div className="mt-5">
+              <AppButtonLink href="/resume-mois">
+                Consulter le resume du mois
+              </AppButtonLink>
+            </div>
+          </AppCard>
         </section>
       </div>
-    </main>
+    </AppShell>
   );
 }
