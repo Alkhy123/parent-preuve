@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import PageHeader from '@/components/PageHeader'
+import AppButtonLink from '@/components/app/AppButtonLink'
+import AppCard from '@/components/app/AppCard'
+import AppNotice from '@/components/app/AppNotice'
+import AppShell from '@/components/app/AppShell'
 import QuestionnaireAiguillage from '@/components/QuestionnaireAiguillage'
 import FormulaireNote from '@/components/FormulaireNote'
 import SelecteurPieces from '@/components/SelecteurPieces'
@@ -60,35 +63,51 @@ export default function PageNoteSynthese() {
     .filter((p): p is PieceDisponible => Boolean(p))
 
   return (
-    <main className="min-h-screen">
-      <PageHeader
-        eyebrow="Synthèses & exports"
-        title="Note de synthèse factuelle"
-        subtitle="Générez un résumé factuel de votre dossier, à relire et corriger avant de l'exporter."
-      />
-
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
+    <AppShell
+      titre="Note de synthese"
+      description="Construire une synthese courte, structuree et factuelle a partir des informations du dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter/note-synthese" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         <QuestionnaireAiguillage volets={volets} onChange={setVolets} />
 
         {precharge === null ? (
-          <p className="text-sm text-[#1F2733]/60">Chargement de vos données…</p>
+          <p className="text-sm text-[var(--app-text-muted)]">
+            Chargement de vos données...
+          </p>
         ) : (
           <>
             {erreur && (
-              <div className="rounded-lg border border-[#8A5A12]/30 bg-[#8A5A12]/5 px-3 py-2 text-sm text-[#8A5A12]">
-                Certaines données n&apos;ont pas pu être chargées. Vous pouvez tout de même remplir la note manuellement.
-              </div>
+              <AppNotice titre="Données incomplètes">
+                <p>
+                  Certaines données n&apos;ont pas pu être chargées. Vous pouvez
+                  tout de même remplir la note manuellement.
+                </p>
+              </AppNotice>
             )}
 
-            <FormulaireNote volets={volets} precharge={precharge} valeurs={valeurs} onChange={majChamp} />
+            <FormulaireNote
+              volets={volets}
+              precharge={precharge}
+              valeurs={valeurs}
+              onChange={majChamp}
+            />
 
-            <div className="rounded-xl bg-[#F8F6F1] p-5 carte space-y-3">
-              <h2 className="font-display text-lg text-[#15233F]">Bordereau de pièces</h2>
-              <SelecteurPieces disponibles={piecesDispo} selection={piecesIds} onChange={setPiecesIds} />
-            </div>
+            <AppCard titre="Bordereau de pièces">
+              <SelecteurPieces
+                disponibles={piecesDispo}
+                selection={piecesIds}
+                onChange={setPiecesIds}
+              />
+            </AppCard>
 
-            <div className="rounded-xl bg-[#F8F6F1] p-5 carte space-y-3">
-              <h2 className="font-display text-lg text-[#15233F]">Brouillon et export</h2>
+            <AppCard titre="Brouillon et export">
               <BrouillonNote
                 volets={volets}
                 valeurs={valeurs}
@@ -97,15 +116,18 @@ export default function PageNoteSynthese() {
                 contenuInitial={contenuInitial}
                 onSauvegarder={sauvegarder}
               />
-            </div>
+            </AppCard>
           </>
         )}
 
-        <p className="text-xs text-[#1F2733]/60">
-          Ce document est une aide à l&apos;organisation factuelle du dossier. Il ne constitue pas un
-          conseil juridique et ne garantit pas l&apos;appréciation des pièces par le juge.
-        </p>
+        <AppNotice titre="Rappel important">
+          <p>
+            Ce document est une aide à l&apos;organisation factuelle du dossier.
+            Il ne constitue pas un conseil juridique et ne garantit pas
+            l&apos;appréciation des pièces par le juge. À relire avant usage.
+          </p>
+        </AppNotice>
       </div>
-    </main>
+    </AppShell>
   )
 }

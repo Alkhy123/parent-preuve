@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import {
   totauxFrais,
   totauxPension,
@@ -124,122 +127,115 @@ export default function ResumeMoisPage() {
   }, [chargement, fraisProc, pensionProc, eventsProc, mois]);
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Vue d'ensemble"
-        title="Résumé du mois"
-        subtitle="Pour le mois choisi : frais, pension et faits notés. Lecture seule, à partir de vos saisies."
-      />
-      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-2xl px-6 py-12">
-          {/* Sélecteur de mois */}
-          <div className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
-            <label
-              htmlFor="mois"
-              className="block text-sm font-medium text-[#1F2733]/70"
-            >
-              Mois
-            </label>
-            <div className="mt-2 flex items-center gap-3">
-              <input
-                id="mois"
-                type="month"
-                value={mois}
-                onChange={(e) => setMois(e.target.value || moisCourant())}
-                className="rounded-lg border border-[#C2A24C]/40 bg-white px-3 py-2 text-[#1F2733]"
-              />
-              <span className="text-sm text-[#1F2733]/60 capitalize">
-                {moisLisible(mois)}
-              </span>
-            </div>
-          </div>
-
-          {chargement || !resume ? (
-            <p className="mt-6 text-sm text-[#5A6473]">Chargement…</p>
-          ) : (
-            <div className="mt-6 space-y-5">
-              {/* Frais du mois */}
-              <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-                  Frais du mois
-                </h2>
-                {resume.nbFrais === 0 ? (
-                  <p className="mt-2 text-sm text-[#5A6473]">Aucun frais ce mois-ci.</p>
-                ) : (
-                  <>
-                    <p className="mt-1 text-3xl font-bold text-[#15233F]">
-                      {euros(resume.frais.resteDu)}
-                    </p>
-                    <p className="mt-1 text-sm text-[#5A6473]">
-                      Reste dû · {resume.nbFrais} frais · {euros(resume.frais.totalDemande)}{" "}
-                      demandés, {euros(resume.frais.totalRembourse)} remboursés.
-                    </p>
-                  </>
-                )}
-              </section>
-
-              {/* Pension du mois */}
-              <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-                  Pension du mois
-                </h2>
-                {resume.nbPension === 0 ? (
-                  <p className="mt-2 text-sm text-[#5A6473]">
-                    Aucun paiement enregistré pour ce mois.
-                  </p>
-                ) : (
-                  <>
-                    <p
-                      className={`mt-1 text-3xl font-bold ${
-                        resume.pension.solde > 0 ? "text-[#9B2C2C]" : "text-[#2E6A4D]"
-                      }`}
-                    >
-                      {resume.pension.solde > 0
-                        ? `Reste dû ${euros(resume.pension.solde)}`
-                        : resume.pension.solde < 0
-                          ? `Trop-perçu ${euros(-resume.pension.solde)}`
-                          : "À jour"}
-                    </p>
-                    <p className="mt-1 text-sm text-[#5A6473]">
-                      Dû {euros(resume.pension.totalDu)} · payé{" "}
-                      {euros(resume.pension.totalPaye)}.
-                    </p>
-                  </>
-                )}
-              </section>
-
-              {/* Faits notés du mois */}
-              <section className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-5">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-                  Faits notés du mois
-                </h2>
-                {resume.nbFaits === 0 ? (
-                  <p className="mt-2 text-sm text-[#5A6473]">Aucun fait noté ce mois-ci.</p>
-                ) : (
-                  <>
-                    <p className="mt-1 text-3xl font-bold text-[#15233F]">
-                      {resume.nbFaits}
-                    </p>
-                    <ul className="mt-2 space-y-1 text-sm text-[#5A6473]">
-                      {resume.categories.map((c) => (
-                        <li key={c.categorie} className="flex justify-between">
-                          <span>{c.categorie}</span>
-                          <span className="font-medium text-[#1F2733]">{c.nombre}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </section>
-
-              <p className="text-xs text-[#1F2733]/50">
-                Chiffres factuels issus de vos saisies, cloisonnés par la procédure
-                active. Aucune donnée n&apos;est modifiée par cette page.
-              </p>
-            </div>
-          )}
+    <AppShell
+      titre="Resume du mois"
+      description="Consulter une lecture mensuelle des frais, pensions et faits de la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter/resume-mois" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
         </div>
-      </main>
-    </>
+      }
+    >
+      <div className="space-y-6">
+        <AppCard titre="Mois sélectionné">
+          <div className="flex items-center gap-3">
+            <input
+              id="mois"
+              type="month"
+              value={mois}
+              onChange={(e) => setMois(e.target.value || moisCourant())}
+              className="rounded-lg border border-[var(--app-border)] bg-white px-3 py-2 text-[var(--app-text)]"
+            />
+            <span className="text-sm text-[var(--app-text-muted)] capitalize">
+              {moisLisible(mois)}
+            </span>
+          </div>
+        </AppCard>
+
+        {chargement || !resume ? (
+          <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
+        ) : (
+          <div className="space-y-4">
+            <AppCard titre="Frais du mois">
+              {resume.nbFrais === 0 ? (
+                <p className="text-sm text-[var(--app-text-muted)]">
+                  Aucun frais ce mois-ci.
+                </p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-[var(--app-text)]">
+                    {euros(resume.frais.resteDu)}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+                    Reste dû · {resume.nbFrais} frais · {euros(resume.frais.totalDemande)}{" "}
+                    demandés, {euros(resume.frais.totalRembourse)} remboursés.
+                  </p>
+                </>
+              )}
+            </AppCard>
+
+            <AppCard titre="Pension du mois">
+              {resume.nbPension === 0 ? (
+                <p className="text-sm text-[var(--app-text-muted)]">
+                  Aucun paiement enregistré pour ce mois.
+                </p>
+              ) : (
+                <>
+                  <p
+                    className={`text-3xl font-bold ${
+                      resume.pension.solde > 0 ? "text-[#9B2C2C]" : "text-[#2E6A4D]"
+                    }`}
+                  >
+                    {resume.pension.solde > 0
+                      ? `Reste dû ${euros(resume.pension.solde)}`
+                      : resume.pension.solde < 0
+                        ? `Trop-perçu ${euros(-resume.pension.solde)}`
+                        : "À jour"}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+                    Dû {euros(resume.pension.totalDu)} · payé{" "}
+                    {euros(resume.pension.totalPaye)}.
+                  </p>
+                </>
+              )}
+            </AppCard>
+
+            <AppCard titre="Faits notés du mois">
+              {resume.nbFaits === 0 ? (
+                <p className="text-sm text-[var(--app-text-muted)]">
+                  Aucun fait noté ce mois-ci.
+                </p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-[var(--app-text)]">
+                    {resume.nbFaits}
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-[var(--app-text-muted)]">
+                    {resume.categories.map((c) => (
+                      <li key={c.categorie} className="flex justify-between">
+                        <span>{c.categorie}</span>
+                        <span className="font-medium text-[var(--app-text)]">
+                          {c.nombre}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </AppCard>
+          </div>
+        )}
+
+        <AppNotice titre="Rappel">
+          <p>
+            Chiffres factuels issus de vos saisies, cloisonnés par la procédure
+            active. Aucune donnée n&apos;est modifiée par cette page. À vérifier
+            avant tout usage.
+          </p>
+        </AppNotice>
+      </div>
+    </AppShell>
   );
 }

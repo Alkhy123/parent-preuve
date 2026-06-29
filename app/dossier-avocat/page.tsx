@@ -8,7 +8,10 @@
 // Même prévisualisation et même export PDF pour les quatre.
 
 import { useEffect, useMemo, useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import AvertissementDocumentPreparatoire from "@/components/avocat/AvertissementDocumentPreparatoire";
 import PreviewDossierAvocat from "@/components/avocat/PreviewDossierAvocat";
 import { collecterDossierAvocat } from "@/lib/avocat/collecterDossierAvocat";
@@ -46,53 +49,59 @@ export default function DossierAvocatPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Synthèses & exports"
-        title="Synthèses contextuelles"
-        subtitle="Des documents préparatoires, factuels et datés, à vérifier et reformuler par un professionnel du droit."
-      />
-
-      <div className="mx-auto max-w-3xl space-y-4 px-6 py-10">
+    <AppShell
+      titre="Dossier avocat"
+      description="Preparer un document de travail structure avant un rendez-vous, une audience ou une transmission."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter/dossier-avocat" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         <AvertissementDocumentPreparatoire />
 
         {/* Sélecteur de synthèse */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {SYNTHESES.map((s) => {
-            const actif = s.cle === type;
-            return (
-              <button
-                key={s.cle}
-                type="button"
-                onClick={() => setType(s.cle)}
-                aria-pressed={actif}
-                className={
-                  "rounded-xl p-4 text-left transition " +
-                  (actif
-                    ? "bg-navy text-surface"
-                    : "carte text-texte hover:opacity-90")
-                }
-              >
-                <p className="font-display text-base">{s.libelle}</p>
-                <p
+        <AppCard titre="Choisir une synthèse">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {SYNTHESES.map((s) => {
+              const actif = s.cle === type;
+              return (
+                <button
+                  key={s.cle}
+                  type="button"
+                  onClick={() => setType(s.cle)}
+                  aria-pressed={actif}
                   className={
-                    "mt-1 text-sm " +
-                    (actif ? "text-surface/80" : "text-texte-doux")
+                    "rounded-xl p-4 text-left transition " +
+                    (actif
+                      ? "bg-[#15233F] text-white"
+                      : "border border-[var(--app-border)] bg-[var(--app-surface-muted)] text-[var(--app-text)] hover:opacity-90")
                   }
                 >
-                  {s.description}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+                  <p className="font-semibold text-base">{s.libelle}</p>
+                  <p
+                    className={
+                      "mt-1 text-sm " +
+                      (actif ? "text-white/80" : "text-[var(--app-text-muted)]")
+                    }
+                  >
+                    {s.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </AppCard>
 
         {rendu !== null && (
           <div className="flex justify-end">
             <button
               type="button"
               onClick={() => genererPdfDossierAvocat(rendu)}
-              className="btn btn-primaire"
+              className="rounded-md bg-[#15233F] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1d2f54]"
             >
               Exporter en PDF
             </button>
@@ -100,15 +109,20 @@ export default function DossierAvocatPage() {
         )}
 
         {erreur ? (
-          <div className="carte rounded-xl bg-white p-5 text-sm text-texte-doux">
-            Certaines données n&apos;ont pas pu être chargées. Réessayez plus tard.
-          </div>
+          <AppNotice titre="Erreur de chargement">
+            <p>
+              Certaines données n&apos;ont pas pu être chargées. Réessayez plus
+              tard.
+            </p>
+          </AppNotice>
         ) : rendu === null ? (
-          <p className="text-sm text-texte-doux">Préparation du document…</p>
+          <p className="text-sm text-[var(--app-text-muted)]">
+            Préparation du document...
+          </p>
         ) : (
           <PreviewDossierAvocat rendu={rendu} />
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }
