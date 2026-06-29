@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
@@ -285,13 +286,20 @@ export default function NouvellePreuvePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Preuve photo"
-        title="Nouvelle preuve"
-        subtitle="Prends ou choisis une photo : l'application la scelle, l'horodate et calcule son empreinte d'intégrité."
-      />
-
+    <AppShell
+      titre="Nouvelle preuve photo"
+      description="Importer une photo, calculer son empreinte et enregistrer une preuve liee a la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/preuves" variant="secondary">
+            Retour Preuves
+          </AppButtonLink>
+          <AppButtonLink href="/collecter" variant="secondary">
+            Retour Collecter
+          </AppButtonLink>
+        </div>
+      }
+    >
       <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
         {/* Sélection / capture */}
         <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-6">
@@ -328,7 +336,7 @@ export default function NouvellePreuvePage() {
                 <p>
                   Écart heure appareil / serveur : {recap.ecart} s
                   {Math.abs(recap.ecart) > 120 &&
-                    " — écart important, à vérifier"}
+                    " - écart important, à vérifier"}
                 </p>
                 <p>Horodatage : {recap.horodatage}</p>
                 <p>Intégrité : {recap.verification}</p>
@@ -340,7 +348,7 @@ export default function NouvellePreuvePage() {
 
         {enCours && (
           <p className="text-sm text-[#1F2733]/70">
-            Calcul de l&apos;empreinte en cours…
+            Calcul de l&apos;empreinte en cours...
           </p>
         )}
 
@@ -405,7 +413,7 @@ export default function NouvellePreuvePage() {
                   type="text"
                   value={titre}
                   onChange={(e) => setTitre(e.target.value)}
-                  placeholder="Ex. État du logement, document remis…"
+                  placeholder="Ex. État du logement, document remis..."
                   className="w-full rounded-md border border-[#15233F]/20 px-3 py-2 text-sm bg-white text-[#1F2733]"
                 />
               </div>
@@ -432,7 +440,7 @@ export default function NouvellePreuvePage() {
                   onChange={(e) => setEnfantId(e.target.value)}
                   className="w-full rounded-md border border-[#15233F]/20 px-3 py-2 text-sm bg-white text-[#1F2733]"
                 >
-                  <option value="">— Aucun —</option>
+                  <option value="">- Aucun -</option>
                   {enfants.map((e) => (
                     <option key={e.id} value={e.id}>
                       {nomEnfant(e)}
@@ -450,7 +458,7 @@ export default function NouvellePreuvePage() {
                          disabled:opacity-50"
             >
               {enregistrement
-                ? "Enregistrement en cours…"
+                ? "Enregistrement en cours..."
                 : "Enregistrer et sceller la preuve"}
             </button>
           </div>
@@ -462,6 +470,6 @@ export default function NouvellePreuvePage() {
           pas un constat de commissaire de justice.
         </p>
       </div>
-    </main>
+    </AppShell>
   );
 }

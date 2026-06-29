@@ -8,9 +8,9 @@
 // dans calendar_advanced_rules / calendar_exceptions (cloisonnées par enfant).
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import PreviewCalendrierAvance from "@/components/calendrier/PreviewCalendrierAvance";
 import { calculerPlanningAvance } from "@/lib/calendrier/calculerPlanningAvance";
@@ -269,20 +269,25 @@ export default function CalendrierAvancePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Organisation"
-        title="Calendrier avancé (bêta)"
-        subtitle="Aperçu d'un planning enrichi (mercredi, exceptions). N'affecte pas votre calendrier actuel."
-      />
-
+    <AppShell
+      titre="Calendrier avance"
+      description="Tester les regles avancees, exceptions et annotations sans remplacer le calendrier principal."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/calendrier" variant="secondary">
+            Retour Calendrier
+          </AppButtonLink>
+          <AppButtonLink href="/organiser" variant="secondary">
+            Retour Organiser
+          </AppButtonLink>
+        </div>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
         <p className="text-sm text-texte-doux">
-          La règle de base reste gérée dans{" "}
-          <Link href="/calendrier" className="text-or-fonce underline">
-            le calendrier de garde
-          </Link>
-          . Ici, le mercredi et les exceptions sont enregistrés pour cet enfant.
+          La regle de base reste geree dans{" "}
+          <a href="/calendrier" className="text-or-fonce underline">le calendrier de garde</a>
+          . Ici, le mercredi et les exceptions sont enregistres pour cet enfant.
         </p>
 
         {enfants.length === 0 ? (
@@ -307,13 +312,13 @@ export default function CalendrierAvancePage() {
             </div>
 
             {chargement ? (
-              <p className="text-sm text-texte-doux">Chargement…</p>
+              <p className="text-sm text-texte-doux">Chargement...</p>
             ) : !regle ? (
               <p className="text-sm text-texte-doux">
                 Aucune règle pour cet enfant. Créez-la d&apos;abord dans{" "}
-                <Link href="/calendrier" className="text-or-fonce underline">
+                <a href="/calendrier" className="text-or-fonce underline">
                   le calendrier de garde
-                </Link>
+                </a>
                 .
               </p>
             ) : (
@@ -472,6 +477,6 @@ export default function CalendrierAvancePage() {
           </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }

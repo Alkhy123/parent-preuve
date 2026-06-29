@@ -1,15 +1,9 @@
 "use client";
-import Link from "next/link"
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase"; // ⚠️ adapte si tes autres pages importent autrement
-import PageHeader from "@/components/PageHeader";
+import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
-
-<p className="text-sm">
-  <Link href="/mentions-legales" className="text-[#15233F] underline">
-    En savoir plus sur le traitement de vos données
-  </Link>
-</p>
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function ReformulerPage() {
   // null = on ne sait pas encore (chargement) ; true/false ensuite
@@ -89,17 +83,19 @@ export default function ReformulerPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Synthèses & exports"
-        title="Reformulation neutre"
-        subtitle="Transformez un message ou un récit en une version factuelle et apaisée."
-      />
-
+    <AppShell
+      titre="Reformuler un message"
+      description="Reformuler un texte de facon plus neutre, factuelle et relisible avant usage."
+      actions={
+        <AppButtonLink href="/collecter" variant="secondary">
+          Retour Collecter
+        </AppButtonLink>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
         {/* État : on vérifie encore le consentement */}
         {consentement === null && (
-          <p className="text-[#1F2733]">Chargement…</p>
+          <p className="text-[#1F2733]">Chargement...</p>
         )}
 
         {/* État : pas encore de consentement → l'encart RGPD */}
@@ -126,7 +122,7 @@ export default function ReformulerPage() {
               disabled={enregistrement}
               className="rounded-md bg-[#15233F] px-4 py-2 font-medium text-white hover:bg-[#1d2f54] disabled:opacity-50"
             >
-              {enregistrement ? "Enregistrement…" : "J'ai compris et j'accepte"}
+              {enregistrement ? "Enregistrement..." : "J'ai compris et j'accepte"}
             </button>
           </div>
         )}
@@ -144,7 +140,7 @@ export default function ReformulerPage() {
                 onChange={(e) => setTexte(e.target.value)}
                 rows={6}
                 maxLength={5000}
-                placeholder="Collez ici le message à reformuler…"
+                placeholder="Collez ici le message à reformuler..."
                 className="w-full rounded-md border border-gray-300 bg-white p-3 text-[#1F2733] focus:border-[#C2A24C] focus:outline-none"
               />
               <p className="text-right text-xs text-gray-500">{texte.length} / 5000</p>
@@ -155,7 +151,7 @@ export default function ReformulerPage() {
               disabled={!texte.trim() || enCours}
               className="rounded-md bg-[#15233F] px-4 py-2 font-medium text-white hover:bg-[#1d2f54] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {enCours ? "Reformulation en cours…" : "Reformuler"}
+              {enCours ? "Reformulation en cours..." : "Reformuler"}
             </button>
 
             {erreur && <p className="text-sm text-red-600">{erreur}</p>}
@@ -185,6 +181,6 @@ export default function ReformulerPage() {
           </>
         )}
       </div>
-    </>
+    </AppShell>
   );
 }
