@@ -78,7 +78,7 @@ export default function ComptePage() {
 
       if (!reponse.ok) {
         const data = await reponse.json().catch(() => ({}));
-        setExportErreur(data.erreur ?? "L export a echoue. Reessayez.");
+        setExportErreur(data.erreur ?? "Export impossible. Reessayez.");
         return;
       }
 
@@ -97,7 +97,7 @@ export default function ComptePage() {
       URL.revokeObjectURL(url);
     } catch {
       setExportErreur(
-        "L export a echoue. Verifiez votre connexion et reessayez.",
+        "Export impossible. Verifiez votre connexion et reessayez.",
       );
     } finally {
       setExportEnCours(false);
@@ -141,8 +141,8 @@ export default function ComptePage() {
             </p>
 
             <p>
-              Pour savoir quelles donnees sont traitees et connaitre vos
-              droits, consultez la{" "}
+              Pour savoir quelles donnees sont traitees et connaitre vos droits,
+              consultez la{" "}
               <Link
                 href="/confidentialite"
                 className="font-semibold text-[var(--app-primary)] underline-offset-4 hover:underline"
@@ -199,10 +199,10 @@ export default function ComptePage() {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-red-800">
-            Cette action est definitive et irreversible. Elle efface votre
-            compte ainsi que toutes vos donnees : journal, frais, pensions,
-            documents, preuves et leurs fichiers, regles et dossier. Aucune
-            recuperation ne sera possible.
+            Cette action est definitive et irreversible. Elle efface votre compte
+            ainsi que toutes vos donnees : journal, frais, pensions, documents,
+            preuves et leurs fichiers, regles et dossier. Aucune recuperation ne
+            sera possible.
           </p>
 
           <label className="mt-4 block text-sm font-medium text-red-900">
