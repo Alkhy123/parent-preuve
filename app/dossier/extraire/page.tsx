@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppShell from "@/components/app/AppShell";
 import ConsentementIA from "@/components/ConsentementIA";
 import RetourAssistant from "@/components/onboarding/RetourAssistant";
 import ReglePension from "@/components/ReglePension";
@@ -142,13 +143,13 @@ export default function ExtrairePage() {
   const etape = resultat ? 2 : 1;
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Mon dossier"
-        title="Analyse du jugement"
-        subtitle="Décrivez votre jugement avec vos mots : l'assistant propose les règles, que vous vérifiez et validez une par une."
-      />
-
+    <AppShell
+      titre="Analyse du jugement"
+      description="Decrire votre jugement avec vos mots : l assistant propose les regles, que vous verifiez et validez une par une."
+      actions={
+        <AppButtonLink href="/dossier" variant="secondary">Retour Dossier</AppButtonLink>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8">
         <RetourAssistant />
         <ConsentementIA fonctionnalite="extraction">
@@ -176,7 +177,7 @@ export default function ExtrairePage() {
                 maxLength={5000}
                 value={texte}
                 onChange={(e) => setTexte(e.target.value)}
-                placeholder="Collez ou rédigez la description ici…"
+                placeholder="Collez ou rédigez la description ici..."
               />
               <p className="mt-1 text-right text-xs text-[#1F2733]/50">
                 {texte.length} / 5000
@@ -195,7 +196,7 @@ export default function ExtrairePage() {
                 disabled={analyse}
                 className="mt-4 rounded-lg bg-[#15233F] px-5 py-2 text-[#F8F6F1] transition hover:bg-[#1d2f52] disabled:opacity-50"
               >
-                {analyse ? "Analyse en cours…" : "Analyser"}
+                {analyse ? "Analyse en cours..." : "Analyser"}
               </button>
             </div>
           )}
@@ -206,7 +207,7 @@ export default function ExtrairePage() {
               {/* Bandeau d'avertissements, hiérarchisé */}
               <div className="carte rounded-xl border border-[#C2A24C]/40 bg-white p-4">
                 <p className="mb-3 text-sm font-medium text-[#15233F]">
-                  Propositions de l&apos;assistant — à vérifier
+                  Propositions de l&apos;assistant - à vérifier
                 </p>
                 <div className="space-y-2">
                   <LigneAvert couleur="#0F6E56" icone={IconeCheck}>
@@ -279,6 +280,6 @@ export default function ExtrairePage() {
         </ConsentementIA>
         <RetourAssistant variante="pied" />
       </div>
-    </main>
+    </AppShell>
   );
 }

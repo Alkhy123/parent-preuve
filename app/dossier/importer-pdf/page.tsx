@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppShell from "@/components/app/AppShell";
 import ConsentementIA from "@/components/ConsentementIA";
 import RetourAssistant from "@/components/onboarding/RetourAssistant";
 import ReglePension from "@/components/ReglePension";
@@ -112,13 +113,13 @@ export default function ImporterPdfPage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Mon dossier"
-        title="Import du jugement (PDF)"
-        subtitle="Importez le PDF de votre décision : l'assistant propose les règles, que vous vérifiez et validez."
-      />
-
+    <AppShell
+      titre="Import du jugement"
+      description="Importer le PDF de votre decision : l assistant propose les regles, que vous verifiez et validez."
+      actions={
+        <AppButtonLink href="/dossier" variant="secondary">Retour Dossier</AppButtonLink>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8">
         <RetourAssistant />
         <ConsentementIA fonctionnalite="extraction">
@@ -148,7 +149,7 @@ export default function ImporterPdfPage() {
                 <div className="carte rounded-lg border border-[#C2A24C] bg-white p-5 space-y-1">
                   <p className="font-display text-lg text-[#15233F]">Fichier sélectionné</p>
                   <p className="text-sm text-[#1F2733]">
-                    <strong>{fichier.name}</strong> — {tailleLisible(fichier.size)}
+                    <strong>{fichier.name}</strong> - {tailleLisible(fichier.size)}
                   </p>
                 </div>
               )}
@@ -159,7 +160,7 @@ export default function ImporterPdfPage() {
                 disabled={!fichier || enCours}
                 className="rounded-lg bg-[#15233F] px-5 py-2 text-[#F8F6F1] transition hover:bg-[#1d2f52] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {enCours ? "Analyse en cours…" : "Analyser le jugement"}
+                {enCours ? "Analyse en cours..." : "Analyser le jugement"}
               </button>
 
               {scanne && (
@@ -178,7 +179,7 @@ export default function ImporterPdfPage() {
                     disabled={enCours}
                     className="rounded-lg bg-[#15233F] px-5 py-2 text-[#F8F6F1] transition hover:bg-[#1d2f52] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {enCours ? "Reconnaissance en cours…" : "Lancer la reconnaissance de texte"}
+                    {enCours ? "Reconnaissance en cours..." : "Lancer la reconnaissance de texte"}
                   </button>
                 </div>
               )}
@@ -190,7 +191,7 @@ export default function ImporterPdfPage() {
             <div className="space-y-4">
               <div className="rounded-xl border border-[#C2A24C]/40 bg-[#C2A24C]/10 p-4 text-sm">
                 <p className="font-medium text-[#15233F]">
-                  Propositions de l&apos;assistant — à vérifier
+                  Propositions de l&apos;assistant - à vérifier
                 </p>
                 <p className="mt-1 text-[#1F2733]/70">
                   {resultat.source === "ocr"
@@ -237,6 +238,6 @@ export default function ImporterPdfPage() {
         </ConsentementIA>
         <RetourAssistant variante="pied" />
       </div>
-    </main>
+    </AppShell>
   );
 }
