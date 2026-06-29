@@ -16,7 +16,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import EmptyState from "@/components/ui/EmptyState";
 import FormMessage from "@/components/ui/FormMessage";
 
@@ -163,15 +166,23 @@ export default function RattacherPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Dossier & règles"
-        title="Éléments à rattacher"
-        subtitle="Des éléments anciens ne sont rattachés à aucune procédure. Choisissez la procédure de chacun pour qu'il réapparaisse dans le bon dossier."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
+    <AppShell
+      titre="Elements a rattacher"
+      description="Verifier les anciens elements sans procedure et les rattacher manuellement a la bonne procedure."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/organiser" variant="secondary">
+            Retour Organiser
+          </AppButtonLink>
+          <AppButtonLink href="/procedure" variant="secondary">
+            Procedure active
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         {chargement ? (
-          <p className="text-slate-600">Chargement…</p>
+          <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
         ) : lignes.length === 0 ? (
           <EmptyState
             titre="Rien à rattacher"
@@ -179,75 +190,83 @@ export default function RattacherPage() {
           />
         ) : (
           <>
-            <p className="text-sm text-slate-600">
-              {lignes.length} élément{lignes.length > 1 ? "s" : ""} à rattacher. Le
-              rattachement est définitif côté affichage : l&apos;élément réapparaît
-              ensuite dans la procédure choisie.
+            <AppNotice titre="Rattachement manuel uniquement">
+              <p>
+                Aucun rattachement automatique. Choisissez la procédure pour chaque
+                élément et validez manuellement. Une fois rattaché, l&apos;élément
+                réapparaît dans la procédure choisie.
+              </p>
+            </AppNotice>
+
+            <p className="text-sm text-[var(--app-text-muted)]">
+              {lignes.length} élément{lignes.length > 1 ? "s" : ""} à rattacher.
             </p>
 
             <FormMessage message={message} type="erreur" />
 
-            <div className="mt-6 space-y-3">
-              {lignes.map((ligne) => {
-                const cleLigne = `${ligne.table}:${ligne.id}`;
-                const imposee = procedureImposee(ligne);
-                const enfant = enfantDe(ligne.childId);
-                const occupe = enCours === cleLigne;
-                return (
-                  <div
-                    key={cleLigne}
-                    className="carte rounded-xl border border-slate-200 bg-white p-4"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                        {ligne.nature}
-                      </span>
-                      {enfant && (
-                        <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
-                          Enfant : {enfant.prenom_ou_alias}
+            <AppCard>
+              <div className="space-y-3">
+                {lignes.map((ligne) => {
+                  const cleLigne = `${ligne.table}:${ligne.id}`;
+                  const imposee = procedureImposee(ligne);
+                  const enfant = enfantDe(ligne.childId);
+                  const occupe = enCours === cleLigne;
+                  return (
+                    <div
+                      key={cleLigne}
+                      className="rounded-xl border border-[var(--app-border)] bg-white p-4"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                          {ligne.nature}
                         </span>
-                      )}
-                    </div>
-                    <p className="mt-1.5 font-semibold text-[#15233F]">{ligne.intitule}</p>
-                    <p className="text-sm text-slate-500">{ligne.date || "Sans date"}</p>
+                        {enfant && (
+                          <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                            Enfant : {enfant.prenom_ou_alias}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1.5 font-semibold text-[var(--app-text)]">{ligne.intitule}</p>
+                      <p className="text-sm text-[var(--app-text-muted)]">{ligne.date || "Sans date"}</p>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {imposee ? (
-                        <p className="text-sm text-slate-600">
-                          Rattachement imposé à la procédure de l&apos;enfant :{" "}
-                          <strong>{libelleProcedure(imposee)}</strong>.
-                        </p>
-                      ) : (
-                        <select
-                          value={choix[cleLigne] ?? ""}
-                          onChange={(e) =>
-                            setChoix((prev) => ({ ...prev, [cleLigne]: e.target.value }))
-                          }
-                          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {imposee ? (
+                          <p className="text-sm text-[var(--app-text-muted)]">
+                            Rattachement imposé à la procédure de l&apos;enfant :{" "}
+                            <strong>{libelleProcedure(imposee)}</strong>.
+                          </p>
+                        ) : (
+                          <select
+                            value={choix[cleLigne] ?? ""}
+                            onChange={(e) =>
+                              setChoix((prev) => ({ ...prev, [cleLigne]: e.target.value }))
+                            }
+                            className="rounded-lg border border-[var(--app-border)] px-3 py-2 text-sm"
+                          >
+                            <option value="">- Choisir une procédure -</option>
+                            {procedures.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {libelleProcedure(p)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <button
+                          onClick={() => rattacher(ligne)}
+                          disabled={occupe}
+                          className="rounded-lg bg-[#15233F] px-4 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-60"
                         >
-                          <option value="">— Choisir une procédure —</option>
-                          {procedures.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {libelleProcedure(p)}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <button
-                        onClick={() => rattacher(ligne)}
-                        disabled={occupe}
-                        className="rounded-lg bg-[#15233F] px-4 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-60"
-                      >
-                        {occupe ? "Rattachement…" : "Rattacher"}
-                      </button>
+                          {occupe ? "Rattachement..." : "Rattacher"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </AppCard>
 
             {procedures.length === 0 && (
-              <p className="mt-4 text-sm text-[#9B2C2C]">
+              <p className="text-sm text-[#9B2C2C]">
                 Aucune procédure n&apos;existe encore. Créez d&apos;abord une procédure
                 en ajoutant un enfant dans « Mes enfants ».
               </p>
@@ -255,6 +274,6 @@ export default function RattacherPage() {
           </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }

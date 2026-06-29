@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
@@ -29,7 +32,7 @@ type PieceMarquee = {
   implication_categorie: string | null;
 };
 
-// Élément unifié (fait OU pièce) pour l'affichage et l'export.
+// Element unifie (fait OU piece) pour l'affichage et l'export.
 type Element = {
   nature: "Fait" | "Pièce";
   date: string;
@@ -50,7 +53,7 @@ export default function ImplicationParentalePage() {
   }
 
   async function chargerFaits() {
-    // Faits du journal marqués comme implication parentale, cloisonnés en base.
+    // Faits du journal marques comme implication parentale, cloisonnes en base.
     const procId = await getProcedureActiveId();
     if (!procId) {
       setFaits([]);
@@ -67,7 +70,7 @@ export default function ImplicationParentalePage() {
   }
 
   async function chargerPieces() {
-    // Pièces marquées comme implication parentale, cloisonnées en base.
+    // Pieces marquees comme implication parentale, cloisonnees en base.
     const procId = await getProcedureActiveId();
     if (!procId) {
       setPieces([]);
@@ -96,8 +99,8 @@ export default function ImplicationParentalePage() {
     return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? null;
   }
 
-  // Cloisonnement assuré en base (procedure_id). On fusionne faits + pièces
-  // en une seule liste d'éléments.
+  // Cloisonnement assure en base (procedure_id). On fusionne faits + pieces
+  // en une seule liste d'elements.
   const elements = useMemo<Element[]>(() => {
     const elFaits: Element[] = faits.map((f) => ({
       nature: "Fait",
@@ -119,8 +122,8 @@ export default function ImplicationParentalePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faits, pieces, enfants]);
 
-  // Regroupement par catégorie d'implication, dans l'ordre des catégories,
-  // chaque groupe trié par date décroissante.
+  // Regroupement par categorie d'implication, dans l'ordre des categories,
+  // chaque groupe trie par date decroissante.
   const groupes = useMemo(() => {
     return CATEGORIES_IMPLICATION.map((cat) => {
       const items = elements
@@ -132,9 +135,9 @@ export default function ImplicationParentalePage() {
 
   const total = elements.length;
 
-  // Export CSV : on aplatit les groupes pour garder l'ordre par catégorie puis
-  // par date. On n'exporte que des faits documentés par l'utilisateur, sans
-  // aucune qualification. L'avertissement non qualifié est ajouté par construireCsv().
+  // Export CSV : on aplatit les groupes pour garder l'ordre par categorie puis
+  // par date. On n'exporte que des faits documentes par l'utilisateur, sans
+  // aucune qualification. L'avertissement non qualifie est ajoute par construireCsv().
   function exporterCsv() {
     const enTete = ["Nature", "Catégorie d'implication", "Date", "Intitulé", "Enfant"];
     const lignes = groupes.flatMap((g) =>
@@ -149,7 +152,7 @@ export default function ImplicationParentalePage() {
     const csv = construireCsv({
       enTete,
       lignes,
-      contexte: { titre: "Implication parentale — éléments documentés" },
+      contexte: { titre: "Implication parentale - elements documentes" },
     });
     const nomFichier = `implication-parentale-${new Date()
       .toISOString()
@@ -158,42 +161,50 @@ export default function ImplicationParentalePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Synthèses & exports"
-        title="Implication parentale"
-        subtitle="Les faits et pièces que vous avez marqués comme éléments d'implication parentale, classés par thème."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
-
-        {/* Rappel de neutralité */}
-        <div className="rounded-lg border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-4 py-3 text-sm text-[#1F2733]">
-          Cette page rassemble uniquement des éléments factuels que vous avez
-          vous-même documentés et marqués. Elle ne qualifie pas votre implication&nbsp;:
-          ces éléments sont soumis à l&apos;appréciation du juge. À faire relire par
-          un professionnel du droit si nécessaire.
+    <AppShell
+      titre="Implication parentale"
+      description="Relire les faits et pieces marques pour suivre l implication parentale dans la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/organiser" variant="secondary">
+            Retour Organiser
+          </AppButtonLink>
+          <AppButtonLink href="/chronologie" variant="secondary">
+            Voir la chronologie
+          </AppButtonLink>
         </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Vue de synthèse factuelle">
+          <p>
+            Cette page rassemble uniquement des éléments factuels que vous avez
+            vous-même documentés et marqués. Elle ne qualifie pas votre implication :
+            ces éléments sont soumis à l&apos;appréciation du juge. À faire relire par
+            un professionnel du droit si nécessaire.
+          </p>
+        </AppNotice>
 
-        {/* Export CSV */}
-        <div className="mt-4 flex items-center gap-3">
-          <span className="text-sm text-slate-600">
-            {total} élément{total > 1 ? "s" : ""} marqué{total > 1 ? "s" : ""}.
-          </span>
-          <button
-            onClick={exporterCsv}
-            disabled={total === 0}
-            className="ml-auto rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Exporter en CSV
-          </button>
-        </div>
+        <AppCard>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-[var(--app-text-muted)]">
+              {total} élément{total > 1 ? "s" : ""} marqué{total > 1 ? "s" : ""}.
+            </span>
+            <button
+              onClick={exporterCsv}
+              disabled={total === 0}
+              className="ml-auto rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Exporter en CSV
+            </button>
+          </div>
+          {message && <p className="mt-3 text-sm text-[#9B2C2C]">{message}</p>}
+        </AppCard>
 
-        {message && <p className="mt-3 text-sm text-[#9B2C2C]">{message}</p>}
-
-        {/* Sections par catégorie */}
-        <div className="mt-8 space-y-8">
+        {/* Sections par categorie */}
+        <div className="space-y-8">
           {total === 0 && (
-            <p className="text-slate-500">
+            <p className="text-sm text-[var(--app-text-muted)]">
               Aucun élément marqué pour cette procédure. Marquez un fait dans le
               journal ou une pièce dans les documents avec une catégorie
               d&apos;implication pour le voir apparaître ici.
@@ -202,9 +213,9 @@ export default function ImplicationParentalePage() {
 
           {groupes.map((groupe) => (
             <div key={groupe.categorie.valeur} className="space-y-3">
-              <h2 className="border-b border-slate-300 pb-1 text-base font-semibold text-[#15233F]">
+              <h2 className="border-b border-[var(--app-border)] pb-1 text-base font-semibold text-[var(--app-text)]">
                 {groupe.categorie.libelle}
-                <span className="ml-2 text-sm font-normal text-slate-500">
+                <span className="ml-2 text-sm font-normal text-[var(--app-text-muted)]">
                   ({groupe.items.length})
                 </span>
               </h2>
@@ -212,15 +223,15 @@ export default function ImplicationParentalePage() {
               {groupe.items.map((el, i) => (
                 <div
                   key={`${el.nature}-${i}`}
-                  className="carte rounded-xl border border-slate-200 bg-white p-4"
+                  className="rounded-xl border border-[var(--app-border)] bg-white p-4"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
                       {el.nature}
                     </span>
                   </div>
-                  <p className="mt-1.5 font-semibold text-[#15233F]">{el.intitule}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="mt-1.5 font-semibold text-[var(--app-text)]">{el.intitule}</p>
+                  <p className="text-sm text-[var(--app-text-muted)]">
                     {el.date || "Sans date"}
                     {el.enfant ? ` · ${el.enfant}` : ""}
                   </p>
@@ -230,6 +241,6 @@ export default function ImplicationParentalePage() {
           ))}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }
