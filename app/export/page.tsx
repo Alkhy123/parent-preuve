@@ -4,7 +4,10 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import ControleDossier from "@/components/ControleDossier";
 import FormMessage from "@/components/ui/FormMessage";
 import { totauxFrais, totauxPension, resteDuGlobal, euros } from "@/lib/dossierCalculs";
@@ -110,16 +113,16 @@ export default function ExportPage() {
       const preuves = prRes.data ?? [];
 
       const nomEnfant = (id: string | null) =>
-        enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";
+        enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "-";
 
       const dateFr = (iso: string | null) =>
-        iso ? new Date(iso).toLocaleDateString("fr-FR") : "—";
+        iso ? new Date(iso).toLocaleDateString("fr-FR") : "-";
 
       const libelleHorodatage = (statut: string | null) => {
         if (statut === "non_qualifie") return "horodaté (non qualifié)";
         if (statut === "qualifie") return "horodaté (qualifié)";
         if (statut === "a_refaire") return "à refaire";
-        return "—";
+        return "-";
       };
 
       // Totaux calculés une seule fois (mêmes fonctions que l'accueil).
@@ -212,7 +215,7 @@ export default function ExportPage() {
           p.mois_du,
           euros(Number(p.montant_du)),
           euros(Number(p.montant_paye)),
-          p.date_paiement ?? "—",
+          p.date_paiement ?? "-",
         ]),
         foot: [["", euros(calculPension.totalDu), euros(calculPension.totalPaye), `Solde : ${euros(calculPension.solde)}`]],
         styles: { fontSize: 8, cellPadding: 2 },
@@ -240,7 +243,7 @@ export default function ExportPage() {
           head: [["Pièce n°", "Date", "Libellé", "Catégorie", "Enfant"]],
           body: pieces.map((d, i) => [
             String(i + 1),
-            d.date_document ?? "—",
+            d.date_document ?? "-",
             d.libelle,
             d.categorie,
             nomEnfant(d.child_id),
@@ -269,10 +272,10 @@ export default function ExportPage() {
           body: preuves.map((p, i) => [
             String(i + 1),
             dateFr(p.created_at),
-            p.titre ?? "—",
+            p.titre ?? "-",
             nomEnfant(p.enfant_id),
             libelleHorodatage(p.horodatage_statut),
-            p.empreinte_sha256 ?? "—",
+            p.empreinte_sha256 ?? "-",
           ]),
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [51, 65, 85] },
@@ -319,23 +322,23 @@ export default function ExportPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Synthèses & exports"
-        title="Export du dossier"
-        subtitle="Préparez un PDF à relire avant de le transmettre."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12 space-y-6">
+    <AppShell
+      titre="Export PDF"
+      description="Generer un dossier PDF a partir des donnees de la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter/pdf" variant="secondary">Retour Exporter</AppButtonLink>
+          <AppButtonLink href="/chronologie" variant="secondary">Chronologie</AppButtonLink>
+        </div>
+      }
+    >
+      <div className="mx-auto max-w-2xl space-y-6">
 
-        {/* Étape 1 : période */}
-        <section className="carte rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 1</p>
-            <h2 className="font-display text-lg text-[#15233F]">Choisir la période</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Facultatif. Laissez vide pour inclure toutes les données.
-            </p>
-          </div>
+        {/* Etape 1 : periode */}
+        <AppCard
+          titre="Etape 1 - Choisir la periode"
+          description="Facultatif. Laissez vide pour inclure toutes les donnees."
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">Du</label>
@@ -357,42 +360,36 @@ export default function ExportPage() {
                 checked={toutesLesPieces}
                 onChange={(e) => setToutesLesPieces(e.target.checked)}
               />
-              Bordereau : inclure toutes les pièces (sinon, seules celles de la période)
+              Bordereau : inclure toutes les pieces (sinon, seules celles de la periode)
             </label>
           </div>
-        </section>
+        </AppCard>
 
-        {/* Étape 2 : contrôle avant export */}
-        <section className="space-y-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 2</p>
-            <h2 className="font-display text-lg text-[#15233F]">Vérifier les points à compléter</h2>
-          </div>
+        {/* Etape 2 : controle avant export */}
+        <AppCard titre="Etape 2 - Verifier les points a completer">
           <ControleDossier du={du} au={au} onChange={setPeutExporter} />
-        </section>
+        </AppCard>
 
-        {/* Étape 3 : génération */}
-        <section className="carte rounded-xl border border-slate-200 bg-white p-5 space-y-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-or-fonce">Étape 3</p>
-            <h2 className="font-display text-lg text-[#15233F]">Générer l&apos;export PDF</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Le PDF réunit chronologie, frais, pension, bordereau de pièces et
-              bordereau des preuves photo. C&apos;est une organisation factuelle de vos
-              données, à relire avant toute transmission. Il ne constitue pas un avis
-              juridique.
-            </p>
+        {/* Etape 3 : generation */}
+        <AppCard titre="Etape 3 - Generer l'export PDF">
+          <div className="space-y-3">
+            <button
+              onClick={genererDossier}
+              disabled={enCours || !peutExporter}
+              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-50"
+            >
+              {enCours ? "Generation..." : "Generer le PDF"}
+            </button>
+            <FormMessage message={message} type="erreur" />
           </div>
-          <button
-            onClick={genererDossier}
-            disabled={enCours || !peutExporter}
-            className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-50"
-          >
-            {enCours ? "Génération…" : "Générer le PDF"}
-          </button>
-          <FormMessage message={message} type="erreur" />
-        </section>
+        </AppCard>
+
+        <AppNotice titre="Document de travail">
+          Le PDF reunit chronologie, frais, pension, bordereau de pieces et bordereau des preuves photo.
+          C&apos;est une organisation factuelle de vos donnees, a relire avant toute transmission.
+          Il ne constitue pas un avis juridique.
+        </AppNotice>
       </div>
-    </main>
+    </AppShell>
   );
 }
