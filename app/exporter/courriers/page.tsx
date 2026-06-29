@@ -1,13 +1,14 @@
-import Link from "next/link";
-
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 const ETAPES = [
   {
     numero: "1",
     titre: "Choisir le modèle",
     description:
-      "Sélectionner le type de courrier adapté : pension, frais, non-représentation ou demande d’information.",
+      "Sélectionner le type de courrier adapté : pension, frais, non-représentation ou demande d'information.",
   },
   {
     numero: "2",
@@ -26,19 +27,23 @@ const ETAPES = [
 const MODELES = [
   {
     titre: "Relance de pension impayée",
-    texte: "Préparer une relance factuelle lorsqu’un paiement de pension est absent, partiel ou en retard.",
+    texte:
+      "Préparer une relance factuelle lorsqu'un paiement de pension est absent, partiel ou en retard.",
   },
   {
     titre: "Remboursement de frais",
-    texte: "Demander la part due sur des frais partagés avec une présentation claire des montants.",
+    texte:
+      "Demander la part due sur des frais partagés avec une présentation claire des montants.",
   },
   {
-    titre: "Non-représentation d’enfant",
-    texte: "Structurer un signalement factuel autour d’une date, d’un horaire et d’un contexte précis.",
+    titre: "Non-représentation d'enfant",
+    texte:
+      "Structurer un signalement factuel autour d'une date, d'un horaire et d'un contexte précis.",
   },
   {
-    titre: "Demande d’information",
-    texte: "Demander des informations liées à la scolarité, à la santé ou à l’organisation de l’enfant.",
+    titre: "Demande d'information",
+    texte:
+      "Demander des informations liées à la scolarité, à la santé ou à l'organisation de l'enfant.",
   },
 ];
 
@@ -52,119 +57,77 @@ const CONTROLES = [
 
 export default function ExporterCourriersPage() {
   return (
-    <main>
-      <PageHeader
-        eyebrow="Exporter"
-        title="Courriers factuels"
-        subtitle="Préparer des courriers sobres, datés et factuels à partir des éléments déjà présents dans le dossier."
-      />
+    <AppShell
+      titre="Courriers factuels"
+      description="Préparer un courrier de travail sobre, daté et vérifiable à partir d'une situation précise. Les courriers générés doivent être relus avant tout envoi."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <section className="carte rounded-2xl bg-[var(--surface)] p-6">
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
-                Courrier de travail
-              </p>
+          <AppButtonLink href="/courriers">
+            Ouvrir les modèles de courriers
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Rappel important">
+          <p>
+            Un courrier généré par Parent Preuve est un brouillon de travail. Il
+            doit être relu, adapté et vérifié avant tout envoi. L&apos;application ne
+            remplace pas un conseil juridique.
+          </p>
+        </AppNotice>
 
-              <h2 className="mt-2 text-2xl font-bold text-texte">
-                Rédiger un courrier sans sortir du cadre factuel
-              </h2>
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+              Méthode
+            </p>
 
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                Les courriers factuels servent à préparer une formulation claire
-                à partir d’une situation précise. Ils doivent rester courts,
-                datés, vérifiables et relus avant utilisation.
-              </p>
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Préparer le courrier en trois étapes
+            </h2>
+          </div>
 
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                L’outil existant propose plusieurs modèles. Cette page sert de
-                point d’entrée pour choisir le bon modèle et rappeler les
-                contrôles à faire avant tout envoi.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/courriers"
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-                >
-                  Ouvrir les modèles de courriers
-                </Link>
-
-                <Link
-                  href="/chronologie"
-                  className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-[#15233F] hover:border-[#C2A24C]/70"
-                >
-                  Relire la chronologie
-                </Link>
-              </div>
-            </div>
-
-            <aside className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              <p className="font-semibold text-amber-950">Rappel important</p>
-
-              <p className="mt-2">
-                Un courrier généré par Parent Preuve est un brouillon de
-                travail. Il doit être relu, adapté et vérifié avant tout envoi.
-                L’application ne remplace pas un conseil juridique.
-              </p>
-            </aside>
+          <div className="grid gap-4 md:grid-cols-3">
+            {ETAPES.map((etape) => (
+              <AppCard
+                key={etape.numero}
+                titre={`${etape.numero}. ${etape.titre}`}
+                description={etape.description}
+              />
+            ))}
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {ETAPES.map((etape) => (
-            <article
-              key={etape.numero}
-              className="carte rounded-2xl bg-[var(--surface)] p-5"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#15233F] text-sm font-bold text-white">
-                {etape.numero}
-              </div>
-
-              <h2 className="mt-4 text-xl font-bold text-texte">
-                {etape.titre}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-texte-doux">
-                {etape.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-8 carte rounded-2xl bg-[var(--surface)] p-6">
-          <h2 className="text-xl font-bold text-texte">
-            Modèles actuellement disponibles
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
-            Les modèles existants couvrent les situations fréquentes à formuler
-            de manière factuelle.
-          </p>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <AppCard
+          titre="Modèles actuellement disponibles"
+          description="Les modèles existants couvrent les situations fréquentes à formuler de manière factuelle."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
             {MODELES.map((modele) => (
               <article
                 key={modele.titre}
-                className="rounded-xl border border-slate-200 bg-white/70 p-4"
+                className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4"
               >
-                <h3 className="font-semibold text-texte">{modele.titre}</h3>
-                <p className="mt-2 text-sm leading-6 text-texte-doux">
+                <h3 className="font-semibold text-[var(--app-text)]">
+                  {modele.titre}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                   {modele.texte}
                 </p>
               </article>
             ))}
           </div>
-        </section>
+        </AppCard>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Contrôles avant envoi
-            </h2>
-
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
+        <section className="grid gap-6 lg:grid-cols-2">
+          <AppCard titre="Contrôles avant envoi">
+            <ul className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
               {CONTROLES.map((controle) => (
                 <li key={controle} className="flex gap-2">
                   <span aria-hidden="true">•</span>
@@ -172,29 +135,30 @@ export default function ExporterCourriersPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </AppCard>
 
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Où se rédige le courrier ?
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-texte-doux">
-              La rédaction reste dans l’outil existant
-              <span className="font-semibold"> Courriers factuels</span>. Cette
-              page sert uniquement de point d’entrée clair depuis l’espace
-              Exporter.
+          <AppCard titre="Où se rédige le courrier ?">
+            <p className="text-sm leading-6 text-[var(--app-text-muted)]">
+              La rédaction reste dans l&apos;outil existant{" "}
+              <span className="font-semibold text-[var(--app-text)]">
+                Courriers factuels
+              </span>
+              . Cette page sert uniquement de point d&apos;entrée clair depuis
+              l&apos;espace Exporter.
             </p>
 
-            <Link
-              href="/courriers"
-              className="mt-5 inline-flex rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-            >
-              Choisir un modèle de courrier
-            </Link>
-          </div>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <AppButtonLink href="/courriers">
+                Choisir un modèle de courrier
+              </AppButtonLink>
+
+              <AppButtonLink href="/chronologie" variant="secondary">
+                Relire la chronologie
+              </AppButtonLink>
+            </div>
+          </AppCard>
         </section>
       </div>
-    </main>
+    </AppShell>
   );
 }
