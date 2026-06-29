@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function MotDePasseOubliePage() {
   const [email, setEmail] = useState("");
@@ -39,15 +40,17 @@ export default function MotDePasseOubliePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <div className="mx-auto max-w-md px-6 py-16">
-        <h1 className="text-2xl font-bold text-[#15233F]">Mot de passe oublié</h1>
-        <p className="mt-2 text-slate-600">
-          Saisissez l&apos;adresse e-mail de votre compte. Vous recevrez un lien
-          pour choisir un nouveau mot de passe.
-        </p>
-
-        <div className="mt-8 space-y-4">
+    <AppShell
+      titre="Mot de passe oublie"
+      description="Recevoir un lien pour choisir un nouveau mot de passe."
+      actions={
+        <AppButtonLink href="/connexion" variant="secondary">
+          Retour connexion
+        </AppButtonLink>
+      }
+    >
+      <div className="mx-auto max-w-md px-6 py-8">
+        <div className="space-y-4">
           <div className="space-y-1">
             <label htmlFor="email" className="block text-sm font-medium text-[#15233F]">
               Adresse e-mail
@@ -67,18 +70,12 @@ export default function MotDePasseOubliePage() {
             disabled={envoiEnCours}
             className="w-full rounded-lg bg-[#15233F] px-4 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-60"
           >
-            {envoiEnCours ? "Envoi en cours…" : "Envoyer le lien de réinitialisation"}
+            {envoiEnCours ? "Envoi en cours..." : "Envoyer le lien de reinitialisation"}
           </button>
 
           {message && <p className="text-sm text-slate-700">{message}</p>}
-
-          <p className="pt-2 text-sm">
-            <Link href="/connexion" className="text-[#15233F] underline">
-              Retour à la connexion
-            </Link>
-          </p>
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }
