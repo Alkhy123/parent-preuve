@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import {
   construirePreRemplissageCollecte,
   type BrouillonCollectePourPreRemplissage,
@@ -67,7 +68,7 @@ const TYPES_COLLECTE: TypeCollecte[] = [
     titre: "Frais",
     priorite: "Financier",
     description:
-      "Ajouter une dépense liée à l’enfant et conserver le justificatif associé.",
+      "Ajouter une dépense liée à l'enfant et conserver le justificatif associé.",
     exemples: ["Santé", "École", "Transport", "Activité"],
   },
   {
@@ -91,7 +92,7 @@ const TYPES_COLLECTE: TypeCollecte[] = [
 ];
 
 const PRINCIPES = [
-  "Saisir vite, même si tout n’est pas encore complet.",
+  "Saisir vite, même si tout n'est pas encore complet.",
   "Rester factuel : qui, quoi, quand, où.",
   "Ajouter les détails plus tard dans Organiser.",
   "Éviter les formulations agressives ou les conclusions juridiques.",
@@ -256,14 +257,17 @@ export default function CollecteRapidePage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <PageHeader
-        eyebrow="Collecte rapide"
-        title="Préparer rapidement un élément"
-        subtitle="Choisissez un type d’élément, notez l’essentiel, puis envoyez-le vers le bon module pour l’enregistrer proprement."
-      />
-
-      <section className="mt-6 rounded-3xl border border-[#C2A24C]/30 bg-[#C2A24C]/10 p-5">
+    <AppShell
+      titre="Collecte rapide"
+      description="Creer un brouillon factuel en moins d une minute avant de l envoyer vers le bon module."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/collecter" variant="secondary">Retour Collecter</AppButtonLink>
+          <AppButtonLink href="/organiser/brouillons" variant="secondary">Brouillons locaux</AppButtonLink>
+        </div>
+      }
+    >
+      <section className="rounded-3xl border border-[#C2A24C]/30 bg-[#C2A24C]/10 p-5">
         <p className="text-sm font-semibold text-[#8A5A12]">
           Objectif : préparer une saisie utile en moins de 30 secondes.
         </p>
@@ -316,7 +320,7 @@ export default function CollecteRapidePage() {
 
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-            2. Noter l’essentiel
+            2. Noter l'essentiel
           </p>
           <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
             Brouillon de collecte
@@ -464,15 +468,10 @@ export default function CollecteRapidePage() {
             ))}
           </div>
 
-          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-semibold text-amber-900">
-              Important
-            </p>
-            <p className="mt-2 text-sm leading-6 text-amber-900">
-              Le préremplissage ne crée rien automatiquement. Vous devez
-              vérifier les champs puis enregistrer vous-même dans le module.
-            </p>
-          </div>
+          <AppNotice titre="Important">
+            Le preremplissage ne cree rien automatiquement. Vous devez
+            verifier les champs puis enregistrer vous-meme dans le module.
+          </AppNotice>
         </div>
       </section>
 
@@ -583,34 +582,17 @@ export default function CollecteRapidePage() {
           Après la collecte
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Une fois l’élément enregistré dans le bon module, vérifiez-le dans
-          l’espace Organiser pour le rattacher au bon enfant, au bon dossier, à
+          Une fois l'élément enregistré dans le bon module, vérifiez-le dans
+          l'espace Organiser pour le rattacher au bon enfant, au bon dossier, à
           la bonne procédure et aux pièces utiles.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/organiser"
-            className="rounded-full bg-[#15233F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0F1A30]"
-          >
-            Aller dans Organiser
-          </Link>
-
-          <Link
-            href="/organiser/brouillons"
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
-          >
-            Voir les brouillons locaux
-          </Link>
-
-          <Link
-            href="/rattacher"
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#15233F] transition hover:border-[#C2A24C]/70"
-          >
-            Voir les éléments à rattacher
-          </Link>
+          <AppButtonLink href="/organiser">Aller dans Organiser</AppButtonLink>
+          <AppButtonLink href="/organiser/brouillons" variant="secondary">Voir les brouillons locaux</AppButtonLink>
+          <AppButtonLink href="/rattacher" variant="secondary">Voir les elements a rattacher</AppButtonLink>
         </div>
       </section>
-    </main>
+    </AppShell>
   );
 }

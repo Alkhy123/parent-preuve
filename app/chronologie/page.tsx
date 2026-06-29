@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import TimelineDossier from "@/components/timeline/TimelineDossier";
 import BrouillonsChronologieInfo from "@/components/timeline/BrouillonsChronologieInfo";
 import ApercuExportChronologie from "@/components/chronologie/ApercuExportChronologie";
@@ -46,7 +47,7 @@ const TYPES: { cle: TypeEntree; label: string }[] = [
 const SOURCES_CHRONOLOGIE = [
   {
     titre: "Journal",
-    texte: "Faits datés, incidents, remises d’enfant et observations factuelles.",
+    texte: "Faits datés, incidents, remises d'enfant et observations factuelles.",
   },
   {
     titre: "Frais",
@@ -62,7 +63,7 @@ const SOURCES_CHRONOLOGIE = [
   },
   {
     titre: "Preuves photo",
-    texte: "Photos conservées dans l’application avec leurs informations de suivi.",
+    texte: "Photos conservées dans l'application avec leurs informations de suivi.",
   },
   {
     titre: "Règles de garde",
@@ -246,7 +247,7 @@ export default function ChronologiePage() {
 
   // Résolveur id d'enfant → nom (jamais appelé avec null par la fonction pure).
   function nomEnfant(id: string): string {
-    return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "—";
+    return enfants.find((e) => e.id === id)?.prenom_ou_alias ?? "-";
   }
 
   // Filtre/formate les entrées avec les MÊMES filtres que le PDF.
@@ -299,16 +300,19 @@ export default function ChronologiePage() {
   const exportDesactive = lignesExport.length === 0;
 
   return (
-    <main>
-      <PageHeader
-        eyebrow="Organiser le dossier"
-        title="Chronologie intelligente"
-        subtitle="Vos faits, frais, pensions, documents, preuves et règles de garde, réunis dans une lecture chronologique de la procédure active."
-      />
-
-      <div className="mx-auto max-w-5xl px-6 py-10">
+    <AppShell
+      titre="Chronologie"
+      description="Relire les faits, frais, pensions, documents, preuves et regles de garde dans l ordre du dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/organiser" variant="secondary">Retour Organiser</AppButtonLink>
+          <AppButtonLink href="/exporter/chronologie" variant="secondary">Exporter</AppButtonLink>
+        </div>
+      }
+    >
+      <div className="mx-auto max-w-5xl px-2 py-4">
         {chargement ? (
-          <p className="text-texte-doux">Chargement…</p>
+          <p className="text-texte-doux">Chargement...</p>
         ) : (
           <>
             <section className="carte mb-8 rounded-2xl bg-[var(--surface)] p-6">
@@ -352,12 +356,9 @@ export default function ChronologiePage() {
                     <p className="mt-2 text-sm leading-6 text-texte-doux">
                       {etape.texte}
                     </p>
-                    <Link
-                      href={etape.href}
-                      className="mt-3 inline-flex text-sm font-semibold text-[#15233F] underline underline-offset-4"
-                    >
+                    <AppButtonLink href={etape.href} variant="secondary">
                       {etape.action}
-                    </Link>
+                    </AppButtonLink>
                   </div>
                 ))}
               </div>
@@ -398,18 +399,18 @@ export default function ChronologiePage() {
                 <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
                   {POINTS_CONTROLE.map((point) => (
                     <li key={point} className="flex gap-2">
-                      <span aria-hidden="true">•</span>
+                      <span aria-hidden="true">-</span>
                       <span>{point}</span>
                     </li>
                   ))}
                 </ul>
 
-                <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                <AppNotice titre="Brouillons locaux">
                   Les brouillons locaux issus de la collecte rapide ne sont pas
-                  encore intégrés automatiquement à la chronologie. Ils doivent
-                  être relus, ouverts dans le bon module, puis enregistrés
+                  encore integres automatiquement a la chronologie. Ils doivent
+                  etre relus, ouverts dans le bon module, puis enregistres
                   manuellement.
-                </div>
+                </AppNotice>
               </aside>
             </section>
 
@@ -494,7 +495,10 @@ export default function ChronologiePage() {
                   Exporter en CSV
                 </button>
               </div>
-              
+
+              <AppNotice titre="Export a relire">
+                Cet export est un document de travail. A relire et verifier avant tout usage. Il ne constitue pas un avis juridique.
+              </AppNotice>
             </section>
 
             <BrouillonsChronologieInfo />
@@ -508,6 +512,6 @@ export default function ChronologiePage() {
           </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }
