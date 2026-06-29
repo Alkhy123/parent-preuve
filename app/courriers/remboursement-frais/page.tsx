@@ -9,7 +9,7 @@ export default function Page() {
       titre="Remboursement de frais"
       sousTitre="Demander à l'autre parent sa part sur des frais partagés."
       champs={[
-        { nom: "nature", label: "Nature des frais", placeholder: "ex. cantine, activité sportive…" },
+        { nom: "nature", label: "Nature des frais", placeholder: "ex. cantine, activité sportive..." },
         { nom: "montantTotal", label: "Montant total (€)", type: "number", placeholder: "ex. 180" },
         { nom: "partDue", label: "Part due par l'autre parent (€)", type: "number", placeholder: "ex. 90" },
         { nom: "dateLimite", label: "Date limite de paiement", type: "date" },
