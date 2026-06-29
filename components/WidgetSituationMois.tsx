@@ -112,8 +112,8 @@ export default function WidgetSituationMois() {
   // Etat : chargement.
   if (etat === null && !erreur) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-        Chargement de la situation du mois…
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm text-sm text-slate-500">
+        Chargement de la situation du mois...
       </div>
     );
   }
@@ -121,7 +121,7 @@ export default function WidgetSituationMois() {
   // Etat : echec. On n'affirme jamais que la pension est a jour.
   if (erreur || etat === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         {entete}
         <p className="mt-3 text-sm text-slate-500">
           Situation indisponible pour le moment. Vous pouvez réessayer plus tard.
@@ -133,7 +133,7 @@ export default function WidgetSituationMois() {
   // Aucun paiement enregistre pour ce mois.
   if (etat.nb === 0) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         {entete}
         <p className="mt-3 text-sm text-[#5A6473]">
           Aucun paiement de pension enregistré pour ce mois.
@@ -152,8 +152,8 @@ export default function WidgetSituationMois() {
           principal: euros(etat.solde),
           libelle:
             etat.totalPaye > 0
-              ? "Reste dû — paiement partiel"
-              : "Reste dû — en attente de paiement",
+              ? "Reste dû - paiement partiel"
+              : "Reste dû - en attente de paiement",
           couleur: "#9B2C2C",
         }
       : etat.solde < 0
@@ -169,7 +169,7 @@ export default function WidgetSituationMois() {
           };
 
   return (
-    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       {entete}
 
       <p className="mt-3 text-3xl font-bold" style={{ color: vue.couleur }}>

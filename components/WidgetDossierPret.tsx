@@ -43,8 +43,8 @@ export default function WidgetDossierPret() {
   // Etat : verification en cours.
   if (problemes === null && !erreur) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-        Vérification du dossier…
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm text-sm text-slate-500">
+        Vérification du dossier...
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function WidgetDossierPret() {
   // Etat : echec du controle. On n'affirme JAMAIS que le dossier est pret.
   if (erreur || problemes === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l&apos;export</h2>
         <p className="mt-2 text-sm text-slate-500">
           Contrôle indisponible pour le moment. Vous pouvez réessayer plus tard ou
@@ -71,7 +71,7 @@ export default function WidgetDossierPret() {
   const resume = resumeControle(problemes);
 
   return (
-    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-lg text-[#15233F]">Dossier prêt à l&apos;export</h2>
         <Link
