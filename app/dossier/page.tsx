@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppShell from "@/components/app/AppShell";
 import StatutConsentementIA from "@/components/StatutConsentementIA";
 import EffacerDonnees from "@/components/EffacerDonnees";
 
-// Socle = le DÉCLARANT uniquement (info globale à l'utilisateur).
-// L'autre parent et le jugement se gèrent désormais PAR PROCÉDURE (page /procedure).
+// Socle = le DECLARANT uniquement (info globale a l'utilisateur).
+// L'autre parent et le jugement se gerent desormais PAR PROCEDURE (page /procedure).
 type Dossier = {
   declarant_civilite: string;
   declarant_nom: string;
@@ -31,11 +32,11 @@ function Champ({ label, value, onChange, type = "text", placeholder }: {
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[#15233F]">{label}</span>
+      <span className="text-sm font-medium text-[var(--app-text)]">{label}</span>
       <input
         type={type} value={value} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[#1F2733] focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]"
+        className="mt-1 w-full rounded-md border border-[var(--app-border)] bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]"
       />
     </label>
   );
@@ -79,7 +80,7 @@ export default function DossierPage() {
       return;
     }
 
-    // On n'écrit QUE le déclarant : l'autre parent / le jugement vivent dans `procedures`.
+    // On n'ecrit QUE le declarant : l'autre parent / le jugement vivent dans `procedures`.
     const payload: Record<string, string | null> = { user_id: user.id };
     (Object.keys(form) as (keyof Dossier)[]).forEach((champ) => {
       payload[champ] = form[champ].trim() === "" ? null : form[champ];
@@ -93,23 +94,28 @@ export default function DossierPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Vos informations"
-        title="Mon dossier"
-        subtitle="Vos informations personnelles, réutilisées automatiquement dans vos courriers."
-      />
-
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
+    <AppShell
+      titre="Dossier"
+      description="Completer les informations du declarant et acceder aux reglages lies au dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/compte" variant="secondary">
+            Retour Compte
+          </AppButtonLink>
+          <AppButtonLink href="/procedure" variant="secondary">
+            Procedure active
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         {chargement ? (
-          <p className="text-slate-600">Chargement…</p>
+          <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
         ) : (
-          <div className="space-y-6">
-
-            {/* Le déclarant (vous) */}
-            <section className="carte rounded-lg border border-slate-200 bg-white p-6">
-              <h2 className="font-display text-xl text-[#15233F]">Vous</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <>
+            {/* Le declarant (vous) */}
+            <AppCard titre="Vous">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Champ label="Civilité" value={form.declarant_civilite} onChange={(v) => maj("declarant_civilite", v)} placeholder="M. ou Mme" />
                 <Champ label="Nom" value={form.declarant_nom} onChange={(v) => maj("declarant_nom", v)} />
                 <Champ label="Prénom" value={form.declarant_prenom} onChange={(v) => maj("declarant_prenom", v)} />
@@ -119,24 +125,22 @@ export default function DossierPage() {
                 <Champ label="Email" type="email" value={form.declarant_email} onChange={(v) => maj("declarant_email", v)} />
                 <Champ label="Téléphone" value={form.declarant_telephone} onChange={(v) => maj("declarant_telephone", v)} />
               </div>
-            </section>
+            </AppCard>
 
-            {/* Renvoi vers l'édition de la procédure */}
-            <section className="carte rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-6">
-              <h2 className="font-display text-xl text-[#15233F]">L&apos;autre parent et le jugement</h2>
-              <p className="mt-2 text-sm text-[#1F2733]/80">
+            {/* Renvoi vers l'edition de la procedure */}
+            <AppCard titre="L'autre parent et le jugement">
+              <p className="text-sm text-[var(--app-text-muted)]">
                 Ces informations dépendent de chaque procédure (un autre parent, un jugement).
                 Elles se saisissent maintenant dans l&apos;écran dédié, pour la procédure active.
               </p>
-              <Link
-                href="/procedure"
-                className="mt-4 inline-block rounded-md bg-[#15233F] px-5 py-2.5 text-sm font-medium text-[#F8F6F1] hover:bg-[#1d2f54]"
-              >
-                Ouvrir l&apos;édition de la procédure active
-              </Link>
-            </section>
+              <div className="mt-4">
+                <AppButtonLink href="/procedure">
+                  Ouvrir l&apos;édition de la procédure active
+                </AppButtonLink>
+              </div>
+            </AppCard>
 
-            {/* Consentement IA par fonctionnalité */}
+            {/* Consentement IA par fonctionnalite */}
             <StatutConsentementIA fonctionnalite="reformulation" />
 
             <div className="flex items-center gap-4">
@@ -145,7 +149,7 @@ export default function DossierPage() {
                 disabled={enregistrement}
                 className="rounded-md bg-[#15233F] px-5 py-2.5 text-sm font-medium text-[#F8F6F1] hover:bg-[#1d2f54] disabled:opacity-60"
               >
-                {enregistrement ? "Enregistrement…" : "Enregistrer le dossier"}
+                {enregistrement ? "Enregistrement..." : "Enregistrer le dossier"}
               </button>
               {message && (
                 <p className={message.startsWith("Erreur") ? "text-red-600 text-sm" : "text-emerald-700 text-sm"}>
@@ -154,12 +158,11 @@ export default function DossierPage() {
               )}
             </div>
 
-            {/* Zone sensible : remise à zéro complète du dossier */}
+            {/* Zone sensible : remise a zero complete du dossier */}
             <EffacerDonnees />
-
-          </div>
+          </>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }
