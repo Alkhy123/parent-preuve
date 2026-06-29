@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import OptionsAvancees from "@/components/ui/OptionsAvancees";
 import { supabase } from "@/lib/supabase";
 import { enteteAuth } from "@/lib/enteteAuth";
@@ -274,7 +276,7 @@ export default function PreuvesPage() {
       }
 
       // Colonnes d'affichage + CSV uniquement. Les champs lourds réservés au
-      // rapport PDF (empreinte serveur, jeton, métadonnées…) sont rechargés à la
+      // rapport PDF (empreinte serveur, jeton, métadonnées...) sont rechargés à la
       // demande dans genererRapport, pour alléger la liste.
       const resPreuves = await supabase
         .from("preuves_photo")
@@ -309,7 +311,7 @@ export default function PreuvesPage() {
   }
 
   function formaterTaille(octets: number | null): string {
-    if (!octets) return "—";
+    if (!octets) return "-";
     if (octets < 1024) return `${octets} o`;
     if (octets < 1024 * 1024) return `${(octets / 1024).toFixed(1)} Ko`;
     return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
@@ -325,7 +327,7 @@ export default function PreuvesPage() {
       if (statut === "non_qualifie") return "horodaté (non qualifié)";
       if (statut === "qualifie") return "horodaté (qualifié)";
       if (statut === "a_refaire") return "à refaire";
-      return "—";
+      return "-";
     };
 
     const enTete = [
@@ -348,7 +350,7 @@ export default function PreuvesPage() {
       p.type_fichier ?? "",
       formaterTaille(p.taille_octets),
       libelleHorodatage(p.horodatage_statut),
-      p.horodatage_date ? dateHeureFr(p.horodatage_date) : "—",
+      p.horodatage_date ? dateHeureFr(p.horodatage_date) : "-",
       p.empreinte_sha256 ?? "",
     ]);
 
@@ -372,76 +374,79 @@ export default function PreuvesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Preuve photo"
-        title="Mes preuves"
-        subtitle="Vos preuves photo horodatées, regroupées par enfant."
-      />
-
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
-        <p className="text-sm text-[#1F2733]/70">
+    <AppShell
+      titre="Preuves photo"
+      description="Consulter les preuves importees, verifier leurs informations et preparer un rapport si necessaire."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/organiser" variant="secondary">
+            Retour Organiser
+          </AppButtonLink>
+          <AppButtonLink href="/collecter/rapide">
+            Collecter une preuve
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <p className="text-sm text-[var(--app-text-muted)]">
           Une preuve photo, c&apos;est une image accompagnée de ses informations
           techniques (empreinte, horodatage), pour mieux l&apos;organiser dans votre
           dossier. Pour ranger une facture ou un document déjà reçu, utilisez plutôt{" "}
-          <Link href="/documents" className="font-medium text-[#15233F] underline">
+          <a href="/documents" className="font-medium text-[#15233F] underline">
             Documents et justificatifs
-          </Link>
+          </a>
           .
         </p>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             onClick={exporterPreuvePhotoCsv}
             disabled={preuvesProcedure.length === 0}
-            className="rounded-md border border-[#15233F]/30 px-4 py-2 text-sm font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
+            className="rounded-md border border-[var(--app-border)] px-4 py-2 text-sm font-medium text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:opacity-50"
           >
             Exporter en CSV
           </button>
-          <Link
-            href="/preuves/nouvelle"
-            className="rounded-md bg-[#15233F] px-4 py-2 text-sm font-medium text-white hover:bg-[#15233F]/90"
-          >
+          <AppButtonLink href="/preuves/nouvelle">
             + Nouvelle preuve
-          </Link>
+          </AppButtonLink>
         </div>
 
         {chargement && (
-          <p className="text-sm text-[#1F2733]/70">Chargement…</p>
+          <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
         )}
 
         {!chargement && preuvesProcedure.length === 0 && (
-          <div className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-8 text-center">
-            <p className="text-[#1F2733]/70">
-              Aucune preuve pour cette procédure.
-            </p>
-            <Link
-              href="/preuves/nouvelle"
-              className="mt-3 inline-block text-sm font-medium text-[#15233F] underline"
-            >
-              Créer ma première preuve
-            </Link>
-          </div>
+          <AppCard>
+            <div className="text-center space-y-3">
+              <p className="text-[var(--app-text-muted)]">
+                Aucune preuve pour cette procédure.
+              </p>
+              <AppButtonLink href="/preuves/nouvelle">
+                Créer ma première preuve
+              </AppButtonLink>
+            </div>
+          </AppCard>
         )}
 
         {!chargement &&
           Array.from(groupes.entries()).map(([cle, liste]) => (
             <section key={cle} className="space-y-3">
-              <h2 className="font-display text-xl text-[#15233F] border-b border-[#C2A24C]/40 pb-1">
+              <h2 className="font-semibold text-xl text-[var(--app-text)] border-b border-[var(--app-border)] pb-1">
                 {nomEnfant(cle === "aucun" ? null : cle)}
               </h2>
 
               {liste.map((p) => (
                 <div
                   key={p.id}
-                  className="carte rounded-lg border border-[#C2A24C]/40 bg-white p-5 space-y-3"
+                  className="rounded-xl border border-[var(--app-border)] bg-white p-5 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-medium text-[#1F2733]">
+                      <p className="font-medium text-[var(--app-text)]">
                         {p.titre || "Preuve sans titre"}
                       </p>
-                      <p className="text-xs text-[#1F2733]/60">
+                      <p className="text-xs text-[var(--app-text-muted)]">
                         Scellée le {dateHeureFr(p.created_at)}
                       </p>
                       {pastilleHorodatage(p.horodatage_statut) && (
@@ -455,17 +460,17 @@ export default function PreuvesPage() {
                       )}
                     </div>
                     <div className="flex shrink-0 gap-2">
-                    <button
+                      <button
                         onClick={() => genererRapport(p)}
                         disabled={genEnCours === p.id}
                         className="rounded-md bg-[#15233F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#15233F]/90 disabled:opacity-50"
                       >
-                        {genEnCours === p.id ? "Génération…" : "Rapport PDF"}
+                        {genEnCours === p.id ? "Génération..." : "Rapport PDF"}
                       </button>
                       {p.storage_path && (
                         <button
                           onClick={() => voirOriginal(p.storage_path)}
-                          className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5"
+                          className="rounded-md border border-[var(--app-border)] px-3 py-1.5 text-xs font-medium text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]"
                         >
                           Voir l&apos;original
                         </button>
@@ -481,7 +486,7 @@ export default function PreuvesPage() {
                         className="rounded-md border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
                       >
                         {actionEnCours === `${p.id}:horodatage`
-                          ? "Horodatage…"
+                          ? "Horodatage..."
                           : "Relancer l'horodatage"}
                       </button>
                     )}
@@ -489,34 +494,34 @@ export default function PreuvesPage() {
                       <button
                         onClick={() => relancerVerificationHash(p)}
                         disabled={actionEnCours === `${p.id}:hash`}
-                        className="rounded-md border border-[#15233F]/30 px-3 py-1.5 text-xs font-medium text-[#15233F] hover:bg-[#15233F]/5 disabled:opacity-50"
+                        className="rounded-md border border-[var(--app-border)] px-3 py-1.5 text-xs font-medium text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:opacity-50"
                       >
                         {actionEnCours === `${p.id}:hash`
-                          ? "Vérification…"
+                          ? "Vérification..."
                           : "Vérifier l'intégrité"}
                       </button>
                     )}
                   </div>
 
                   {retour[p.id] && (
-                    <p className="text-xs text-[#1F2733]/70">{retour[p.id]}</p>
+                    <p className="text-xs text-[var(--app-text-muted)]">{retour[p.id]}</p>
                   )}
 
                   {p.description && (
-                    <p className="text-sm text-[#1F2733]/80 whitespace-pre-wrap">
+                    <p className="text-sm text-[var(--app-text-muted)] whitespace-pre-wrap">
                       {p.description}
                     </p>
                   )}
 
                   <OptionsAvancees titre="Détails techniques">
                     <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <dt className="text-[#1F2733]/60">Fichier</dt>
-                      <dd className="text-[#1F2733] break-all">
-                        {p.nom_fichier || "—"} ({formaterTaille(p.taille_octets)})
+                      <dt className="text-[var(--app-text-muted)]">Fichier</dt>
+                      <dd className="text-[var(--app-text)] break-all">
+                        {p.nom_fichier || "-"} ({formaterTaille(p.taille_octets)})
                       </dd>
 
-                      <dt className="text-[#1F2733]/60">Position</dt>
-                      <dd className="text-[#1F2733]">
+                      <dt className="text-[var(--app-text-muted)]">Position</dt>
+                      <dd className="text-[var(--app-text)]">
                         {p.gps_latitude != null && p.gps_longitude != null
                           ? `${p.gps_latitude.toFixed(5)}, ${p.gps_longitude.toFixed(
                               5
@@ -524,20 +529,20 @@ export default function PreuvesPage() {
                           : "non disponible"}
                       </dd>
 
-                      <dt className="text-[#1F2733]/60">Écart d&apos;heure</dt>
-                      <dd className="text-[#1F2733]">
+                      <dt className="text-[var(--app-text-muted)]">Écart d&apos;heure</dt>
+                      <dd className="text-[var(--app-text)]">
                         {p.ecart_heure_secondes != null
                           ? `${p.ecart_heure_secondes} s`
-                          : "—"}
+                          : "-"}
                       </dd>
                     </dl>
 
                     {p.empreinte_sha256 && (
                       <div>
-                        <p className="text-xs text-[#1F2733]/60 mb-1">
+                        <p className="text-xs text-[var(--app-text-muted)] mb-1">
                           Empreinte SHA-256
                         </p>
-                        <p className="rounded-md bg-[#F8F6F1] px-3 py-2 font-mono text-[10px] text-[#15233F] break-all border border-[#C2A24C]/30">
+                        <p className="rounded-md bg-[var(--app-surface-muted)] px-3 py-2 font-mono text-[10px] text-[var(--app-text)] break-all border border-[var(--app-border)]">
                           {p.empreinte_sha256}
                         </p>
                       </div>
@@ -548,11 +553,14 @@ export default function PreuvesPage() {
             </section>
           ))}
 
-        <p className="text-xs leading-relaxed text-[#1F2733]/60">
-          Ces preuves numériques renforcées sont scellées et horodatées. Elles ne
-          constituent pas un constat de commissaire de justice.
-        </p>
+        <AppNotice titre="Document de travail">
+          <p>
+            Ces preuves numériques renforcées sont scellées et horodatées. Elles ne
+            constituent pas un constat de commissaire de justice. Relisez les
+            informations avant tout usage. Le rapport PDF reste un document de travail.
+          </p>
+        </AppNotice>
       </div>
-    </main>
+    </AppShell>
   );
 }
