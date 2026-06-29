@@ -320,7 +320,7 @@ export default function CollecteRapidePage() {
 
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-            2. Noter l'essentiel
+            2. Noter l&apos;essentiel
           </p>
           <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
             Brouillon de collecte
@@ -582,8 +582,8 @@ export default function CollecteRapidePage() {
           Après la collecte
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Une fois l'élément enregistré dans le bon module, vérifiez-le dans
-          l'espace Organiser pour le rattacher au bon enfant, au bon dossier, à
+          Une fois l&apos;élément enregistré dans le bon module, vérifiez-le dans
+          l&apos;espace Organiser pour le rattacher au bon enfant, au bon dossier, à
           la bonne procédure et aux pièces utiles.
         </p>
 
