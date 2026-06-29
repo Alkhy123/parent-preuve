@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
@@ -278,148 +281,162 @@ export default function PensionPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Suivi"
-        title="Pension alimentaire"
-        subtitle="Suivez mois par mois ce qui est dû et ce qui a été payé."
-      />
-      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-2xl px-6 py-12">
-          <div className="mt-6">
-            <ReglePension />
-          </div>
+    <AppShell
+      titre="Pension"
+      description="Suivre les montants dus, les paiements recus et les ecarts mois par mois."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/collecter" variant="secondary">
+            Retour Collecter
+          </AppButtonLink>
+          <AppButtonLink href="/resume-mois" variant="secondary">
+            Resume du mois
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <ReglePension />
 
-          {/* Total restant dû */}
-          <div className="mt-6 carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
-            <p className="text-sm text-[#1F2733]/60">Total restant dû (tous mois)</p>
-            <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(totalDu)}</p>
-          </div>
+        <AppCard titre="Total restant dû">
+          <p className="text-sm text-[var(--app-text-muted)]">
+            Tous mois confondus, procédure active
+          </p>
+          <p className="mt-1 text-2xl font-bold text-[var(--app-text)]">
+            {euros(totalDu)}
+          </p>
+        </AppCard>
 
-          {/* Export CSV */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={exporterCsv}
-              disabled={paiements.length === 0}
-              className="rounded-lg border border-[#C2A24C]/30 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-[#ECE7DC]/40 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Exporter en CSV
-            </button>
-          </div>
+        <div className="flex justify-end">
+          <button
+            onClick={exporterCsv}
+            disabled={paiements.length === 0}
+            className="rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
+        </div>
 
-          {/* Formulaire. La clé force l'ouverture de l'encart quand un
-              pré-remplissage arrive (sans modifier le composant partagé). */}
-          <div className="mt-8" ref={formulaireRef}>
-            <EncartPliable
-              key={editionId ? `pension-edition-${editionId}` : preRempli ? "pension-prerempli" : "pension-standard"}
-              titre={editionId ? "Modifier le mois" : "Ajouter un paiement"}
-              replieParDefaut={!preRempli && !editionId}
-              signalFermeture={signalAjout}
-            >
-              <div className="space-y-4">
-            {preRempli && (
-              <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
-                <p className="font-medium text-[#15233F]">
-                  Proposition pré-remplie à partir de votre saisie.
-                </p>
-                <p className="mt-1 text-[#1F2733]/70">
-                  Vérifiez chaque champ, complétez le montant attendu si besoin, puis cliquez sur « Enregistrer le mois » pour valider vous-même l&apos;enregistrement.
-                </p>
-                {avertissements.length > 0 && (
-                  <ul className="mt-2 list-disc pl-5 text-[#1F2733]/70">
-                    {avertissements.map((a, i) => (
-                      <li key={i}>{a}</li>
-                    ))}
-                  </ul>
+        {/* Formulaire. La clé force l'ouverture de l'encart quand un
+            pré-remplissage arrive (sans modifier le composant partagé). */}
+        <div ref={formulaireRef}>
+          <EncartPliable
+            key={editionId ? `pension-edition-${editionId}` : preRempli ? "pension-prerempli" : "pension-standard"}
+            titre={editionId ? "Modifier le mois" : "Ajouter un paiement"}
+            replieParDefaut={!preRempli && !editionId}
+            signalFermeture={signalAjout}
+          >
+            <div className="space-y-4">
+              {preRempli && (
+                <AppNotice titre="Proposition pré-remplie à vérifier">
+                  <p>
+                    Vérifiez chaque champ, complétez le montant attendu si besoin,
+                    puis cliquez sur « Enregistrer le mois » pour valider
+                    vous-même l&apos;enregistrement.
+                  </p>
+                  {avertissements.length > 0 && (
+                    <ul className="mt-2 list-disc pl-5">
+                      {avertissements.map((a, i) => (
+                        <li key={i}>{a}</li>
+                      ))}
+                    </ul>
+                  )}
+                </AppNotice>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#15233F]">
+                    Mois concerné <span className="text-[#9B2C2C]">*</span>
+                  </label>
+                  <input
+                    type="month" value={mois}
+                    onChange={(e) => setMois(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2 bg-white text-[var(--app-text)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#15233F]">
+                    Montant attendu (€) <span className="text-[#9B2C2C]">*</span>
+                  </label>
+                  <input
+                    type="text" inputMode="decimal" placeholder="300"
+                    value={montantDu} onChange={(e) => setMontantDu(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2 bg-white text-[var(--app-text)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#15233F]">Montant reçu (€)</label>
+                  <input
+                    type="text" inputMode="decimal" placeholder="0 si rien reçu"
+                    value={montantPaye} onChange={(e) => setMontantPaye(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2 bg-white text-[var(--app-text)]"
+                  />
+                  <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+                    Indiquez ce qui a réellement été reçu. Un paiement partiel ou un
+                    retard est simplement constaté, sans interprétation.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#15233F]">Date de réception (facultatif)</label>
+                  <input
+                    type="date" value={datePaiement}
+                    onChange={(e) => setDatePaiement(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2 bg-white text-[var(--app-text)]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#15233F]">Note (facultatif)</label>
+                <textarea
+                  rows={2} value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex : virement partiel, paiement en espèces..."
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2 bg-white text-[var(--app-text)]"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={enregistrerMois}
+                  className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#15233F]/90"
+                >
+                  {editionId ? "Enregistrer les modifications" : "Enregistrer le mois"}
+                </button>
+                {editionId && (
+                  <button
+                    type="button"
+                    onClick={annulerEdition}
+                    className="rounded-lg border border-[var(--app-border)] px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]"
+                  >
+                    Annuler
+                  </button>
                 )}
               </div>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#15233F]">
-                  Mois concerné <span className="text-[#9B2C2C]">*</span>
-                </label>
-                <input
-                  type="month" value={mois}
-                  onChange={(e) => setMois(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#15233F]">
-                  Montant attendu (€) <span className="text-[#9B2C2C]">*</span>
-                </label>
-                <input
-                  type="text" inputMode="decimal" placeholder="300"
-                  value={montantDu} onChange={(e) => setMontantDu(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
-                />
-              </div>
+              <FormMessage message={message} type="erreur" />
             </div>
+          </EncartPliable>
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#15233F]">Montant reçu (€)</label>
-                <input
-                  type="text" inputMode="decimal" placeholder="0 si rien reçu"
-                  value={montantPaye} onChange={(e) => setMontantPaye(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
-                />
-                <p className="mt-1 text-xs text-[#1F2733]/60">
-                  Indiquez ce qui a réellement été reçu. Un paiement partiel ou un
-                  retard est simplement constaté, sans interprétation.
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#15233F]">Date de réception (facultatif)</label>
-                <input
-                  type="date" value={datePaiement}
-                  onChange={(e) => setDatePaiement(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#15233F]">Note (facultatif)</label>
-              <textarea
-                rows={2} value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Ex : virement partiel, paiement en espèces…"
-                className="mt-1 w-full rounded-lg border border-[#C2A24C]/30 px-3 py-2 bg-white text-[#1F2733]"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={enregistrerMois}
-                className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#15233F]/90"
-              >
-                {editionId ? "Enregistrer les modifications" : "Enregistrer le mois"}
-              </button>
-              {editionId && (
-                <button
-                  type="button"
-                  onClick={annulerEdition}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Annuler
-                </button>
-              )}
-            </div>
-            <FormMessage message={message} type="erreur" />
-              </div>
-            </EncartPliable>
+        {confirmation && (
+          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+            <FormMessage message={confirmation} type="succes" />
           </div>
+        )}
 
-          {confirmation && (
-            <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
-              <FormMessage message={confirmation} type="succes" />
-            </div>
-          )}
+        <AppNotice titre="Rappel">
+          <p>
+            Les montants affichés sont issus de vos saisies. Vérifiez-les avant
+            tout usage ou export.
+          </p>
+        </AppNotice>
 
-          {/* Liste */}
-          <div className="mt-8 space-y-3">
+        {/* Liste */}
+        <AppCard>
+          <div className="space-y-3">
             {paiements.length === 0 && (
               <EmptyState
                 titre="Aucun mois enregistré"
@@ -430,18 +447,18 @@ export default function PensionPage() {
               const s = statut(p);
               const resteDu = Math.max(0, Number(p.montant_du) - Number(p.montant_paye));
               return (
-                <div key={p.id} className="carte rounded-xl border border-[#C2A24C]/20 bg-white p-4">
+                <div key={p.id} className="rounded-xl border border-[var(--app-border)] bg-white p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold capitalize text-[#15233F]">
+                        <p className="font-semibold capitalize text-[var(--app-text)]">
                           {moisLisible(p.mois_du)}
                         </p>
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${s.classe}`}>
                           {s.texte}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-[#1F2733]/60">
+                      <p className="mt-1 text-sm text-[var(--app-text-muted)]">
                         Attendu {euros(Number(p.montant_du))} · reçu {euros(Number(p.montant_paye))}
                         {p.date_paiement ? ` le ${p.date_paiement}` : ""}
                       </p>
@@ -451,20 +468,20 @@ export default function PensionPage() {
                         </p>
                       )}
                       {p.notes && (
-                        <p className="mt-1 text-sm text-[#1F2733]/70">{p.notes}</p>
+                        <p className="mt-1 text-sm text-[var(--app-text-muted)]">{p.notes}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <button
                         onClick={() => chargerPourEdition(p)}
-                        className="text-sm text-[#15233F] hover:underline"
+                        className="text-sm text-[var(--app-text)] hover:underline"
                       >
                         Modifier
                       </button>
                       {resteDu > 0 && (
                         <button
                           onClick={() => marquerPayeEnEntier(p)}
-                          className="text-sm text-[#15233F] hover:underline"
+                          className="text-sm text-[var(--app-text)] hover:underline"
                         >
                           Marquer payé en entier
                         </button>
@@ -481,8 +498,8 @@ export default function PensionPage() {
               );
             })}
           </div>
-        </div>
-      </main>
-    </>
+        </AppCard>
+      </div>
+    </AppShell>
   );
 }
