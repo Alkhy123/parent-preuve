@@ -7,7 +7,8 @@
 //  - Si l'assistant est en cours : le wizard reprend a l'etape memorisee.
 
 import { useEffect, useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppShell from "@/components/app/AppShell";
 import InvitationOnboarding from "@/components/onboarding/InvitationOnboarding";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import {
@@ -54,23 +55,24 @@ export default function OnboardingPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Assistant de démarrage"
-        title="Préparer votre dossier pas à pas"
-        subtitle="Un parcours guidé pour organiser un dossier clair, daté et factuel."
-      />
-      <div className="bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-3xl px-6 py-10">
-          {enCours === null ? (
-            <p className="text-sm text-texte-doux">Chargement…</p>
-          ) : enCours ? (
-            <OnboardingWizard />
-          ) : (
-            <InvitationOnboarding onDemarrer={demarrer} />
-          )}
-        </div>
+    <AppShell
+      titre="Assistant de demarrage"
+      description="Configurer les premiers elements du dossier avant d utiliser les modules."
+      actions={
+        <AppButtonLink href="/" variant="secondary">
+          Retour accueil
+        </AppButtonLink>
+      }
+    >
+      <div className="mx-auto max-w-3xl px-6 py-10">
+        {enCours === null ? (
+          <p className="text-sm text-texte-doux">Chargement...</p>
+        ) : enCours ? (
+          <OnboardingWizard />
+        ) : (
+          <InvitationOnboarding onDemarrer={demarrer} />
+        )}
       </div>
-    </>
+    </AppShell>
   );
 }

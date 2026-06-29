@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import AccueilPublic from "@/components/AccueilPublic";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppShell from "@/components/app/AppShell";
 import ConfigurationDossier from "@/components/ConfigurationDossier";
-import PageHeader from "@/components/PageHeader";
 import ProchainesEcheances from "@/components/ProchainesEcheances";
 import TableauDeBord from "@/components/TableauDeBord";
 import WidgetActionsPrioritaires from "@/components/WidgetActionsPrioritaires";
@@ -66,7 +67,7 @@ export default function Home() {
   if (connecte === null) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <p className="text-sm text-slate-600">Chargement…</p>
+        <p className="text-sm text-slate-600">Chargement...</p>
       </main>
     );
   }
@@ -76,20 +77,24 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <PageHeader
-        eyebrow="Accueil"
-        title="Collecter, organiser et exporter votre dossier parental"
-        subtitle="Parent Preuve vous aide à transformer les faits, documents, frais et preuves du quotidien en dossier clair et structuré."
-      />
-
-      <section className="mt-6 rounded-3xl border border-[#C2A24C]/30 bg-[#C2A24C]/10 p-5">
+    <AppShell
+      titre="Parent Preuve"
+      description="Collecter, organiser et exporter les elements utiles de votre dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/collecter" variant="secondary">Collecter</AppButtonLink>
+          <AppButtonLink href="/organiser" variant="secondary">Organiser</AppButtonLink>
+          <AppButtonLink href="/exporter" variant="secondary">Exporter</AppButtonLink>
+        </div>
+      }
+    >
+      <section className="rounded-3xl border border-[#C2A24C]/30 bg-[#C2A24C]/10 p-5">
         <p className="text-sm font-semibold text-[#8A5A12]">
           Vous vivez les faits. Parent Preuve les organise.
         </p>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">
           Commencez par collecter ce qui se passe, organisez ensuite vos
-          éléments par dossier, enfant et procédure, puis exportez une
+          elements par dossier, enfant et procedure, puis exportez une
           chronologie, un courrier ou un dossier clair.
         </p>
       </section>
@@ -174,6 +179,6 @@ export default function Home() {
       <section className="mt-8">
         <ConfigurationDossier />
       </section>
-    </main>
+    </AppShell>
   );
 }
