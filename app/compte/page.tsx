@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { enteteAuth } from "@/lib/enteteAuth";
-import PageHeader from "@/components/PageHeader";
+import { useRouter } from "next/navigation";
+
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import ThemeSelector from "@/components/theme/ThemeSelector";
+import { enteteAuth } from "@/lib/enteteAuth";
+import { supabase } from "@/lib/supabase";
 
 export default function ComptePage() {
   const router = useRouter();
+
   const [email, setEmail] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
   const [confirmation, setConfirmation] = useState("");
@@ -18,13 +23,13 @@ export default function ComptePage() {
   const [exportEnCours, setExportEnCours] = useState(false);
   const [exportErreur, setExportErreur] = useState<string | null>(null);
 
-  // Page réservée aux utilisateurs connectés.
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
         router.replace("/connexion");
         return;
       }
+
       setEmail(data.user.email ?? null);
       setChargement(false);
     });
@@ -33,22 +38,28 @@ export default function ComptePage() {
   async function supprimerCompte() {
     setErreur(null);
     setSuppressionEnCours(true);
+
     try {
       const reponse = await fetch("/api/compte/supprimer", {
         method: "DELETE",
-        headers: { ...(await enteteAuth()) },
+        headers: {
+          ...(await enteteAuth()),
+        },
       });
+
       if (!reponse.ok) {
         const data = await reponse.json().catch(() => ({}));
-        setErreur(data.erreur ?? "La suppression a échoué. Réessayez.");
+        setErreur(data.erreur ?? "La suppression a echoue. Reessayez.");
         setSuppressionEnCours(false);
         return;
       }
-      // Succès : déconnexion locale puis retour à l'accueil.
+
       await supabase.auth.signOut();
       router.replace("/");
     } catch {
-      setErreur("La suppression a échoué. Vérifiez votre connexion et réessayez.");
+      setErreur(
+        "La suppression a echoue. Verifiez votre connexion et reessayez.",
+      );
       setSuppressionEnCours(false);
     }
   }
@@ -56,132 +67,172 @@ export default function ComptePage() {
   async function exporterDonnees() {
     setExportErreur(null);
     setExportEnCours(true);
+
     try {
       const reponse = await fetch("/api/compte/exporter", {
         method: "GET",
-        headers: { ...(await enteteAuth()) },
+        headers: {
+          ...(await enteteAuth()),
+        },
       });
+
       if (!reponse.ok) {
         const data = await reponse.json().catch(() => ({}));
-        setExportErreur(data.erreur ?? "L'export a échoué. Réessayez.");
+        setExportErreur(data.erreur ?? "L'export a echoue. Reessayez.");
         return;
       }
-      // Téléchargement du JSON renvoyé.
+
       const blob = await reponse.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
+
       a.href = url;
-      a.download = `parent-preuve-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `parent-preuve-export-${new Date()
+        .toISOString()
+        .slice(0, 10)}.json`;
+
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
-      setExportErreur("L'export a échoué. Vérifiez votre connexion et réessayez.");
+      setExportErreur(
+        "L'export a echoue. Verifiez votre connexion et reessayez.",
+      );
     } finally {
       setExportEnCours(false);
     }
   }
 
   if (chargement) {
-    return <div className="mx-auto max-w-2xl px-4 py-10 text-[#1F2733]">Chargement…</div>;
+    return (
+      <AppShell
+        titre="Mon compte"
+        description="Chargement des informations du compte."
+      >
+        <AppCard>
+          <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
+        </AppCard>
+      </AppShell>
+    );
   }
 
-  const peutSupprimer = confirmation.trim() === "SUPPRIMER" && !suppressionEnCours;
+  const peutSupprimer =
+    confirmation.trim() === "SUPPRIMER" && !suppressionEnCours;
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Votre compte"
-        title="Mon compte"
-        subtitle="Vos informations et la gestion de votre compte."
-      />
+    <AppShell
+      titre="Mon compte"
+      description="Gerez les informations du compte, l'apparence locale, l'export RGPD et la suppression des donnees."
+      actions={
+        <AppButtonLink href="/" variant="secondary">
+          Retour accueil
+        </AppButtonLink>
+      }
+    >
+      <div className="space-y-6">
+        <AppCard titre="Informations">
+          <div className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
+            <p>
+              Adresse e-mail :{" "}
+              <span className="font-semibold text-[var(--app-text)]">
+                {email}
+              </span>
+            </p>
 
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-8 text-[#1F2733]">
-        {/* Informations */}
-        <section className="carte rounded-lg bg-white p-5">
-          <h2 className="font-display text-xl text-[#15233F]">Informations</h2>
-          <p className="mt-2 text-sm">
-            Adresse e-mail : <strong>{email}</strong>
-          </p>
-          <p className="mt-2 text-sm">
-            Pour savoir quelles données sont traitées et connaître vos droits, consultez la{" "}
-            <Link href="/confidentialite" className="text-[#15233F] underline">
-              politique de confidentialité
-            </Link>
-            .
-          </p>
-        </section>
-
-          {/* Apparence */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-[#15233F]">Apparence</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Choisissez le style visuel de votre espace Parent Preuve. Ce réglage
-            modifie uniquement l’apparence de l’application sur cet appareil.
-          </p>
-
-          <div className="mt-4">
-            <ThemeSelector />
+            <p>
+              Pour savoir quelles donnees sont traitees et connaitre vos
+              droits, consultez la{" "}
+              <Link
+                href="/confidentialite"
+                className="font-semibold text-[var(--app-primary)] underline-offset-4 hover:underline"
+              >
+                politique de confidentialite
+              </Link>
+              .
+            </p>
           </div>
-        </section>
+        </AppCard>
 
-        {/* Export de portabilité (RGPD) */}
-        <section className="carte rounded-lg bg-white p-5">
-          <h2 className="font-display text-xl text-[#15233F]">Exporter mes données</h2>
-          <p className="mt-2 text-sm">
-            Téléchargez l&apos;intégralité de vos données personnelles dans un fichier
-            JSON (procédures, enfants, journal, frais, pension, règles, documents et
-            preuves), avec des liens de téléchargement temporaires pour vos fichiers.
-            C&apos;est votre droit à la portabilité ; ce fichier est distinct du dossier
-            pour l&apos;avocat.
+        <AppCard
+          titre="Apparence"
+          description="Choisissez le style visuel de votre espace Parent Preuve. Ce reglage modifie uniquement l'apparence de l'application sur cet appareil."
+        >
+          <ThemeSelector />
+        </AppCard>
+
+        <AppCard
+          titre="Exporter mes donnees"
+          description="Telechargez l'integralite de vos donnees personnelles dans un fichier JSON. Ce fichier est distinct du dossier pour l'avocat."
+        >
+          <div className="space-y-4">
+            <AppNotice titre="Portabilite RGPD">
+              <p>
+                Cet export peut inclure procedures, enfants, journal, frais,
+                pension, regles, documents et preuves, avec des liens de
+                telechargement temporaires pour les fichiers.
+              </p>
+            </AppNotice>
+
+            {exportErreur ? (
+              <p className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {exportErreur}
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={exporterDonnees}
+              disabled={exportEnCours}
+              className="inline-flex rounded-full bg-[var(--app-primary)] px-4 py-2 text-sm font-semibold text-[var(--app-on-primary)] transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportEnCours
+                ? "Preparation de l'export..."
+                : "Exporter mes donnees (JSON)"}
+            </button>
+          </div>
+        </AppCard>
+
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-red-900">
+            Supprimer mon compte
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-red-800">
+            Cette action est definitive et irreversible. Elle efface votre
+            compte ainsi que toutes vos donnees : journal, frais, pensions,
+            documents, preuves et leurs fichiers, regles et dossier. Aucune recuperation ne sera possible.
           </p>
 
-          {exportErreur && <p className="mt-3 text-sm text-[#9B2C2C]">{exportErreur}</p>}
-
-          <button
-            onClick={exporterDonnees}
-            disabled={exportEnCours}
-            className="mt-4 rounded bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1d2f52] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {exportEnCours ? "Préparation de l'export…" : "Exporter mes données (JSON)"}
-          </button>
-        </section>
-
-        {/* Zone de suppression */}
-        <section className="rounded-lg border border-[#9B2C2C]/30 bg-white p-5">
-          <h2 className="font-display text-xl text-[#9B2C2C]">Supprimer mon compte</h2>
-          <p className="mt-2 text-sm">
-            Cette action est <strong>définitive et irréversible</strong>. Elle efface votre
-            compte ainsi que toutes vos données : journal, frais, pensions, documents, preuves
-            et leurs fichiers, règles et dossier. Aucune récupération n&apos;est possible.
-          </p>
-
-          <label className="mt-4 block text-sm">
-            Pour confirmer, tapez <strong>SUPPRIMER</strong> :
+          <label className="mt-4 block text-sm font-medium text-red-900">
+            Pour confirmer, tapez SUPPRIMER :
             <input
-              type="text"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-[#9B2C2C] focus:outline-none"
+              className="mt-2 block w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-sm text-red-950 focus:border-red-600 focus:outline-none"
               placeholder="SUPPRIMER"
               autoComplete="off"
             />
           </label>
 
-          {erreur && <p className="mt-3 text-sm text-[#9B2C2C]">{erreur}</p>}
+          {erreur ? (
+            <p className="mt-3 rounded-xl border border-red-200 bg-white p-3 text-sm text-red-700">
+              {erreur}
+            </p>
+          ) : null}
 
           <button
+            type="button"
             onClick={supprimerCompte}
             disabled={!peutSupprimer}
-            className="mt-4 rounded bg-[#9B2C2C] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#7f2424] disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-4 inline-flex rounded-full bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {suppressionEnCours
-              ? "Suppression en cours…"
-              : "Supprimer définitivement mon compte"}
+              ? "Suppression en cours..."
+              : "Supprimer definitivement mon compte"}
           </button>
         </section>
       </div>
-    </>
+    </AppShell>
   );
 }
