@@ -169,6 +169,8 @@ export default function ComptePage() {
             <AppNotice titre="Portabilite RGPD">
               <p>
                 Cet export peut inclure procedures, enfants, journal, frais,
+                pension, regles, documents et preuves, avec des liens de
+                telechargement temporaires pour les fichiers.
               </p>
             </AppNotice>
 
@@ -199,8 +201,7 @@ export default function ComptePage() {
           <p className="mt-2 text-sm leading-6 text-red-800">
             Cette action est definitive et irreversible. Elle efface votre
             compte ainsi que toutes vos donnees : journal, frais, pensions,
-            documents, preuves et leurs fichiers, regles et dossier. Aucune 
-            recuperation ne sera possible..
+            documents, preuves et leurs fichiers, regles et dossier. Aucune recuperation ne sera possible.
           </p>
 
           <label className="mt-4 block text-sm font-medium text-red-900">
