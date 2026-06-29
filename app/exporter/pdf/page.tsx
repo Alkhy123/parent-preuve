@@ -1,209 +1,177 @@
-import Link from "next/link";
-
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 const ETAPES = [
   {
     numero: "1",
-    titre: "Choisir la période",
+    titre: "Choisir la periode",
     description:
-      "Définir une période précise ou laisser les dates vides pour inclure toutes les données de la procédure active.",
+      "Definir une periode precise ou laisser les dates vides pour inclure toutes les donnees de la procedure active.",
   },
   {
     numero: "2",
-    titre: "Contrôler le dossier",
+    titre: "Controler le dossier",
     description:
-      "Vérifier les éléments à compléter, les pièces, les frais, les pensions et les preuves avant génération.",
+      "Verifier les elements a completer, les pieces, les frais, les pensions et les preuves avant generation.",
   },
   {
     numero: "3",
-    titre: "Générer le PDF",
+    titre: "Generer le PDF",
     description:
-      "Créer un document de travail qui regroupe les éléments principaux du dossier dans un format lisible.",
+      "Creer un document de travail qui regroupe les elements principaux du dossier dans un format lisible.",
   },
 ];
 
 const CONTENU_PDF = [
   {
-    titre: "Chronologie des événements",
-    texte: "Faits enregistrés dans le journal, classés par date sur la période choisie.",
+    titre: "Chronologie des evenements",
+    texte:
+      "Faits enregistres dans le journal, classes par date sur la periode choisie.",
   },
   {
-    titre: "Frais partagés",
-    texte: "Dépenses, catégories, montants, parts dues et remboursements indiqués.",
+    titre: "Frais partages",
+    texte:
+      "Depenses, categories, montants, parts dues et remboursements indiques.",
   },
   {
     titre: "Pension alimentaire",
-    texte: "Montants dus, montants payés, dates de paiement et solde calculé.",
+    texte:
+      "Montants dus, montants payes, dates de paiement et solde calcule.",
   },
   {
-    titre: "Bordereau de pièces",
-    texte: "Documents actifs rattachés à la procédure, avec date, catégorie et enfant concerné si disponible.",
+    titre: "Bordereau de pieces",
+    texte:
+      "Documents actifs rattaches a la procedure, avec date, categorie et enfant concerne si disponible.",
   },
   {
     titre: "Preuves photo",
-    texte: "Bordereau des preuves photo avec titre, statut d’horodatage et empreinte technique si disponible.",
+    texte:
+      "Bordereau des preuves photo avec titre, statut d'horodatage et empreinte technique si disponible.",
   },
   {
     titre: "Avertissement",
-    texte: "Rappel que le document doit être relu et ne remplace pas un conseil juridique.",
+    texte:
+      "Rappel que le document doit etre relu et ne remplace pas un conseil juridique.",
   },
 ];
 
 const CONTROLES = [
-  "La procédure active est-elle la bonne ?",
-  "La période sélectionnée correspond-elle au besoin ?",
-  "Les faits importants sont-ils bien renseignés ?",
-  "Les frais et pensions sont-ils cohérents ?",
-  "Les pièces importantes sont-elles présentes ?",
-  "Les preuves photo utiles sont-elles bien classées ?",
-  "Le PDF généré a-t-il été relu avant transmission ?",
+  "La procedure active est-elle la bonne ?",
+  "La periode selectionnee correspond-elle au besoin ?",
+  "Les faits importants sont-ils bien renseignes ?",
+  "Les frais et pensions sont-ils coherents ?",
+  "Les pieces importantes sont-elles presentes ?",
+  "Les preuves photo utiles sont-elles bien classees ?",
+  "Le PDF genere a-t-il ete relu avant transmission ?",
 ];
 
 export default function ExporterPdfPage() {
   return (
-    <main>
-      <PageHeader
-        eyebrow="Exporter"
-        title="Export PDF"
-        subtitle="Préparer un PDF de travail regroupant les principaux éléments du dossier actif."
-      />
+    <AppShell
+      titre="Export PDF"
+      description="Preparer un PDF de travail regroupant les principaux elements du dossier actif."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <section className="carte rounded-2xl bg-[var(--surface)] p-6">
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
-                PDF de travail
-              </p>
+          <AppButtonLink href="/export">
+            Ouvrir l&apos;export PDF
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Rappel important">
+          <p>
+            Le PDF genere est un document de travail base sur les donnees
+            saisies. Il ne constitue pas un constat de commissaire de justice,
+            ne remplace pas un conseil juridique et doit etre relu avant toute
+            transmission.
+          </p>
+        </AppNotice>
 
-              <h2 className="mt-2 text-2xl font-bold text-texte">
-                Générer un document global à partir du dossier actif
-              </h2>
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+              Methode
+            </p>
 
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                L’export PDF rassemble plusieurs parties du dossier : faits,
-                frais, pension, pièces et preuves photo. Il sert à produire une
-                base de travail structurée, à relire avant toute utilisation.
-              </p>
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Preparer le PDF en trois etapes
+            </h2>
+          </div>
 
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                Cette page sert de guide d’entrée. La génération du PDF reste
-                dans l’outil existant Export PDF.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/export"
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-                >
-                  Ouvrir l’export PDF
-                </Link>
-
-                <Link
-                  href="/chronologie"
-                  className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-[#15233F] hover:border-[#C2A24C]/70"
-                >
-                  Relire la chronologie
-                </Link>
-              </div>
-            </div>
-
-            <aside className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              <p className="font-semibold text-amber-950">Rappel important</p>
-
-              <p className="mt-2">
-                Le PDF généré est un document de travail basé sur les données
-                saisies. Il ne constitue pas un constat de commissaire de
-                justice, ne remplace pas un conseil juridique et doit être relu
-                avant toute transmission.
-              </p>
-            </aside>
+          <div className="grid gap-4 md:grid-cols-3">
+            {ETAPES.map((etape) => (
+              <AppCard
+                key={etape.numero}
+                titre={`${etape.numero}. ${etape.titre}`}
+                description={etape.description}
+              />
+            ))}
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {ETAPES.map((etape) => (
-            <article
-              key={etape.numero}
-              className="carte rounded-2xl bg-[var(--surface)] p-5"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#15233F] text-sm font-bold text-white">
-                {etape.numero}
-              </div>
-
-              <h2 className="mt-4 text-xl font-bold text-texte">
-                {etape.titre}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-texte-doux">
-                {etape.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-8 carte rounded-2xl bg-[var(--surface)] p-6">
-          <h2 className="text-xl font-bold text-texte">
-            Ce que le PDF peut contenir
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
-            Le contenu dépend des données déjà enregistrées dans la procédure
-            active et de la période choisie au moment de la génération.
-          </p>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <AppCard
+          titre="Ce que le PDF peut contenir"
+          description="Le contenu depend des donnees deja enregistrees dans la procedure active et de la periode choisie au moment de la generation."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
             {CONTENU_PDF.map((item) => (
               <article
                 key={item.titre}
-                className="rounded-xl border border-slate-200 bg-white/70 p-4"
+                className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4"
               >
-                <h3 className="font-semibold text-texte">{item.titre}</h3>
-                <p className="mt-2 text-sm leading-6 text-texte-doux">
+                <h3 className="font-semibold text-[var(--app-text)]">
+                  {item.titre}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                   {item.texte}
                 </p>
               </article>
             ))}
           </div>
-        </section>
+        </AppCard>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Contrôles avant génération
-            </h2>
-
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
+        <section className="grid gap-6 lg:grid-cols-2">
+          <AppCard titre="Controles avant generation">
+            <ul className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
               {CONTROLES.map((controle) => (
                 <li key={controle} className="flex gap-2">
-                  <span aria-hidden="true">•</span>
+                  <span aria-hidden="true">-</span>
                   <span>{controle}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </AppCard>
 
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Où se génère le PDF ?
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-texte-doux">
-              La génération reste dans l’outil existant
-              <span className="font-semibold"> Export PDF</span>. Cette page
-              sert uniquement de point d’entrée clair depuis l’espace Exporter.
+          <AppCard titre="Ou se genere le PDF ?">
+            <p className="text-sm leading-6 text-[var(--app-text-muted)]">
+              La generation reste dans l&apos;outil existant{" "}
+              <span className="font-semibold text-[var(--app-text)]">
+                Export PDF
+              </span>
+              . Cette page sert uniquement de point d&apos;entree clair depuis
+              l&apos;espace Exporter.
             </p>
 
-            <Link
-              href="/export"
-              className="mt-5 inline-flex rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-            >
-              Générer un PDF de travail
-            </Link>
-          </div>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <AppButtonLink href="/export">
+                Generer un PDF de travail
+              </AppButtonLink>
+
+              <AppButtonLink href="/chronologie" variant="secondary">
+                Relire la chronologie
+              </AppButtonLink>
+            </div>
+          </AppCard>
         </section>
       </div>
-    </main>
+    </AppShell>
   );
 }

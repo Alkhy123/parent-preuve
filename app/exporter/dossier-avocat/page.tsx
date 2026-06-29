@@ -8,59 +8,59 @@ const ETAPES = [
     numero: "1",
     titre: "Relire",
     description:
-      "Vérifier les faits, frais, pensions, documents et preuves déjà présents dans le dossier actif.",
+      "Verifier les faits, frais, pensions, documents et preuves deja presents dans le dossier actif.",
   },
   {
     numero: "2",
-    titre: "Choisir une synthèse",
+    titre: "Choisir une synthese",
     description:
-      "Sélectionner le type de document le plus adapté : préparation avocat, audience, pension ou difficultés.",
+      "Selectionner le type de document le plus adapte : preparation avocat, audience, pension ou difficultes.",
   },
   {
     numero: "3",
     titre: "Exporter",
     description:
-      "Générer un PDF de travail à relire avant un rendez-vous, un échange ou une transmission.",
+      "Generer un PDF de travail a relire avant un rendez-vous, un echange ou une transmission.",
   },
 ];
 
 const SYNTHESES = [
   {
-    titre: "Préparation avocat",
+    titre: "Preparation avocat",
     texte:
-      "Rassembler les éléments utiles pour préparer un échange avec un professionnel.",
+      "Rassembler les elements utiles pour preparer un echange avec un professionnel.",
   },
   {
-    titre: "Préparation audience",
+    titre: "Preparation audience",
     texte:
-      "Obtenir une lecture structurée des faits et points à vérifier avant une échéance.",
+      "Obtenir une lecture structuree des faits et points a verifier avant une echeance.",
   },
   {
     titre: "Pension",
     texte:
-      "Mettre en avant les paiements, retards, écarts ou éléments financiers à contrôler.",
+      "Mettre en avant les paiements, retards, ecarts ou elements financiers a controler.",
   },
   {
-    titre: "Difficultés",
+    titre: "Difficultes",
     texte:
-      "Présenter les incidents, blocages ou éléments récurrents de manière factuelle.",
+      "Presenter les incidents, blocages ou elements recurrents de maniere factuelle.",
   },
 ];
 
 const CONTROLES = [
-  "La procédure active est-elle la bonne ?",
-  "Les enfants concernés sont-ils bien rattachés à la procédure ?",
-  "Les faits importants sont-ils datés ?",
-  "Les frais et pensions sont-ils cohérents ?",
-  "Les pièces importantes sont-elles classées ?",
-  "Le document généré a-t-il été relu avant transmission ?",
+  "La procedure active est-elle la bonne ?",
+  "Les enfants concernes sont-ils bien rattaches a la procedure ?",
+  "Les faits importants sont-ils dates ?",
+  "Les frais et pensions sont-ils coherents ?",
+  "Les pieces importantes sont-elles classees ?",
+  "Le document genere a-t-il ete relu avant transmission ?",
 ];
 
 export default function ExporterDossierAvocatPage() {
   return (
     <AppShell
       titre="Dossier avocat"
-      description="Préparer un document de travail structuré, factuel et relu avant un rendez-vous, une audience ou une transmission à un professionnel."
+      description="Preparer un document de travail structure, factuel et relu avant un rendez-vous, une audience ou une transmission a un professionnel."
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/exporter" variant="secondary">
@@ -76,20 +76,20 @@ export default function ExporterDossierAvocatPage() {
       <div className="space-y-6">
         <AppNotice titre="Rappel important">
           <p>
-            Ce document est une aide à l&apos;organisation factuelle du dossier. Il
+            Ce document est une aide a l&apos;organisation factuelle du dossier. Il
             ne constitue pas un conseil juridique et ne garantit ni la
-            recevabilité des pièces ni l&apos;issue d&apos;une procédure.
+            recevabilite des pieces ni l&apos;issue d&apos;une procedure.
           </p>
         </AppNotice>
 
         <section className="space-y-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
-              Méthode
+              Methode
             </p>
 
             <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
-              Préparer le dossier en trois étapes
+              Preparer le dossier en trois etapes
             </h2>
           </div>
 
@@ -105,8 +105,8 @@ export default function ExporterDossierAvocatPage() {
         </section>
 
         <AppCard
-          titre="Types de synthèses disponibles"
-          description="L'outil existant permet de choisir une synthèse selon le besoin du moment. Chaque document doit rester court, relu et factuel."
+          titre="Types de syntheses disponibles"
+          description="L'outil existant permet de choisir une synthese selon le besoin du moment. Chaque document doit rester court, relu et factuel."
         >
           <div className="grid gap-4 md:grid-cols-2">
             {SYNTHESES.map((synthese) => (
@@ -127,30 +127,30 @@ export default function ExporterDossierAvocatPage() {
         </AppCard>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <AppCard titre="Contrôles avant génération">
+          <AppCard titre="Controles avant generation">
             <ul className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
               {CONTROLES.map((controle) => (
                 <li key={controle} className="flex gap-2">
-                  <span aria-hidden="true">•</span>
+                  <span aria-hidden="true">-</span>
                   <span>{controle}</span>
                 </li>
               ))}
             </ul>
           </AppCard>
 
-          <AppCard titre="Où se génère le PDF ?">
+          <AppCard titre="Ou se genere le PDF ?">
             <p className="text-sm leading-6 text-[var(--app-text-muted)]">
-              La génération du PDF reste dans l&apos;outil existant{" "}
+              La generation du PDF reste dans l&apos;outil existant{" "}
               <span className="font-semibold text-[var(--app-text)]">
                 Dossier avocat
               </span>
-              . Cette page sert uniquement de point d&apos;entrée clair depuis
+              . Cette page sert uniquement de point d&apos;entree clair depuis
               l&apos;espace Exporter.
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <AppButtonLink href="/dossier-avocat">
-                Générer un dossier de travail
+                Generer un dossier de travail
               </AppButtonLink>
 
               <AppButtonLink href="/chronologie" variant="secondary">

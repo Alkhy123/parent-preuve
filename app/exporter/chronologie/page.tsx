@@ -1,25 +1,26 @@
-import Link from "next/link";
-
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 const ETAPES = [
   {
     numero: "1",
-    titre: "Vérifier",
+    titre: "Verifier",
     description:
-      "Relire les brouillons locaux, les éléments sans date et les points d’attention avant de générer un export.",
+      "Relire les brouillons locaux, les elements sans date et les points d'attention avant de generer un export.",
   },
   {
     numero: "2",
     titre: "Filtrer",
     description:
-      "Afficher uniquement les sources utiles : faits, frais, pension, documents, preuves ou règles de garde.",
+      "Afficher uniquement les sources utiles : faits, frais, pension, documents, preuves ou regles de garde.",
   },
   {
     numero: "3",
     titre: "Exporter",
     description:
-      "Générer une chronologie de travail en PDF ou CSV à partir des éléments déjà enregistrés.",
+      "Generer une chronologie de travail en PDF ou CSV a partir des elements deja enregistres.",
   },
 ];
 
@@ -29,151 +30,116 @@ const SOURCES = [
   "Pension",
   "Documents",
   "Preuves photo",
-  "Règles de garde",
+  "Regles de garde",
 ];
 
 const CONTROLES = [
-  "Les brouillons locaux ont-ils été traités ?",
-  "Les éléments importants ont-ils une date ?",
+  "Les brouillons locaux ont-ils ete traites ?",
+  "Les elements importants ont-ils une date ?",
   "Les titres sont-ils courts et factuels ?",
-  "Les frais et pensions à suivre sont-ils visibles ?",
-  "Les documents et preuves utiles sont-ils bien rattachés ?",
+  "Les frais et pensions a suivre sont-ils visibles ?",
+  "Les documents et preuves utiles sont-ils bien rattaches ?",
 ];
 
 export default function ExporterChronologiePage() {
   return (
-    <main>
-      <PageHeader
-        eyebrow="Exporter"
-        title="Export chronologie"
-        subtitle="Préparer une chronologie claire, datée et vérifiable à partir des éléments déjà enregistrés dans le dossier."
-      />
+    <AppShell
+      titre="Export chronologie"
+      description="Preparer une chronologie claire, datee et verifiable a partir des elements deja enregistres dans le dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <section className="carte rounded-2xl bg-[var(--surface)] p-6">
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
-                Export de travail
-              </p>
+          <AppButtonLink href="/chronologie">
+            Ouvrir la chronologie
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Rappel important">
+          <p>
+            Parent Preuve aide a produire un dossier structure, date et
+            exportable. L&apos;application ne garantit pas la recevabilite
+            d&apos;une preuve ni l&apos;issue d&apos;une procedure. Chaque
+            export doit etre relu avant transmission.
+          </p>
+        </AppNotice>
 
-              <h2 className="mt-2 text-2xl font-bold text-texte">
-                Transformer la chronologie en document exploitable
-              </h2>
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+              Methode
+            </p>
 
-              <p className="mt-3 text-sm leading-6 text-texte-doux">
-                La chronologie rassemble les éléments du dossier dans l’ordre.
-                Cette page sert à préparer l’export : vérifier les informations,
-                filtrer ce qui est utile, puis générer un PDF ou un CSV depuis
-                l’écran chronologie.
-              </p>
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Preparer l&apos;export en trois etapes
+            </h2>
+          </div>
 
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/chronologie"
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-                >
-                  Ouvrir la chronologie
-                </Link>
-
-                <Link
-                  href="/organiser/brouillons"
-                  className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-[#15233F] hover:border-[#C2A24C]/70"
-                >
-                  Vérifier les brouillons
-                </Link>
-              </div>
-            </div>
-
-            <aside className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              <p className="font-semibold text-amber-950">Rappel important</p>
-
-              <p className="mt-2">
-                Parent Preuve aide à produire un dossier structuré, daté et
-                exportable. L’application ne garantit pas la recevabilité d’une
-                preuve ni l’issue d’une procédure. Chaque export doit être relu
-                avant transmission.
-              </p>
-            </aside>
+          <div className="grid gap-4 md:grid-cols-3">
+            {ETAPES.map((etape) => (
+              <AppCard
+                key={etape.numero}
+                titre={`${etape.numero}. ${etape.titre}`}
+                description={etape.description}
+              />
+            ))}
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {ETAPES.map((etape) => (
-            <article
-              key={etape.numero}
-              className="carte rounded-2xl bg-[var(--surface)] p-5"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#15233F] text-sm font-bold text-white">
-                {etape.numero}
-              </div>
-
-              <h2 className="mt-4 text-xl font-bold text-texte">
-                {etape.titre}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-texte-doux">
-                {etape.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Sources incluses dans la lecture
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-texte-doux">
-              La chronologie s’appuie sur les éléments déjà présents dans les
-              modules du dossier actif.
+        <section className="grid gap-6 lg:grid-cols-2">
+          <AppCard titre="Sources incluses dans la lecture">
+            <p className="text-sm leading-6 text-[var(--app-text-muted)]">
+              La chronologie s&apos;appuie sur les elements deja presents dans
+              les modules du dossier actif.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {SOURCES.map((source) => (
-                <span key={source} className="badge badge-neutre">
+                <span
+                  key={source}
+                  className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-1 text-xs font-medium text-[var(--app-text-muted)]"
+                >
                   {source}
                 </span>
               ))}
             </div>
-          </div>
+          </AppCard>
 
-          <div className="carte rounded-2xl bg-[var(--surface)] p-6">
-            <h2 className="text-xl font-bold text-texte">
-              Contrôles avant export
-            </h2>
-
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-texte-doux">
+          <AppCard titre="Controles avant export">
+            <ul className="space-y-3 text-sm leading-6 text-[var(--app-text-muted)]">
               {CONTROLES.map((controle) => (
                 <li key={controle} className="flex gap-2">
-                  <span aria-hidden="true">•</span>
+                  <span aria-hidden="true">-</span>
                   <span>{controle}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </AppCard>
         </section>
 
-        <section className="mt-8 rounded-2xl border border-slate-200 bg-white/70 p-6">
-          <h2 className="text-xl font-bold text-texte">
-            Où se fait l’export ?
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
+        <AppCard titre="Ou se fait l'export ?">
+          <p className="text-sm leading-6 text-[var(--app-text-muted)]">
             Les boutons PDF et CSV restent dans la page chronologie, car ils
-            utilisent les filtres de période et de type présents sur cette page.
-            Cette page sert de point d’entrée clair depuis l’espace Exporter.
+            utilisent les filtres de periode et de type presents sur cette
+            page. Cette page sert de point d&apos;entree clair depuis
+            l&apos;espace Exporter.
           </p>
 
-          <Link
-            href="/chronologie"
-            className="mt-5 inline-flex rounded-lg bg-[#15233F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d2f52]"
-          >
-            Aller à l’export chronologie
-          </Link>
-        </section>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <AppButtonLink href="/chronologie">
+              Aller a l&apos;export chronologie
+            </AppButtonLink>
+
+            <AppButtonLink href="/organiser/brouillons" variant="secondary">
+              Verifier les brouillons
+            </AppButtonLink>
+          </div>
+        </AppCard>
       </div>
-    </main>
+    </AppShell>
   );
 }
