@@ -1,49 +1,57 @@
-import Link from "next/link";
-
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 const PILIERS = [
   {
     numero: "1",
-    titre: "Sélectionner",
+    titre: "Selectionner",
     description:
-      "Choisissez les éléments utiles : faits, frais, pension, documents, preuves ou échéances.",
+      "Choisir les elements utiles : faits, frais, pension, documents, preuves ou echeances.",
   },
   {
     numero: "2",
     titre: "Structurer",
     description:
-      "Transformez les éléments collectés en chronologie, tableau, courrier ou note de synthèse.",
+      "Transformer les elements collectes en chronologie, tableau, courrier ou note de synthese.",
   },
   {
     numero: "3",
-    titre: "Transmettre",
+    titre: "Relire",
     description:
-      "Préparez un export clair à relire, télécharger ou partager avec un professionnel.",
+      "Verifier le contenu avant tout telechargement ou partage avec un professionnel.",
   },
 ];
 
 const EXPORTS_PRIORITAIRES = [
   {
+    href: "/exporter/checklist",
+    titre: "Checklist avant export",
+    badge: "Controle",
+    description:
+      "Relire les points essentiels du dossier avant de generer une chronologie, un courrier, une note ou un PDF.",
+  },
+  {
     href: "/exporter/chronologie",
     titre: "Chronologie",
     badge: "Base du dossier",
     description:
-      "Préparer, vérifier puis exporter une lecture datée des faits, frais, pensions, documents et preuves.",
+      "Preparer une lecture datee des faits, frais, pensions, documents et preuves.",
   },
-    {
+  {
     href: "/exporter/note-synthese",
-    titre: "Note de synthèse",
+    titre: "Note de synthese",
     badge: "Vue globale",
     description:
-      "Préparer une note courte et factuelle à relire avant un échange, un rendez-vous ou un export.",
+      "Preparer une note courte, sobre et factuelle a relire avant un echange ou un rendez-vous.",
   },
   {
     href: "/exporter/dossier-avocat",
     titre: "Dossier avocat",
-    badge: "Préparation",
+    badge: "Preparation",
     description:
-      "Préparer un document de travail factuel avant un rendez-vous, une audience ou un échange avec un professionnel.",
+      "Assembler un document de travail factuel avant un rendez-vous ou une audience.",
   },
 ];
 
@@ -52,40 +60,40 @@ const EXPORTS_COMPLEMENTAIRES = [
     href: "/exporter/courriers",
     titre: "Courriers factuels",
     description:
-      "Préparer un courrier sobre, daté et factuel avant de choisir un modèle de rédaction.",
+      "Preparer un courrier sobre, date et factuel avant de choisir un modele de redaction.",
   },
-    {
+  {
     href: "/exporter/resume-mois",
-    titre: "Résumé du mois",
+    titre: "Resume du mois",
     description:
-      "Préparer une lecture mensuelle des frais, pensions et faits enregistrés.",
+      "Preparer une lecture mensuelle des frais, pensions et faits enregistres.",
   },
   {
     href: "/exporter/pdf",
     titre: "Export PDF",
     description:
-      "Préparer un PDF global regroupant faits, frais, pension, pièces et preuves photo.",
+      "Preparer un PDF global regroupant faits, frais, pension, pieces et preuves photo.",
   },
 ];
 
 const TABLEAUX = [
   {
-    href: "/exporter/checklist",
-    titre: "Checklist avant export",
-    description:
-      "Relire les points essentiels du dossier avant de générer une chronologie, un courrier, une note ou un PDF.",
-  },
-  {
     href: "/frais",
     titre: "Tableau des frais",
     description:
-      "Retrouver les dépenses, justificatifs, remboursements et montants restant à suivre.",
+      "Retrouver les depenses, justificatifs, remboursements et montants restant a suivre.",
   },
   {
     href: "/pension",
     titre: "Tableau pension",
     description:
       "Suivre les paiements, retards, paiements partiels et soldes restants.",
+  },
+  {
+    href: "/chronologie",
+    titre: "Chronologie intelligente",
+    description:
+      "Verifier la lecture globale du dossier avant de preparer un export.",
   },
 ];
 
@@ -100,194 +108,160 @@ const PACKS_A_VENIR = [
 
 export default function ExporterPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <PageHeader
-        eyebrow="Exporter"
-        title="Préparer un dossier clair"
-        subtitle="Transformez les éléments collectés et organisés en chronologie, courrier, note de synthèse, tableau ou export PDF."
-      />
+    <AppShell
+      titre="Exporter"
+      description="Transformez les elements collectes et organises en documents sobres, dates et exploitables."
+      actions={
+        <AppButtonLink href="/exporter/checklist">
+          Ouvrir la checklist
+        </AppButtonLink>
+      }
+    >
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {PILIERS.map((pilier) => (
+            <section
+              key={pilier.numero}
+              className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+                Etape {pilier.numero}
+              </p>
 
-      <section className="mt-6 rounded-3xl border border-[#C2A24C]/30 bg-[#C2A24C]/10 p-5">
-        <p className="text-sm font-semibold text-[#8A5A12]">
-          L’export est le résultat final de votre travail de classement.
-        </p>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">
-          Parent Preuve ne se limite pas à stocker des éléments. L’objectif est
-          de produire une présentation claire, datée et structurée, plus simple
-          à relire ou à transmettre.
-        </p>
-      </section>
+              <h2 className="mt-2 text-lg font-semibold text-[var(--app-text)]">
+                {pilier.titre}
+              </h2>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        {PILIERS.map((pilier) => (
-          <div
-            key={pilier.numero}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#15233F] text-sm font-semibold text-white">
-              {pilier.numero}
-            </div>
-            <h2 className="mt-4 text-base font-semibold text-[#15233F]">
-              {pilier.titre}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {pilier.description}
-            </p>
-          </div>
-        ))}
-      </section>
+              <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
+                {pilier.description}
+              </p>
+            </section>
+          ))}
+        </div>
 
-      <section className="mt-10">
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <AppNotice titre="Point de methode">
+          <p>
+            Les exports servent a presenter les informations de facon claire. Ils
+            ne remplacent pas une analyse juridique et doivent toujours etre
+            relus avant transmission.
+          </p>
+        </AppNotice>
+
+        <section className="space-y-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
               Exports prioritaires
             </p>
-            <h2 className="mt-1 text-2xl font-semibold text-[#15233F]">
-              Préparer la lecture du dossier
+
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Preparer la lecture du dossier
             </h2>
-          </div>
-          <p className="max-w-xl text-sm leading-6 text-slate-600">
-            Ces exports servent à comprendre rapidement ce qui s’est passé, dans
-            quel ordre, avec quels éléments associés.
-          </p>
-        </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {EXPORTS_PRIORITAIRES.map((exportItem) => (
-            <Link
-              key={exportItem.href}
-              href={exportItem.href}
-              className="carte group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#C2A24C]/70 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold text-[#15233F]">
-                  {exportItem.titre}
-                </h3>
-                <span className="rounded-full bg-[#C2A24C]/10 px-3 py-1 text-xs font-semibold text-[#8A5A12]">
-                  {exportItem.badge}
-                </span>
-              </div>
-
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {exportItem.description}
-              </p>
-
-              <p className="mt-auto pt-5 text-sm font-semibold text-[#15233F] transition group-hover:text-[#8A5A12]">
-                Ouvrir →
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-                Documents de sortie
-              </p>
-              <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
-                Courriers, résumés et PDF
-              </h2>
-            </div>
-            <p className="max-w-lg text-sm leading-6 text-slate-600">
-              Ces outils permettent de produire une sortie exploitable à partir
-              du dossier déjà renseigné.
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--app-text-muted)]">
+              Commencez par la checklist, puis choisissez le format le plus
+              adapte a votre besoin : chronologie, note, dossier ou courrier.
             </p>
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {EXPORTS_COMPLEMENTAIRES.map((exportItem) => (
-              <Link
+          <div className="grid gap-4 lg:grid-cols-2">
+            {EXPORTS_PRIORITAIRES.map((exportItem) => (
+              <AppCard
                 key={exportItem.href}
-                href={exportItem.href}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:border-[#C2A24C]/70 hover:bg-white hover:shadow-sm"
+                titre={exportItem.titre}
+                description={exportItem.description}
               >
-                <h3 className="text-base font-semibold text-[#15233F]">
-                  {exportItem.titre}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {exportItem.description}
-                </p>
-              </Link>
+                <div className="flex flex-col gap-4">
+                  <span className="inline-flex w-fit rounded-full border border-[var(--app-tag-border)] bg-[var(--app-tag-bg)] px-3 py-1 text-xs font-semibold text-[var(--app-tag-text)]">
+                    {exportItem.badge}
+                  </span>
+
+                  <AppButtonLink href={exportItem.href} variant="secondary">
+                    Ouvrir
+                  </AppButtonLink>
+                </div>
+              </AppCard>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-          <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-            Contrôles utiles
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+              Formats complementaires
+            </p>
+
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Courriers, resume et PDF
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {EXPORTS_COMPLEMENTAIRES.map((exportItem) => (
+              <AppCard
+                key={exportItem.href}
+                titre={exportItem.titre}
+                description={exportItem.description}
+              >
+                <AppButtonLink href={exportItem.href} variant="secondary">
+                  Ouvrir
+                </AppButtonLink>
+              </AppCard>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+              Verification
+            </p>
+
+            <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+              Revenir aux tableaux sources
+            </h2>
+
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--app-text-muted)]">
+              Avant export, vous pouvez relire les tableaux et la chronologie
+              pour verifier les montants, dates et pieces associees.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {TABLEAUX.map((tableau) => (
+              <AppCard
+                key={tableau.href}
+                titre={tableau.titre}
+                description={tableau.description}
+              >
+                <AppButtonLink href={tableau.href} variant="secondary">
+                  Verifier
+                </AppButtonLink>
+              </AppCard>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-text-muted)]">
+            Packs a venir
           </p>
-          <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
-            Vérifications avant export
+
+          <h2 className="mt-2 text-xl font-semibold text-[var(--app-text)]">
+            Preparation progressive des dossiers guides
           </h2>
 
-          <div className="mt-5 grid gap-3">
-            {TABLEAUX.map((tableau) => (
-              <Link
-                key={tableau.href}
-                href={tableau.href}
-                className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-[#C2A24C]/70 hover:shadow-sm"
+          <div className="mt-4 flex flex-wrap gap-2">
+            {PACKS_A_VENIR.map((pack) => (
+              <span
+                key={pack}
+                className="rounded-full border border-[var(--app-chip-border)] bg-[var(--app-chip-bg)] px-3 py-1 text-xs font-semibold text-[var(--app-chip-text)]"
               >
-                <h3 className="text-base font-semibold text-[#15233F]">
-                  {tableau.titre}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {tableau.description}
-                </p>
-              </Link>
+                {pack}
+              </span>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-5">
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#C2A24C]">
-              Packs dossier
-            </p>
-            <h2 className="mt-1 text-xl font-semibold text-[#15233F]">
-              Évolutions prévues
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Les packs dossier serviront à générer des exports plus complets :
-              chronologie, tableaux, pièces associées, annexes et dossier
-              transmissible. Ils seront ajoutés après stabilisation de la
-              structure Collecter / Organiser / Exporter.
-            </p>
-          </div>
-
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-            À venir
-          </span>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {PACKS_A_VENIR.map((pack) => (
-            <span
-              key={pack}
-              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
-            >
-              {pack}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-        <h2 className="text-base font-semibold text-amber-900">
-          Rappel important
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-amber-900">
-          Parent Preuve aide à produire un dossier structuré, daté et
-          exportable. L’application ne garantit pas la recevabilité d’une preuve
-          ni l’issue d’une procédure. Les exports doivent être relus avant toute
-          transmission.
-        </p>
-      </section>
-    </main>
+        </section>
+      </div>
+    </AppShell>
   );
 }
