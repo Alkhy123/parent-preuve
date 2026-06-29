@@ -15,8 +15,10 @@
 // Validation humaine obligatoire.
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 import ConsentementIA from "@/components/ConsentementIA";
 
@@ -651,34 +653,28 @@ export default function PageCopilote() {
 
   if (verificationConnexion) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <p className="text-sm text-slate-500">Chargement…</p>
-      </main>
+      <AppShell
+        titre="Copilote"
+        description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+      >
+        <p className="text-sm text-slate-500">Chargement...</p>
+      </AppShell>
     );
   }
 
   if (!utilisateur) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
-          Copilote Agent
-        </p>
-
-        <h1 className="mt-2 font-display text-3xl text-[#15233F]">
-          Connexion requise
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-[#5A6473]">
-          Vous devez être connecté pour tester le copilote.
-        </p>
-
-        <Link
-          href="/connexion"
-          className="mt-5 inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E]"
-        >
-          Aller à la connexion
-        </Link>
-      </main>
+      <AppShell
+        titre="Copilote"
+        description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+      >
+        <div className="space-y-4">
+          <AppNotice titre="Connexion requise">
+            Vous devez etre connecte pour tester le copilote.
+          </AppNotice>
+          <AppButtonLink href="/connexion">Aller a la connexion</AppButtonLink>
+        </div>
+      </AppShell>
     );
   }
 
@@ -686,20 +682,25 @@ export default function PageCopilote() {
   const chargementPreRemplissage = chargementPreRemplissageAgent;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <section className="rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
-          Copilote Agent
-        </p>
+    <AppShell
+      titre="Copilote"
+      description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/" variant="secondary">Retour accueil</AppButtonLink>
+          <AppButtonLink href="/collecter" variant="secondary">Collecter</AppButtonLink>
+        </div>
+      }
+    >
+      <AppNotice titre="Garde-fous actifs">
+        Aucune ecriture automatique. Validation humaine obligatoire. Pas de conseil juridique.
+      </AppNotice>
 
-        <h1 className="mt-2 font-display text-3xl text-[#15233F]">
-          Test sécurisé du futur agent
-        </h1>
-
+      <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
           Cette page permet de tester le dry-run, le Copilote Mistral, le
-          résumé factuel du dossier et le pré-remplissage Agent. Le
-          pré-remplissage Agent est désormais la version utilisée par le bouton
+          resume factuel du dossier et le pre-remplissage Agent. Le
+          pre-remplissage Agent est desormais la version utilisee par le bouton
           flottant.
         </p>
 
@@ -745,7 +746,7 @@ export default function PageCopilote() {
               disabled={chargementGlobal || message.trim() === ""}
               className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {chargementDryRun ? "Analyse dry-run…" : "Analyser en dry-run"}
+              {chargementDryRun ? "Analyse dry-run..." : "Analyser en dry-run"}
             </button>
 
             <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
@@ -766,8 +767,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   >
                     {chargementMistral
                       ? inclureResume
-                        ? "Test Mistral avec résumé…"
-                        : "Test Mistral…"
+                        ? "Test Mistral avec résumé..."
+                        : "Test Mistral..."
                       : "Tester avec Mistral"}
                   </button>
 
@@ -917,12 +918,11 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
               </p>
 
               {reponse.actionProposee.href && (
-                <Link
-                  href={reponse.actionProposee.href}
-                  className="mt-4 inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E]"
-                >
-                  Ouvrir la page proposée
-                </Link>
+                <div className="mt-4">
+                  <AppButtonLink href={reponse.actionProposee.href}>
+                    Ouvrir la page proposee
+                  </AppButtonLink>
+                </div>
               )}
             </div>
           )}
@@ -1035,7 +1035,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                 className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {chargementPreRemplissageAgent
-                  ? "Test Agent…"
+                  ? "Test Agent..."
                   : "Tester l'Agent"}
               </button>
             </div>
@@ -1257,7 +1257,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                 className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {chargementQuestionDossier
-                  ? "Test question dossier…"
+                  ? "Test question dossier..."
                   : "Tester la question dossier"}
               </button>
 
@@ -1490,6 +1490,6 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           </p>
         </section>
       )}
-    </main>
+    </AppShell>
   );
 }
