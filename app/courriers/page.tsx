@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 
 type Modele = {
   href: string;
@@ -10,7 +12,7 @@ type Modele = {
   disponible: boolean;
 };
 
-// Pour ajouter un modèle plus tard : une ligne ici, et on passe disponible à true le jour où sa page existe.
+// Pour ajouter un modele plus tard : une ligne ici, on passe disponible a true le jour ou la page existe.
 const MODELES: Modele[] = [
   {
     href: "/courriers/relance-pension",
@@ -40,39 +42,57 @@ const MODELES: Modele[] = [
 
 export default function CourriersPage() {
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Modèles"
-        title="Courriers"
-        subtitle="Des modèles préremplis avec votre dossier, à relire et compléter."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
+    <AppShell
+      titre="Courriers"
+      description="Des modèles pré-remplis avec votre dossier, à relire et compléter."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/exporter/courriers" variant="secondary">
+            Retour Exporter
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <AppNotice titre="Rappel important">
+          <p>
+            Ces courriers sont des brouillons de travail. Relisez, adaptez et
+            vérifiez chaque courrier avant tout envoi. Parent Preuve ne remplace
+            pas un conseil juridique.
+          </p>
+        </AppNotice>
+
         <div className="grid gap-4">
           {MODELES.map((m) =>
             m.disponible ? (
-              <Link
+              <AppCard
                 key={m.href}
-                href={m.href}
-                className="carte group rounded-lg border border-slate-200 bg-white p-5 transition hover:border-[#C2A24C]"
+                titre={m.titre}
+                description={m.description}
               >
-                <h2 className="font-display text-lg text-[#15233F]">{m.titre}</h2>
-                <p className="mt-1 text-sm text-slate-600">{m.description}</p>
-                <span className="mt-3 inline-block text-sm font-medium text-or-fonce">
-                  Rédiger →
-                </span>
-              </Link>
+                <AppButtonLink href={m.href}>Rédiger</AppButtonLink>
+              </AppCard>
             ) : (
-              <div key={m.href} className="rounded-lg border border-dashed border-slate-300 bg-white/60 p-5">
+              <div
+                key={m.href}
+                className="rounded-2xl border border-dashed border-[var(--app-border)] bg-[var(--app-surface-muted)] p-5"
+              >
                 <div className="flex items-center justify-between">
-                  <h2 className="font-display text-lg text-slate-500">{m.titre}</h2>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-500">À venir</span>
+                  <h2 className="text-base font-semibold text-[var(--app-text-muted)]">
+                    {m.titre}
+                  </h2>
+                  <span className="rounded-full border border-[var(--app-border)] px-2.5 py-0.5 text-xs text-[var(--app-text-muted)]">
+                    A venir
+                  </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-400">{m.description}</p>
+                <p className="mt-2 text-sm text-[var(--app-text-muted)]">
+                  {m.description}
+                </p>
               </div>
             )
           )}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }
