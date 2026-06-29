@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function ReinitialiserMotDePassePage() {
   // "attente" = on vérifie le lien ; "ok" = lien valide ; "invalide" = lien expiré/invalide
@@ -65,30 +66,26 @@ export default function ReinitialiserMotDePassePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <div className="mx-auto max-w-md px-6 py-16">
-        <h1 className="text-2xl font-bold text-[#15233F]">
-          Choisir un nouveau mot de passe
-        </h1>
-
-        {/* Cas 1 : on vérifie encore le lien */}
+    <AppShell
+      titre="Reinitialiser le mot de passe"
+      description="Choisir un nouveau mot de passe depuis un lien valide."
+    >
+      <div className="mx-auto max-w-md px-6 py-8">
+        {/* Cas 1 : on verifie encore le lien */}
         {etatLien === "attente" && (
-          <p className="mt-4 text-slate-600">Vérification du lien…</p>
+          <p className="mt-4 text-slate-600">Verification du lien...</p>
         )}
 
-        {/* Cas 2 : lien invalide ou expiré */}
+        {/* Cas 2 : lien invalide ou expire */}
         {etatLien === "invalide" && (
           <div className="mt-4 space-y-4">
             <p className="text-slate-700">
-              Ce lien n&apos;est plus valide. Il a peut-être expiré, déjà été
-              utilisé, ou été ouvert sur un autre appareil que celui de la demande.
+              Ce lien n&apos;est plus valide. Il a peut-etre expire, deja ete
+              utilise, ou ete ouvert sur un autre appareil que celui de la demande.
             </p>
-            <Link
-              href="/mot-de-passe-oublie"
-              className="inline-block rounded-lg bg-[#15233F] px-4 py-2 text-white hover:bg-[#1d2f52]"
-            >
+            <AppButtonLink href="/mot-de-passe-oublie">
               Redemander un lien
-            </Link>
+            </AppButtonLink>
           </div>
         )}
 
@@ -102,7 +99,7 @@ export default function ReinitialiserMotDePassePage() {
               <input
                 id="mdp"
                 type="password"
-                placeholder="Au moins 8 caractères"
+                placeholder="Au moins 8 caracteres"
                 value={motDePasse}
                 onChange={(e) => setMotDePasse(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-4 py-2 bg-white"
@@ -116,7 +113,7 @@ export default function ReinitialiserMotDePassePage() {
               <input
                 id="confirmation"
                 type="password"
-                placeholder="Saisissez-le à nouveau"
+                placeholder="Saisissez-le a nouveau"
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-4 py-2 bg-white"
@@ -128,28 +125,25 @@ export default function ReinitialiserMotDePassePage() {
               disabled={enCours}
               className="w-full rounded-lg bg-[#15233F] px-4 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-60"
             >
-              {enCours ? "Enregistrement…" : "Enregistrer le nouveau mot de passe"}
+              {enCours ? "Enregistrement..." : "Enregistrer le nouveau mot de passe"}
             </button>
 
             {message && <p className="text-sm text-slate-700">{message}</p>}
           </div>
         )}
 
-        {/* Cas 4 : succès */}
+        {/* Cas 4 : succes */}
         {succes && (
           <div className="mt-8 space-y-4">
             <p className="text-[#2E6A4D] font-medium">
-              Votre mot de passe a bien été modifié.
+              Votre mot de passe a bien ete modifie.
             </p>
-            <Link
-              href="/connexion"
-              className="inline-block rounded-lg bg-[#15233F] px-4 py-2 text-white hover:bg-[#1d2f52]"
-            >
-              Aller à la connexion
-            </Link>
+            <AppButtonLink href="/connexion">
+              Aller a la connexion
+            </AppButtonLink>
           </div>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }

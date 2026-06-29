@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -41,29 +42,36 @@ export default function ConnexionPage() {
   // Vue quand on EST connecté
   if (utilisateur) {
     return (
-      <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-        <div className="mx-auto max-w-md px-6 py-20 text-center">
-          <h1 className="text-2xl font-bold text-[#15233F]">Vous êtes connecté</h1>
-          <p className="mt-2 text-slate-600">{utilisateur.email}</p>
+      <AppShell
+        titre="Vous etes connecte"
+        description="Session active sur ce navigateur."
+      >
+        <div className="mx-auto max-w-md px-6 py-10 text-center">
+          <p className="text-slate-600">{utilisateur.email}</p>
           <button
             onClick={seDeconnecter}
             className="mt-6 rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
           >
-            Se déconnecter
+            Se deconnecter
           </button>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
   // Vue quand on n'est PAS connecté
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <div className="mx-auto max-w-md px-6 py-16">
-        <h1 className="text-2xl font-bold text-[#15233F]">Connexion</h1>
-        <p className="mt-2 text-slate-600">Accédez à votre espace Parent Preuve.</p>
-
-        <div className="mt-8 space-y-4">
+    <AppShell
+      titre="Connexion"
+      description="Acceder a votre espace Parent Preuve."
+      actions={
+        <AppButtonLink href="/mot-de-passe-oublie" variant="secondary">
+          Mot de passe oublie ?
+        </AppButtonLink>
+      }
+    >
+      <div className="mx-auto max-w-md px-6 py-8">
+        <div className="space-y-4">
           <input
             type="email"
             placeholder="Adresse e-mail"
@@ -94,15 +102,9 @@ export default function ConnexionPage() {
             </button>
           </div>
 
-          <p className="text-sm">
-            <Link href="/mot-de-passe-oublie" className="text-[#15233F] underline">
-              Mot de passe oublié ?
-            </Link>
-          </p>
-
           {message && <p className="text-sm text-slate-600">{message}</p>}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }

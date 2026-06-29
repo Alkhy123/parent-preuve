@@ -1,15 +1,17 @@
-import PageHeader from "@/components/PageHeader";
-import Link from "next/link";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function MentionsLegalesPage() {
   return (
-    <>
-      <PageHeader
-        eyebrow="Informations"
-        title="Mentions légales"
-        subtitle="Éditeur, hébergement, et accès à vos données personnelles."
-      />
-
+    <AppShell
+      titre="Mentions legales"
+      description="Informations legales relatives a l edition et a l hebergement de Parent Preuve."
+      actions={
+        <AppButtonLink href="/" variant="secondary">
+          Retour accueil
+        </AppButtonLink>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
         {/* Note discrète : posture éditoriale, sans effet "prototype". */}
         <p className="text-xs text-texte-doux">
@@ -59,9 +61,9 @@ export default function MentionsLegalesPage() {
             Le détail des données traitées, des finalités, des prestataires (dont Mistral AI
             pour les fonctions d&apos;intelligence artificielle), des durées de conservation et
             de vos droits figure dans notre{" "}
-            <Link href="/confidentialite" className="font-medium text-[#15233F] underline">
-              politique de confidentialité
-            </Link>
+            <a href="/confidentialite" className="font-medium text-[#15233F] underline">
+              politique de confidentialite
+            </a>
             .
           </p>
         </section>
@@ -77,6 +79,6 @@ export default function MentionsLegalesPage() {
           </p>
         </section>
       </div>
-    </>
+    </AppShell>
   );
 }

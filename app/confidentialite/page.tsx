@@ -1,14 +1,17 @@
-import PageHeader from "@/components/PageHeader";
+import AppShell from "@/components/app/AppShell";
+import AppButtonLink from "@/components/app/AppButtonLink";
 
 export default function ConfidentialitePage() {
   return (
-    <>
-      <PageHeader
-        eyebrow="Vos données"
-        title="Politique de confidentialité"
-        subtitle="Quelles données l'application traite, pourquoi, pendant combien de temps, et quels sont vos droits."
-      />
-
+    <AppShell
+      titre="Confidentialite"
+      description="Comprendre quelles donnees sont traitees et comment elles sont protegees."
+      actions={
+        <AppButtonLink href="/" variant="secondary">
+          Retour accueil
+        </AppButtonLink>
+      }
+    >
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-10 text-[#1F2733] leading-relaxed">
         {/* Note discrète : posture éditoriale, sans effet "prototype". */}
         <p className="text-xs text-texte-doux">
@@ -166,16 +169,16 @@ export default function ConfidentialitePage() {
           </p>
           <ul className="list-disc space-y-1 pl-5">
             <li>
-              <strong>Supabase</strong> — hébergement de la base de données, de
+              <strong>Supabase</strong> - hébergement de la base de données, de
               l&apos;authentification et des fichiers, sur une infrastructure située dans
               l&apos;Union européenne (région Irlande, eu-west-1).
             </li>
             <li>
-              <strong>Vercel</strong> — hébergement et exécution de l&apos;application web
+              <strong>Vercel</strong> - hébergement et exécution de l&apos;application web
               (fonctions exécutées dans la région de Paris, France, cdg1).
             </li>
             <li>
-              <strong>Mistral AI</strong> — uniquement pour les fonctions d&apos;intelligence
+              <strong>Mistral AI</strong> - uniquement pour les fonctions d&apos;intelligence
               artificielle décrites ci-dessus, et seulement après votre consentement (Union
               européenne).
             </li>
@@ -237,6 +240,6 @@ export default function ConfidentialitePage() {
           </p>
         </section>
       </div>
-    </>
+    </AppShell>
   );
 }
