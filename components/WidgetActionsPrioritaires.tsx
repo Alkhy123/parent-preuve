@@ -143,8 +143,8 @@ export default function WidgetActionsPrioritaires() {
   // Etat : recherche en cours.
   if (actions === null && !erreur) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-        Recherche des actions prioritaires…
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm text-sm text-slate-500">
+        Recherche des actions prioritaires...
       </div>
     );
   }
@@ -152,7 +152,7 @@ export default function WidgetActionsPrioritaires() {
   // Etat : echec. On n'affirme jamais que tout est en ordre.
   if (erreur || actions === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
         <p className="mt-2 text-sm text-slate-500">
           Liste indisponible pour le moment. Vous pouvez réessayer plus tard.
@@ -162,7 +162,7 @@ export default function WidgetActionsPrioritaires() {
   }
 
   return (
-    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <h2 className="font-display text-lg text-[#15233F]">Que faire maintenant ?</h2>
 
       {actions.length === 0 ? (

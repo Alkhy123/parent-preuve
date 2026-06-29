@@ -86,8 +86,8 @@ export default function WidgetProchaineAction() {
   // Chargement : repere neutre, sans clignotement.
   if (etat.phase === "chargement") {
     return (
-      <div className="carte rounded-xl bg-white p-5 text-sm text-texte-doux">
-        Recherche de la prochaine étape…
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm text-sm text-texte-doux">
+        Recherche de la prochaine étape...
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function WidgetProchaineAction() {
   // Echec : on ne propose rien d'affirmatif, on invite a reessayer.
   if (etat.phase === "erreur") {
     return (
-      <div className="carte rounded-xl bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
         <p className="mt-2 text-sm text-texte-doux">
           Indisponible pour le moment. Vous pouvez réessayer plus tard.
@@ -107,7 +107,7 @@ export default function WidgetProchaineAction() {
   // Rien de prioritaire : message de secours, ton rassurant et non anxiogene.
   if (etat.action === null) {
     return (
-      <div className="carte rounded-xl bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
         <p className="mt-2 text-sm text-texte-doux">
           Votre dossier ne présente pas d&apos;action urgente. Vous pouvez continuer
@@ -121,7 +121,7 @@ export default function WidgetProchaineAction() {
   const badge = BADGE[action.priorite];
 
   return (
-    <div className="carte rounded-xl bg-white p-5">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-lg text-navy">Prochaine étape recommandée</h2>
         <span className={`badge ${badge.classe}`}>{badge.libelle}</span>
@@ -132,7 +132,7 @@ export default function WidgetProchaineAction() {
 
       <Link
         href={action.href}
-        className="btn btn-primaire mt-4 inline-flex w-full justify-center sm:w-auto"
+        className="mt-4 inline-flex w-full justify-center sm:w-auto rounded-xl bg-[var(--app-text)] px-4 py-2 text-sm font-semibold text-[var(--app-surface)] transition hover:opacity-90"
       >
         {action.cta}
       </Link>

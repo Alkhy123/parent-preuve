@@ -37,7 +37,7 @@ export default function WidgetOnboardingPrioritaire() {
   const cta = enCours ? "Reprendre l'assistant" : "Commencer l'assistant";
 
   return (
-    <div className="carte rounded-xl bg-white p-5">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-lg text-navy">Assistant de démarrage</h2>
         <span className="badge badge-info">
@@ -53,7 +53,7 @@ export default function WidgetOnboardingPrioritaire() {
 
       <Link
         href="/onboarding"
-        className="btn btn-primaire mt-4 inline-flex w-full justify-center sm:w-auto"
+        className="mt-4 inline-flex w-full justify-center sm:w-auto rounded-xl bg-[var(--app-text)] px-4 py-2 text-sm font-semibold text-[var(--app-surface)] transition hover:opacity-90"
       >
         {cta}
       </Link>

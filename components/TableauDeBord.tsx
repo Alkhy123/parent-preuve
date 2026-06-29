@@ -90,7 +90,7 @@ export default function TableauDeBord() {
           Reste dû global
         </h2>
         {global === null ? (
-          <p className="mt-2 text-sm text-[#F8F6F1]/60">Chargement…</p>
+          <p className="mt-2 text-sm text-[#F8F6F1]/60">Chargement...</p>
         ) : (
           <>
             <p className="mt-1 text-4xl font-bold">{euros(global.total)}</p>
@@ -114,12 +114,12 @@ export default function TableauDeBord() {
       {/* Trois cartes de détail */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {/* Carte Frais */}
-        <div className="carte rounded-xl bg-white p-5">
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-            Frais — reste dû
+            Frais - reste dû
           </h2>
           {frais === null ? (
-            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement...</p>
           ) : frais.resteDu > 0 ? (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">{euros(frais.resteDu)}</p>
@@ -133,12 +133,12 @@ export default function TableauDeBord() {
         </div>
 
         {/* Carte Pension */}
-        <div className="carte rounded-xl bg-white p-5">
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
-            Pension — solde
+            Pension - solde
           </h2>
           {pension === null ? (
-            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement...</p>
           ) : (
             (() => {
               const l = libellePension(pension);
@@ -161,12 +161,12 @@ export default function TableauDeBord() {
         </div>
 
         {/* Carte Preuves */}
-        <div className="carte rounded-xl bg-white p-5">
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <h2 className="text-sm font-medium uppercase tracking-wide text-or-fonce">
             Preuves photo horodatées
           </h2>
           {preuves === null ? (
-            <p className="mt-2 text-sm text-[#5A6473]">Chargement…</p>
+            <p className="mt-2 text-sm text-[#5A6473]">Chargement...</p>
           ) : preuves.total === 0 ? (
             <>
               <p className="mt-1 text-3xl font-bold text-[#15233F]">0</p>

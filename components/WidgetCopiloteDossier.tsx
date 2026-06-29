@@ -150,15 +150,15 @@ export default function WidgetCopiloteDossier() {
 
   if (chargement) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-        Analyse du dossier par le copilote…
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm text-sm text-slate-500">
+        Analyse du dossier par le copilote...
       </div>
     );
   }
 
   if (erreur || action === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <h2 className="font-display text-lg text-[#15233F]">Copilote dossier</h2>
 
         <p className="mt-2 text-sm text-slate-500">
@@ -170,7 +170,7 @@ export default function WidgetCopiloteDossier() {
   }
 
   return (
-    <div className="carte rounded-xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
@@ -195,11 +195,11 @@ export default function WidgetCopiloteDossier() {
         </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Link href={action.href} className="btn btn-primaire">
+            <Link href={action.href} className="inline-flex items-center justify-center rounded-xl bg-[var(--app-text)] px-4 py-2 text-sm font-semibold text-[var(--app-surface)] transition hover:opacity-90">
                 {action.cta}
             </Link>
 
-            <Link href="/copilote" className="btn btn-secondaire">
+            <Link href="/copilote" className="inline-flex items-center justify-center rounded-xl border border-[var(--app-border)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-muted)]">
                 Ouvrir le Copilote
             </Link>
         </div>

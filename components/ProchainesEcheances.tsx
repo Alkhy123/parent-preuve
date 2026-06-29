@@ -221,11 +221,11 @@ export default function ProchainesEcheances() {
   }
 
   return (
-    <section className="carte rounded-xl border border-slate-200 bg-white p-5">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-3">
         <h2 className="font-display text-xl text-[#15233F]">Prochaines échéances</h2>
         {permission !== "granted" && (
-          <button onClick={activerRappels} className="btn btn-secondaire">
+          <button onClick={activerRappels} className="inline-flex items-center justify-center rounded-xl border border-[var(--app-border)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-muted)]">
             Activer les rappels
           </button>
         )}
@@ -239,7 +239,7 @@ export default function ProchainesEcheances() {
       )}
 
       {chargement ? (
-        <p className="text-sm text-texte-doux">Chargement…</p>
+        <p className="text-sm text-texte-doux">Chargement...</p>
       ) : items.length === 0 ? (
         <p className="text-sm text-texte-doux">
           Aucune échéance à venir dans les {FENETRE_JOURS} prochains jours. Vérifie
@@ -263,7 +263,7 @@ export default function ProchainesEcheances() {
                 />
               </span>
               <div className="flex-1 text-[#1F2733]">
-                <span className="font-medium">{e.enfantNom}</span> — {fmt(e.debut)}{" "}
+                <span className="font-medium">{e.enfantNom}</span> - {fmt(e.debut)}{" "}
                 {fmtHeure(e.debut)}
                 <span className="block text-xs text-texte-doux">{sousTitre(e)}</span>
               </div>
