@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier";
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
@@ -50,7 +52,7 @@ export default function CalendrierPage() {
   });
   const [vacances, setVacances] = useState<PeriodeVacances[]>([]);
 
-  // 1) charger les enfants DE LA PROCÉDURE ACTIVE
+  // 1) charger les enfants DE LA PROCEDURE ACTIVE
   useEffect(() => {
     (async () => {
       const data = await getEnfantsDeProcedureActive();
@@ -185,28 +187,35 @@ export default function CalendrierPage() {
   const fmtHeure = (d: Date) =>
     d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-  const champ = "w-full rounded-md border border-gray-300 bg-white text-[#1F2733] p-2";
-  const labelCss = "block text-sm font-medium text-[#1F2733] mb-1";
+  const champ = "w-full rounded-md border border-[var(--app-border)] bg-white text-[var(--app-text)] p-2";
+  const labelCss = "block text-sm font-medium text-[var(--app-text)] mb-1";
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC]">
-      <PageHeader
-        eyebrow="Organisation"
-        title="Calendrier de garde"
-        subtitle="Un week-end sur deux : enregistre la règle par enfant et visualise les prochaines périodes."
-      />
-      
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-8">
-      <div className="mt-6">
-            <RegleDVH />
-          </div>
-          <div className="text-sm">
-            <Link href="/calendrier/avance" className="text-[#7A6326] underline">
-              Aperçu du calendrier avancé (bêta)
-            </Link>
-          </div>
+    <AppShell
+      titre="Calendrier"
+      description="Visualiser les week-ends, les regles de garde et les periodes de vacances a verifier dans le dossier."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/organiser" variant="secondary">
+            Retour Organiser
+          </AppButtonLink>
+          <AppButtonLink href="/journal" variant="secondary">
+            Noter un fait
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <RegleDVH />
+
+        <div className="text-sm">
+          <a href="/calendrier/avance" className="text-[#7A6326] underline">
+            Aperçu du calendrier avancé (bêta)
+          </a>
+        </div>
+
         {enfants.length === 0 ? (
-          <p className="text-[#1F2733]">Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».</p>
+          <p className="text-[var(--app-text)]">Ajoute d&apos;abord un enfant dans la rubrique « Enfants ».</p>
         ) : (
           <>
             <div>
@@ -226,93 +235,94 @@ export default function CalendrierPage() {
               idPersistance="garde-calendrier"
             >
               <div className="space-y-4">
+                <div>
+                  <label className={labelCss}>Chez qui l&apos;enfant vit-il principalement ?</label>
+                  <select
+                    value={parentPrincipal}
+                    onChange={(e) => setParentPrincipal(e.target.value as "moi" | "autre")}
+                    className={champ}
+                  >
+                    <option value="autre">Chez l&apos;autre parent (j&apos;ai le DVH)</option>
+                    <option value="moi">Chez moi (l&apos;autre parent a le DVH)</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className={labelCss}>Chez qui l&apos;enfant vit-il principalement ?</label>
-                <select
-                  value={parentPrincipal}
-                  onChange={(e) => setParentPrincipal(e.target.value as "moi" | "autre")}
-                  className={champ}
+                <div>
+                  <label className={labelCss}>Date de référence (un week-end de garde connu)</label>
+                  <input type="date" value={dateReference} onChange={(e) => setDateReference(e.target.value)} className={champ} />
+                  <p className="text-xs text-[var(--app-text-muted)] mt-1">
+                    Indique un vendredi (ou samedi/dimanche) où l&apos;enfant est en garde.
+                    Les week-ends suivants seront calculés un sur deux.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCss}>Début - jour</label>
+                    <select value={jourDebut} onChange={(e) => setJourDebut(Number(e.target.value))} className={champ}>
+                      {[1, 2, 3, 4, 5, 6, 7].map((j) => <option key={j} value={j}>{JOURS[j]}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCss}>Début - heure</label>
+                    <input type="time" value={heureDebut} onChange={(e) => setHeureDebut(e.target.value)} className={champ} />
+                  </div>
+                  <div>
+                    <label className={labelCss}>Fin - jour</label>
+                    <select value={jourFin} onChange={(e) => setJourFin(Number(e.target.value))} className={champ}>
+                      {[1, 2, 3, 4, 5, 6, 7].map((j) => <option key={j} value={j}>{JOURS[j]}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCss}>Fin - heure</label>
+                    <input type="time" value={heureFin} onChange={(e) => setHeureFin(e.target.value)} className={champ} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelCss}>Notes (facultatif)</label>
+                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={champ} />
+                </div>
+
+                <button
+                  onClick={enregistrer}
+                  disabled={chargement}
+                  className="rounded-md bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f54] disabled:opacity-50"
                 >
-                  <option value="autre">Chez l&apos;autre parent (j&apos;ai le DVH)</option>
-                  <option value="moi">Chez moi (l&apos;autre parent a le DVH)</option>
-                </select>
-              </div>
+                  {chargement ? "Enregistrement..." : "Enregistrer la règle"}
+                </button>
 
-              <div>
-                <label className={labelCss}>Date de référence (un week-end de garde connu)</label>
-                <input type="date" value={dateReference} onChange={(e) => setDateReference(e.target.value)} className={champ} />
-                <p className="text-xs text-gray-500 mt-1">
-                  Indique un vendredi (ou samedi/dimanche) où l&apos;enfant est en garde.
-                  Les week-ends suivants seront calculés un sur deux.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCss}>Début — jour</label>
-                  <select value={jourDebut} onChange={(e) => setJourDebut(Number(e.target.value))} className={champ}>
-                    {[1, 2, 3, 4, 5, 6, 7].map((j) => <option key={j} value={j}>{JOURS[j]}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCss}>Début — heure</label>
-                  <input type="time" value={heureDebut} onChange={(e) => setHeureDebut(e.target.value)} className={champ} />
-                </div>
-                <div>
-                  <label className={labelCss}>Fin — jour</label>
-                  <select value={jourFin} onChange={(e) => setJourFin(Number(e.target.value))} className={champ}>
-                    {[1, 2, 3, 4, 5, 6, 7].map((j) => <option key={j} value={j}>{JOURS[j]}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCss}>Fin — heure</label>
-                  <input type="time" value={heureFin} onChange={(e) => setHeureFin(e.target.value)} className={champ} />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelCss}>Notes (facultatif)</label>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={champ} />
-              </div>
-
-              <button
-                onClick={enregistrer}
-                disabled={chargement}
-                className="rounded-md bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f54] disabled:opacity-50"
-              >
-                {chargement ? "Enregistrement…" : "Enregistrer la règle"}
-              </button>
-
-              {message && <p className="text-sm text-[#1F2733]">{message}</p>}
+                {message && <p className="text-sm text-[var(--app-text)]">{message}</p>}
               </div>
             </EncartPliable>
 
-            <div>
-              <label className={labelCss}>Zone de vacances scolaires</label>
-              <select
-                value={zoneVacances}
-                onChange={(e) => changerZone(e.target.value)}
-                className={champ}
-              >
-                <option value="A">Zone A</option>
-                <option value="B">Zone B</option>
-                <option value="C">Zone C</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
-                Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
-                Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
-                Montpellier, Paris, Toulouse, Versailles.
-              </p>
-            </div>
+            <AppCard titre="Zone de vacances scolaires">
+              <div className="space-y-2">
+                <select
+                  value={zoneVacances}
+                  onChange={(e) => changerZone(e.target.value)}
+                  className={champ}
+                >
+                  <option value="A">Zone A</option>
+                  <option value="B">Zone B</option>
+                  <option value="C">Zone C</option>
+                </select>
+                <p className="text-xs text-[var(--app-text-muted)]">
+                  Zone A : Besançon, Bordeaux, Clermont-Ferrand, Dijon, Grenoble, Limoges,
+                  Lyon, Poitiers. Zone B : Aix-Marseille, Amiens, Lille, Nancy-Metz, Nantes,
+                  Nice, Orléans-Tours, Reims, Rennes, Rouen, Strasbourg. Zone C : Créteil,
+                  Montpellier, Paris, Toulouse, Versailles.
+                </p>
+              </div>
+            </AppCard>
 
-            <section className="carte rounded-lg border border-gray-200 bg-white p-5">
-              <h2 className="font-display text-xl text-[#15233F] mb-3">Prochains week-ends de garde</h2>
+            <AppCard titre="Prochains week-ends de garde">
               {apercu.length === 0 ? (
-                <p className="text-sm text-gray-500">Renseigne une date de référence pour voir l&apos;aperçu.</p>
+                <p className="text-sm text-[var(--app-text-muted)]">
+                  Renseigne une date de référence pour voir l&apos;aperçu.
+                </p>
               ) : (
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-[var(--app-border)]">
                   {apercu.map((p, i) => {
                     const vac = vacancesQuiChevauchent(p.debut, p.fin, vacances);
                     return (
@@ -321,15 +331,15 @@ export default function CalendrierPage() {
                           className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: p.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
                         />
-                        <span className="text-[#1F2733]">
+                        <span className="text-[var(--app-text)]">
                           Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
                           <strong>{fmt(p.fin)}</strong> {fmtHeure(p.fin)}
-                          <span className="block text-xs text-gray-500">
+                          <span className="block text-xs text-[var(--app-text-muted)]">
                             {p.chezQui === "moi" ? "Garde chez moi" : "Garde chez l'autre parent"}
                           </span>
                           {vac && (
                             <span className="mt-1 inline-block rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-                              ⚠ {vac.nom} — répartition selon le jugement
+                              ⚠ {vac.nom} - répartition selon le jugement
                             </span>
                           )}
                         </span>
@@ -339,18 +349,27 @@ export default function CalendrierPage() {
                 </ul>
               )}
               {apercu.some((p) => vacancesQuiChevauchent(p.debut, p.fin, vacances)) && (
-                <p className="mt-3 text-xs leading-relaxed text-gray-500">
+                <p className="mt-3 text-xs leading-relaxed text-[var(--app-text-muted)]">
                   Certains week-ends tombent pendant les vacances scolaires. La règle
-                  « un week-end sur deux » peut alors ne pas s&apos;appliquer : la
+                  «un week-end sur deux» peut alors ne pas s&apos;appliquer : la
                   répartition des vacances est fixée par votre jugement. Vérifiez votre
                   décision et, au besoin, ajustez via le calendrier avancé.
                 </p>
               )}
-            </section>
-          <CalendrierMensuel regle={regleCourante} vacances={vacances} />
+            </AppCard>
+
+            <CalendrierMensuel regle={regleCourante} vacances={vacances} />
           </>
         )}
+
+        <AppNotice titre="Rappel vacances scolaires">
+          <p>
+            Les vacances scolaires sont affichées comme annotation uniquement. La
+            répartition exacte dépend de la décision applicable. Vérifiez le jugement
+            avant tout usage.
+          </p>
+        </AppNotice>
       </div>
-    </main>
+    </AppShell>
   );
 }
