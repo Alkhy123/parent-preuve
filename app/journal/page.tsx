@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
@@ -71,7 +74,7 @@ const AIDES_CATEGORIE: Record<string, string> = {
     "Décrivez le changement et depuis quand. Ajoutez un justificatif si possible.",
 };
 
-// Mots à tonalité émotionnelle ou accusatoire — sert à SUGGÉRER, jamais à bloquer
+// Mots à tonalité émotionnelle ou accusatoire - sert à SUGGÉRER, jamais à bloquer
 const MOTS_SENSIBLES = [
   "toujours", "jamais", "menteur", "menteuse", "irresponsable",
   "égoïste", "nul", "incapable", "honteux", "honte", "évidemment",
@@ -362,7 +365,7 @@ export default function JournalPage() {
       contexte: {
         titre:
           "Journal factuel" +
-          (filtreCategorie !== "Toutes" ? ` — ${filtreCategorie}` : ""),
+          (filtreCategorie !== "Toutes" ? ` - ${filtreCategorie}` : ""),
       },
     });
     const nomFichier = `journal-parent-preuve-${new Date()
@@ -372,175 +375,179 @@ export default function JournalPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Suivi"
-        title="Journal factuel"
-        subtitle="Décrivez chaque événement par les faits : qui, quand, quoi."
-      />
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
-
+    <AppShell
+      titre="Journal factuel"
+      description="Ajouter, filtrer et relire les faits dates de la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/collecter" variant="secondary">
+            Retour Collecter
+          </AppButtonLink>
+          <AppButtonLink href="/chronologie" variant="secondary">
+            Voir la chronologie
+          </AppButtonLink>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive (sans modifier le composant partagé). */}
-        <div className="mt-8">
-          <EncartPliable
-            key={preRempli ? "journal-prerempli" : "journal-standard"}
-            titre="Ajouter un fait"
-            replieParDefaut={!preRempli}
-            signalFermeture={signalAjout}
-          >
-            <div className="space-y-4">
-          {preRempli && (
-            <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
-              <p className="font-medium text-[#15233F]">
-                Proposition pré-remplie à partir de votre saisie.
-              </p>
-              <p className="mt-1 text-slate-600">
-                Vérifiez chaque champ, complétez si besoin, puis cliquez sur « Ajouter au journal » pour valider vous-même l’enregistrement.
-              </p>
-              {avertissements.length > 0 && (
-                <ul className="mt-2 list-disc pl-5 text-slate-600">
-                  {avertissements.map((a, i) => (
-                    <li key={i}>{a}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Titre <span className="text-[#9B2C2C]">*</span>
-            </label>
-            <input
-              type="text" placeholder="Ex : Remise de l'enfant en retard"
-              value={titre} onChange={(e) => setTitre(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <EncartPliable
+          key={preRempli ? "journal-prerempli" : "journal-standard"}
+          titre="Ajouter un fait"
+          replieParDefaut={!preRempli}
+          signalFermeture={signalAjout}
+        >
+          <div className="space-y-4">
+            {preRempli && (
+              <AppNotice titre="Proposition pré-remplie à vérifier">
+                <p>
+                  Vérifiez chaque champ, complétez si besoin, puis cliquez sur
+                  « Ajouter au journal » pour valider vous-même
+                  l&apos;enregistrement.
+                </p>
+                {avertissements.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5">
+                    {avertissements.map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                )}
+              </AppNotice>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Date <span className="text-[#9B2C2C]">*</span>
+                Titre <span className="text-[#9B2C2C]">*</span>
               </label>
               <input
-                type="date" value={dateEvenement}
-                onChange={(e) => setDateEvenement(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                type="text" placeholder="Ex : Remise de l'enfant en retard"
+                value={titre} onChange={(e) => setTitre(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-4 py-2"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
-              <select
-                value={childId} onChange={(e) => setChildId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Aucun —</option>
-                {enfants.map((e) => (
-                  <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
-                ))}
-              </select>
-            </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Description factuelle</label>
-            <textarea
-              rows={3} placeholder="Décrivez les faits observables, sans interprétation."
-              value={description} onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
-            />
-          </div>
-
-          {motsDetectes.length > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Astuce neutralité : votre texte contient des termes peu factuels
-              ({motsDetectes.join(", ")}). Préférez décrire ce qui est observable
-              (horaires, paroles exactes, faits) plutôt qu&apos;une interprétation.
-            </div>
-          )}
-
-          {/* Pièce jointe facultative : téléverser ou lier une pièce existante.
-              La pièce est aussi rangée dans Documents et au coffre-fort. */}
-          <ChampPieceJointe
-            value={documentId}
-            onChange={setDocumentId}
-            childId={childId || null}
-            libelleDefaut={titre}
-            dateDefaut={dateEvenement}
-          />
-
-          {/* Détails non indispensables au premier enregistrement.
-              S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
-          <OptionsAvancees ouvertParDefaut={preRempli}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-                <select
-                  value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                >
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                {AIDES_CATEGORIE[categorie] && (
-                  <p className="mt-1 text-xs text-slate-500">{AIDES_CATEGORIE[categorie]}</p>
-                )}
+                <label className="block text-sm font-medium text-slate-700">
+                  Date <span className="text-[#9B2C2C]">*</span>
+                </label>
+                <input
+                  type="date" value={dateEvenement}
+                  onChange={(e) => setDateEvenement(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Heure (facultatif)</label>
-                <input
-                  type="time" value={heureEvenement}
-                  onChange={(e) => setHeureEvenement(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                />
+                <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
+                <select
+                  value={childId} onChange={(e) => setChildId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                >
+                  <option value="">- Aucun -</option>
+                  {enfants.map((e) => (
+                    <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
-                Implication parentale (facultatif)
-              </label>
-              <select
-                value={implicationCategorie}
-                onChange={(e) => setImplicationCategorie(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                <option value="">— Non concerné —</option>
-                {CATEGORIES_IMPLICATION.map((c) => (
-                  <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-slate-500">
-                À renseigner si ce fait illustre une démarche concrète envers
-                l&apos;enfant (rendez-vous honoré, présence à un événement…).
-              </p>
+              <label className="block text-sm font-medium text-slate-700">Description factuelle</label>
+              <textarea
+                rows={3} placeholder="Décrivez les faits observables, sans interprétation."
+                value={description} onChange={(e) => setDescription(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-4 py-2"
+              />
             </div>
-          </OptionsAvancees>
 
-          <button
-            onClick={ajouterEvenement}
-            className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
-          >
-            Ajouter au journal
-          </button>
+            {motsDetectes.length > 0 && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Astuce neutralité : votre texte contient des termes peu factuels
+                ({motsDetectes.join(", ")}). Préférez décrire ce qui est observable
+                (horaires, paroles exactes, faits) plutôt qu&apos;une interprétation.
+              </div>
+            )}
 
-          <FormMessage message={message} type="erreur" />
-            </div>
-          </EncartPliable>
-        </div>
+            {/* Pièce jointe facultative : téléverser ou lier une pièce existante.
+                La pièce est aussi rangée dans Documents et au coffre-fort. */}
+            <ChampPieceJointe
+              value={documentId}
+              onChange={setDocumentId}
+              childId={childId || null}
+              libelleDefaut={titre}
+              dateDefaut={dateEvenement}
+            />
+
+            {/* Détails non indispensables au premier enregistrement.
+                S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
+            <OptionsAvancees ouvertParDefaut={preRempli}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                  <select
+                    value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  >
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  {AIDES_CATEGORIE[categorie] && (
+                    <p className="mt-1 text-xs text-slate-500">{AIDES_CATEGORIE[categorie]}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Heure (facultatif)</label>
+                  <input
+                    type="time" value={heureEvenement}
+                    onChange={(e) => setHeureEvenement(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Implication parentale (facultatif)
+                </label>
+                <select
+                  value={implicationCategorie}
+                  onChange={(e) => setImplicationCategorie(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                >
+                  <option value="">- Non concerné -</option>
+                  {CATEGORIES_IMPLICATION.map((c) => (
+                    <option key={c.valeur} value={c.valeur}>{c.libelle}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  À renseigner si ce fait illustre une démarche concrète envers
+                  l&apos;enfant (rendez-vous honoré, présence à un événement...).
+                </p>
+              </div>
+            </OptionsAvancees>
+
+            <button
+              onClick={ajouterEvenement}
+              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+            >
+              Ajouter au journal
+            </button>
+
+            <FormMessage message={message} type="erreur" />
+          </div>
+        </EncartPliable>
 
         {confirmation && (
-          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
             <FormMessage message={confirmation} type="succes" />
           </div>
         )}
 
-        {/* Filtre */}
-        <div className="mt-8 flex items-center gap-3">
-          <label className="text-sm text-slate-600">Filtrer :</label>
+        {/* Filtre et export */}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-sm text-[var(--app-text-muted)]">Filtrer :</label>
           <select
             value={filtreCategorie} onChange={(e) => setFiltreCategorie(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-[var(--app-border)] px-3 py-1.5 text-sm"
           >
             <option value="Toutes">Toutes les catégories</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -549,115 +556,117 @@ export default function JournalPage() {
           <button
             onClick={exporterCsv}
             disabled={evenementsFiltres.length === 0}
-            className="ml-auto rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="ml-auto rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Exporter en CSV
           </button>
         </div>
 
-        {/* Liste */}
-        <div className="mt-4 space-y-3">
-          {evenementsFiltres.length === 0 && (
-            <EmptyState
-              titre="Aucun fait pour cette sélection"
-              message={
-                filtreCategorie === "Toutes"
-                  ? "Ajoutez un premier fait avec « Ajouter un fait » ci-dessus."
-                  : "Aucun fait dans cette catégorie. Changez de filtre ou ajoutez un fait."
-              }
-            />
-          )}
-          {evenementsFiltres.map((ev) => {
-            const badge = badgeStatut(ev.statut);
-            const implication = libelleImplication(ev.implication_categorie);
-            return (
-              <div key={ev.id} className="carte rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                        {ev.categorie}
-                      </span>
-                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
-                        {badge.texte}
-                      </span>
-                      {implication && (
-                        <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
-                          Implication : {implication}
+        {/* Liste des faits */}
+        <AppCard>
+          <div className="space-y-3">
+            {evenementsFiltres.length === 0 && (
+              <EmptyState
+                titre="Aucun fait pour cette sélection"
+                message={
+                  filtreCategorie === "Toutes"
+                    ? "Ajoutez un premier fait avec « Ajouter un fait » ci-dessus."
+                    : "Aucun fait dans cette catégorie. Changez de filtre ou ajoutez un fait."
+                }
+              />
+            )}
+            {evenementsFiltres.map((ev) => {
+              const badge = badgeStatut(ev.statut);
+              const implication = libelleImplication(ev.implication_categorie);
+              return (
+                <div key={ev.id} className="rounded-xl border border-[var(--app-border)] bg-white p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                          {ev.categorie}
                         </span>
-                      )}
-                    </div>
-                    <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
-                    <p className="text-sm text-slate-500">
-                      {ev.date_evenement}{ev.heure_evenement ? ` à ${ev.heure_evenement}` : ""}
-                      {nomEnfant(ev.child_id) ? ` · ${nomEnfant(ev.child_id)}` : ""}
-                    </p>
-                    {ev.description_factuelle && (
-                      <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
-                    )}
-
-                    {/* Pièce liée au fait (ou liaison d'une pièce existante). */}
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      {ev.document_id ? (
-                        <>
-                          <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
-                            ✓ {nomDocument(ev.document_id)}
+                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs ${badge.classe}`}>
+                          {badge.texte}
+                        </span>
+                        {implication && (
+                          <span className="inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                            Implication : {implication}
                           </span>
-                          <button
-                            onClick={() => ouvrirPiece(ev.document_id!)}
-                            className="text-xs text-slate-700 hover:underline"
-                          >
-                            Ouvrir
-                          </button>
-                        </>
-                      ) : (
-                        <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                          Sans pièce jointe
-                        </span>
+                        )}
+                      </div>
+                      <p className="mt-1.5 font-semibold text-[#15233F]">{ev.titre}</p>
+                      <p className="text-sm text-slate-500">
+                        {ev.date_evenement}{ev.heure_evenement ? ` à ${ev.heure_evenement}` : ""}
+                        {nomEnfant(ev.child_id) ? ` · ${nomEnfant(ev.child_id)}` : ""}
+                      </p>
+                      {ev.description_factuelle && (
+                        <p className="mt-2 text-sm text-slate-700">{ev.description_factuelle}</p>
                       )}
-                      <select
-                        value={ev.document_id ?? ""}
-                        onChange={(e) => lierPiece(ev.id, e.target.value)}
-                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
-                      >
-                        <option value="">— Lier une pièce —</option>
-                        {documentsProcedure.map((d) => (
-                          <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    {ev.statut !== "valide" && (
+                      {/* Pièce liée au fait (ou liaison d'une pièce existante). */}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {ev.document_id ? (
+                          <>
+                            <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                              ✓ {nomDocument(ev.document_id)}
+                            </span>
+                            <button
+                              onClick={() => ouvrirPiece(ev.document_id!)}
+                              className="text-xs text-slate-700 hover:underline"
+                            >
+                              Ouvrir
+                            </button>
+                          </>
+                        ) : (
+                          <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                            Sans pièce jointe
+                          </span>
+                        )}
+                        <select
+                          value={ev.document_id ?? ""}
+                          onChange={(e) => lierPiece(ev.id, e.target.value)}
+                          className="rounded-lg border border-[var(--app-border)] px-2 py-1 text-xs"
+                        >
+                          <option value="">- Lier une pièce -</option>
+                          {documentsProcedure.map((d) => (
+                            <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      {ev.statut !== "valide" && (
+                        <button
+                          onClick={() => changerStatut(ev.id, "valide")}
+                          className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                        >
+                          Marquer comme validé
+                        </button>
+                      )}
+                      {ev.statut !== "brouillon" && (
+                        <button
+                          onClick={() => changerStatut(ev.id, "brouillon")}
+                          className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-600 hover:bg-slate-50"
+                        >
+                          Repasser en brouillon
+                        </button>
+                      )}
                       <button
-                        onClick={() => changerStatut(ev.id, "valide")}
-                        className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => supprimerEvenement(ev.id)}
+                        className="text-sm text-red-600 hover:underline"
                       >
-                        Marquer comme validé
+                        Supprimer
                       </button>
-                    )}
-                    {ev.statut !== "brouillon" && (
-                      <button
-                        onClick={() => changerStatut(ev.id, "brouillon")}
-                        className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-600 hover:bg-slate-50"
-                      >
-                        Repasser en brouillon
-                      </button>
-                    )}
-                    <button
-                      onClick={() => supprimerEvenement(ev.id)}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Supprimer
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </AppCard>
       </div>
-    </main>
+    </AppShell>
   );
 }

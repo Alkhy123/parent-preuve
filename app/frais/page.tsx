@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import PageHeader from "@/components/PageHeader";
+import AppButtonLink from "@/components/app/AppButtonLink";
+import AppCard from "@/components/app/AppCard";
+import AppNotice from "@/components/app/AppNotice";
+import AppShell from "@/components/app/AppShell";
 import EncartPliable from "@/components/EncartPliable";
 import FormMessage from "@/components/ui/FormMessage";
 import EmptyState from "@/components/ui/EmptyState";
@@ -465,36 +468,41 @@ export default function FraisPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#ECE7DC] text-[#1F2733]">
-      <PageHeader
-        eyebrow="Finances"
-        title="Frais partagés"
-        subtitle="Suivez moi par moi ce qui est dû et ce qui a été payé"
-      />
-
-      <div className="mx-auto max-w-2xl px-6 pt-10 pb-12">
-      <div className="mt-6">
-          <RegleFrais/>
+    <AppShell
+      titre="Frais"
+      description="Enregistrer les frais, suivre les remboursements et conserver les justificatifs lies a la procedure active."
+      actions={
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <AppButtonLink href="/collecter" variant="secondary">
+            Retour Collecter
+          </AppButtonLink>
+          <AppButtonLink href="/resume-mois" variant="secondary">
+            Resume du mois
+          </AppButtonLink>
         </div>
+      }
+    >
+      <div className="space-y-6">
+        <RegleFrais />
 
         {/* Bandeau de totaux */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="carte rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Reste à percevoir</p>
-            <p className="mt-1 text-2xl font-bold text-[#15233F]">{euros(resteAPercevoir)}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-white p-4">
+            <p className="text-sm text-[var(--app-text-muted)]">Reste à percevoir</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--app-text)]">{euros(resteAPercevoir)}</p>
           </div>
-          <div className="carte rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Déjà remboursé</p>
-            <p className="mt-1 text-2xl font-bold text-slate-500">{euros(dejaRembourse)}</p>
+          <div className="rounded-2xl border border-[var(--app-border)] bg-white p-4">
+            <p className="text-sm text-[var(--app-text-muted)]">Déjà remboursé</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--app-text-muted)]">{euros(dejaRembourse)}</p>
           </div>
         </div>
 
         {/* Export CSV */}
-        <div className="mt-4 flex justify-end">
+        <div className="flex justify-end">
           <button
             onClick={exporterCsv}
             disabled={fraisProcedure.length === 0}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-[#15233F] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Exporter en CSV
           </button>
@@ -502,7 +510,7 @@ export default function FraisPage() {
 
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive ou quand on édite un frais. */}
-        <div className="mt-8" ref={formulaireRef}>
+        <div ref={formulaireRef}>
           <EncartPliable
             key={editionId ? `frais-edition-${editionId}` : preRempli ? "frais-prerempli" : "frais-standard"}
             titre={editionId ? "Modifier le frais" : "Ajouter un frais"}
@@ -510,350 +518,358 @@ export default function FraisPage() {
             signalFermeture={signalAjout}
           >
             <div className="space-y-4">
-          {editionId && (
-            <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
-              <p className="font-medium text-[#15233F]">Modification d&apos;un frais existant.</p>
-              <p className="mt-1 text-slate-600">
-                Ajustez les champs puis enregistrez. Vous pouvez annuler pour revenir à la liste sans modifier.
-              </p>
-            </div>
-          )}
-          {preRempli && (
-            <div className="rounded-lg border border-[#C2A24C]/50 bg-[#F8F6F1] p-3 text-sm text-[#1F2733]">
-              <p className="font-medium text-[#15233F]">
-                Proposition pré-remplie à partir de votre saisie.
-              </p>
-              <p className="mt-1 text-slate-600">
-                Vérifiez chaque champ, complétez si besoin, puis cliquez sur « Ajouter le frais » pour valider vous-même l’enregistrement.
-              </p>
-              {avertissements.length > 0 && (
-                <ul className="mt-2 list-disc pl-5 text-slate-600">
-                  {avertissements.map((a, i) => (
-                    <li key={i}>{a}</li>
-                  ))}
-                </ul>
+              {editionId && (
+                <AppNotice titre="Modification d'un frais">
+                  <p>
+                    Ajustez les champs puis enregistrez. Vous pouvez annuler pour
+                    revenir à la liste sans modifier.
+                  </p>
+                </AppNotice>
               )}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Libellé <span className="text-[#9B2C2C]">*</span>
-            </label>
-            <input
-              type="text" placeholder="Ex : Consultation orthodontiste"
-              value={libelle} onChange={(e) => setLibelle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">
-                Montant total (€) <span className="text-[#9B2C2C]">*</span>
-              </label>
-              <input
-                type="text" inputMode="decimal" placeholder="80"
-                value={montant} onChange={(e) => setMontant(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">
-                Date <span className="text-[#9B2C2C]">*</span>
-              </label>
-              <input
-                type="date" value={dateFrais}
-                onChange={(e) => setDateFrais(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
-            <select
-              value={childId} onChange={(e) => setChildId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            >
-              <option value="">— Aucun —</option>
-              {enfants.map((e) => (
-                <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Détails non indispensables au premier enregistrement.
-              S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
-          <OptionsAvancees ouvertParDefaut={preRempli}>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Catégorie</label>
-              <select
-                value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Part de l&apos;autre (€)</label>
-              <input
-                type="text" inputMode="decimal" placeholder="Laisser vide pour la moitié"
-                value={partAutre} onChange={(e) => setPartAutre(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Si vous laissez ce champ vide, la part de l&apos;autre parent est
-                estimée à la moitié du montant. Vous pouvez saisir un autre montant
-                selon la règle de partage de votre dossier.
-              </p>
-            </div>
-          </OptionsAvancees>
-
-          {/* Justificatif guidé. Optionnel : sans justificatif, le frais reste
-              valable et exportable. */}
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-medium text-slate-700">Justificatif</p>
-
-            {documentId ? (
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
-                  ✓ Justificatif joint
-                </span>
-                <span className="text-sm text-slate-600">{nomDocument(documentId)}</span>
-                <button
-                  type="button"
-                  onClick={reinitialiserJustificatif}
-                  className="text-sm text-slate-700 hover:underline"
-                >
-                  Changer
-                </button>
-              </div>
-            ) : justifEtape === "question" ? (
-              <>
-                <p className="mt-1 text-xs text-slate-500">
-                  Un justificatif n&apos;est pas obligatoire : le frais reste
-                  valable et exportable.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setJustifEtape("oui")}
-                    className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
-                  >
-                    Oui, j&apos;ai un justificatif
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setJustifEtape("aucun")}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    Non, pas de justificatif
-                  </button>
-                </div>
-              </>
-            ) : justifEtape === "aucun" ? (
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <p className="text-sm text-slate-600">
-                  Aucun justificatif. Le frais reste valable et exportable.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setJustifEtape("question")}
-                  className="text-sm text-slate-700 hover:underline"
-                >
-                  Modifier
-                </button>
-              </div>
-            ) : (
-              <div className="mt-2 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => champFichierRef.current?.click()}
-                    disabled={uploadEnCours}
-                    className="rounded-lg bg-[#15233F] px-3 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-50"
-                  >
-                    {uploadEnCours ? "Envoi en cours…" : "Téléverser un justificatif"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMontrerSelection((v) => !v)}
-                    className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
-                  >
-                    Sélectionner un justificatif existant
-                  </button>
-                </div>
-
-                <input
-                  ref={champFichierRef}
-                  type="file"
-                  accept="image/*,application/pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) televerserJustificatif(f);
-                    e.target.value = "";
-                  }}
-                />
-
-                <p className="text-xs text-slate-500">
-                  Le téléversement ouvre l&apos;appareil photo ou les fichiers de
-                  votre appareil. La pièce est aussi ajoutée à « Documents ».
-                </p>
-
-                <FormMessage message={uploadErreur} type="erreur" />
-
-                {montrerSelection && (
-                  <div>
-                    <select
-                      value={documentId}
-                      onChange={(e) => setDocumentId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                    >
-                      <option value="">— Choisir une pièce —</option>
-                      {documentsProcedure.map((d) => (
-                        <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+              {preRempli && (
+                <AppNotice titre="Proposition pré-remplie à vérifier">
+                  <p>
+                    Vérifiez chaque champ, complétez si besoin, puis cliquez sur
+                    « Ajouter le frais » pour valider vous-même
+                    l&apos;enregistrement.
+                  </p>
+                  {avertissements.length > 0 && (
+                    <ul className="mt-2 list-disc pl-5">
+                      {avertissements.map((a, i) => (
+                        <li key={i}>{a}</li>
                       ))}
-                    </select>
-                    {documentsProcedure.length === 0 && (
-                      <p className="mt-1 text-xs text-slate-500">
-                        Aucune pièce disponible. Ajoutez vos pièces dans « Documents ».
-                      </p>
+                    </ul>
+                  )}
+                </AppNotice>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Libellé <span className="text-[#9B2C2C]">*</span>
+                </label>
+                <input
+                  type="text" placeholder="Ex : Consultation orthodontiste"
+                  value={libelle} onChange={(e) => setLibelle(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-4 py-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Montant total (€) <span className="text-[#9B2C2C]">*</span>
+                  </label>
+                  <input
+                    type="text" inputMode="decimal" placeholder="80"
+                    value={montant} onChange={(e) => setMontant(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Date <span className="text-[#9B2C2C]">*</span>
+                  </label>
+                  <input
+                    type="date" value={dateFrais}
+                    onChange={(e) => setDateFrais(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
+                <select
+                  value={childId} onChange={(e) => setChildId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                >
+                  <option value="">- Aucun -</option>
+                  {enfants.map((e) => (
+                    <option key={e.id} value={e.id}>{e.prenom_ou_alias}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Détails non indispensables au premier enregistrement.
+                  S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
+              <OptionsAvancees ouvertParDefaut={preRempli}>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                  <select
+                    value={categorie} onChange={(e) => setCategorie(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  >
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Part de l&apos;autre (€)</label>
+                  <input
+                    type="text" inputMode="decimal" placeholder="Laisser vide pour la moitié"
+                    value={partAutre} onChange={(e) => setPartAutre(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Si vous laissez ce champ vide, la part de l&apos;autre parent est
+                    estimée à la moitié du montant. Vous pouvez saisir un autre montant
+                    selon la règle de partage de votre dossier.
+                  </p>
+                </div>
+              </OptionsAvancees>
+
+              {/* Justificatif guidé. Optionnel : sans justificatif, le frais reste
+                  valable et exportable. */}
+              <div className="rounded-lg border border-[var(--app-border)] p-4">
+                <p className="text-sm font-medium text-slate-700">Justificatif</p>
+
+                {documentId ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                      ✓ Justificatif joint
+                    </span>
+                    <span className="text-sm text-slate-600">{nomDocument(documentId)}</span>
+                    <button
+                      type="button"
+                      onClick={reinitialiserJustificatif}
+                      className="text-sm text-slate-700 hover:underline"
+                    >
+                      Changer
+                    </button>
+                  </div>
+                ) : justifEtape === "question" ? (
+                  <>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Un justificatif n&apos;est pas obligatoire : le frais reste
+                      valable et exportable.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setJustifEtape("oui")}
+                        className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                      >
+                        Oui, j&apos;ai un justificatif
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setJustifEtape("aucun")}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                      >
+                        Non, pas de justificatif
+                      </button>
+                    </div>
+                  </>
+                ) : justifEtape === "aucun" ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <p className="text-sm text-slate-600">
+                      Aucun justificatif. Le frais reste valable et exportable.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setJustifEtape("question")}
+                      className="text-sm text-slate-700 hover:underline"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => champFichierRef.current?.click()}
+                        disabled={uploadEnCours}
+                        className="rounded-lg bg-[#15233F] px-3 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-50"
+                      >
+                        {uploadEnCours ? "Envoi en cours..." : "Téléverser un justificatif"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMontrerSelection((v) => !v)}
+                        className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                      >
+                        Sélectionner un justificatif existant
+                      </button>
+                    </div>
+
+                    <input
+                      ref={champFichierRef}
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) televerserJustificatif(f);
+                        e.target.value = "";
+                      }}
+                    />
+
+                    <p className="text-xs text-slate-500">
+                      Le téléversement ouvre l&apos;appareil photo ou les fichiers de
+                      votre appareil. La pièce est aussi ajoutée à « Documents ».
+                    </p>
+
+                    <FormMessage message={uploadErreur} type="erreur" />
+
+                    {montrerSelection && (
+                      <div>
+                        <select
+                          value={documentId}
+                          onChange={(e) => setDocumentId(e.target.value)}
+                          className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
+                        >
+                          <option value="">- Choisir une pièce -</option>
+                          {documentsProcedure.map((d) => (
+                            <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                          ))}
+                        </select>
+                        {documentsProcedure.length === 0 && (
+                          <p className="mt-1 text-xs text-slate-500">
+                            Aucune pièce disponible. Ajoutez vos pièces dans « Documents ».
+                          </p>
+                        )}
+                      </div>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => setJustifEtape("question")}
+                      className="text-xs text-slate-500 hover:underline"
+                    >
+                      Retour
+                    </button>
                   </div>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => setJustifEtape("question")}
-                  className="text-xs text-slate-500 hover:underline"
-                >
-                  Retour
-                </button>
               </div>
-            )}
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={ajouterFrais}
-              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
-            >
-              {editionId ? "Enregistrer les modifications" : "Ajouter le frais"}
-            </button>
-            {editionId && (
-              <button
-                type="button"
-                onClick={annulerEdition}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-              >
-                Annuler
-              </button>
-            )}
-          </div>
-          <FormMessage message={message} type="erreur" />
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={ajouterFrais}
+                  className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+                >
+                  {editionId ? "Enregistrer les modifications" : "Ajouter le frais"}
+                </button>
+                {editionId && (
+                  <button
+                    type="button"
+                    onClick={annulerEdition}
+                    className="rounded-lg border border-[var(--app-border)] px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]"
+                  >
+                    Annuler
+                  </button>
+                )}
+              </div>
+              <FormMessage message={message} type="erreur" />
             </div>
           </EncartPliable>
         </div>
 
         {confirmation && (
-          <div className="mt-6 rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
             <FormMessage message={confirmation} type="succes" />
           </div>
         )}
 
-        {/* Liste */}
-        <div className="mt-8 space-y-3">
-          {fraisProcedure.length === 0 && (
-            <EmptyState
-              titre="Aucun frais pour cette procédure"
-              message="Ajoutez un premier frais avec « Ajouter un frais » ci-dessus."
-            />
-          )}
-          {fraisProcedure.map((f) => (
-            <div
-              key={f.id}
-              className={`carte rounded-xl border p-4 ${
-                f.rembourse ? "border-slate-200 bg-slate-100" : "border-slate-200 bg-white"
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                    {f.categorie}
-                  </span>
-                  <p className="mt-1.5 font-semibold text-[#15233F]">{f.libelle}</p>
-                  <p className="text-sm text-slate-500">
-                    {f.date_frais} · Total {euros(Number(f.montant))} · Part due {euros(Number(f.part_autre))}
-                    {nomEnfant(f.child_id) ? ` · ${nomEnfant(f.child_id)}` : ""}
-                  </p>
-                  {f.rembourse && (
-                    <span className="mt-1 inline-block text-xs font-medium text-green-700">
-                      ✓ Remboursé
-                    </span>
-                  )}
+        <AppNotice titre="Rappel">
+          <p>
+            Vérifiez les justificatifs et les montants avant tout export ou
+            transmission. Un justificatif reste lié à la procédure active.
+          </p>
+        </AppNotice>
 
-                  {/* Justificatif lié ou non */}
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {f.document_id ? (
-                      <>
-                        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
-                          ✓ Justificatif joint
-                        </span>
-                        <button
-                          onClick={() => ouvrirJustificatif(f.document_id!)}
-                          className="text-xs text-slate-700 hover:underline"
-                        >
-                          Ouvrir
-                        </button>
-                      </>
-                    ) : f.sans_justificatif ? (
-                      <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
-                        Sans justificatif (choisi)
-                      </span>
-                    ) : (
-                      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
-                        Sans justificatif
+        {/* Liste */}
+        <AppCard>
+          <div className="space-y-3">
+            {fraisProcedure.length === 0 && (
+              <EmptyState
+                titre="Aucun frais pour cette procédure"
+                message="Ajoutez un premier frais avec « Ajouter un frais » ci-dessus."
+              />
+            )}
+            {fraisProcedure.map((f) => (
+              <div
+                key={f.id}
+                className={`rounded-xl border p-4 ${
+                  f.rembourse ? "border-[var(--app-border)] bg-[var(--app-surface-muted)]" : "border-[var(--app-border)] bg-white"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                      {f.categorie}
+                    </span>
+                    <p className="mt-1.5 font-semibold text-[#15233F]">{f.libelle}</p>
+                    <p className="text-sm text-slate-500">
+                      {f.date_frais} · Total {euros(Number(f.montant))} · Part due {euros(Number(f.part_autre))}
+                      {nomEnfant(f.child_id) ? ` · ${nomEnfant(f.child_id)}` : ""}
+                    </p>
+                    {f.rembourse && (
+                      <span className="mt-1 inline-block text-xs font-medium text-green-700">
+                        ✓ Remboursé
                       </span>
                     )}
-                    <select
-                      value={f.document_id ?? ""}
-                      onChange={(e) => lierJustificatif(f.id, e.target.value)}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+
+                    {/* Justificatif lié ou non */}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {f.document_id ? (
+                        <>
+                          <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
+                            ✓ Justificatif joint
+                          </span>
+                          <button
+                            onClick={() => ouvrirJustificatif(f.document_id!)}
+                            className="text-xs text-slate-700 hover:underline"
+                          >
+                            Ouvrir
+                          </button>
+                        </>
+                      ) : f.sans_justificatif ? (
+                        <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                          Sans justificatif (choisi)
+                        </span>
+                      ) : (
+                        <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-800">
+                          Sans justificatif
+                        </span>
+                      )}
+                      <select
+                        value={f.document_id ?? ""}
+                        onChange={(e) => lierJustificatif(f.id, e.target.value)}
+                        className="rounded-lg border border-[var(--app-border)] px-2 py-1 text-xs"
+                      >
+                        <option value="">- Lier un justificatif -</option>
+                        {documentsProcedure.map((d) => (
+                          <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <button
+                      onClick={() => chargerPourEdition(f)}
+                      className="text-sm text-[#15233F] hover:underline"
                     >
-                      <option value="">— Lier un justificatif —</option>
-                      {documentsProcedure.map((d) => (
-                        <option key={d.id} value={d.id}>{d.categorie} · {d.libelle}</option>
-                      ))}
-                    </select>
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => basculerRembourse(f)}
+                      className="text-sm text-slate-700 hover:underline"
+                    >
+                      {f.rembourse ? "Annuler" : "Marquer remboursé"}
+                    </button>
+                    <button
+                      onClick={() => supprimerFrais(f.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Supprimer
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <button
-                    onClick={() => chargerPourEdition(f)}
-                    className="text-sm text-[#15233F] hover:underline"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => basculerRembourse(f)}
-                    className="text-sm text-slate-700 hover:underline"
-                  >
-                    {f.rembourse ? "Annuler" : "Marquer remboursé"}
-                  </button>
-                  <button
-                    onClick={() => supprimerFrais(f.id)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    Supprimer
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </AppCard>
       </div>
-    </main>
+    </AppShell>
   );
-      }
+}
