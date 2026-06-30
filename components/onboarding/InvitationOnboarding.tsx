@@ -26,8 +26,8 @@ export default function InvitationOnboarding({
   const router = useRouter();
 
   return (
-    <div className="carte rounded-xl bg-white p-6">
-      <p className="text-sm text-texte-doux">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
+      <p className="text-sm text-[var(--app-text-muted)]">
         L&apos;assistant de démarrage vous aide à préparer un dossier clair : vos
         informations, l&apos;autre parent, les enfants, la procédure, le jugement,
         les règles et le calendrier de garde. Vous pourrez vérifier chaque élément
@@ -37,10 +37,10 @@ export default function InvitationOnboarding({
       <h2 className="mt-5 font-display text-lg text-navy">Les étapes à venir</h2>
       <ol className="mt-3 space-y-2">
         {ETAPES.map((etape, i) => (
-          <li key={etape} className="flex items-start gap-3 text-sm text-texte">
+          <li key={etape} className="flex items-start gap-3 text-sm text-[var(--app-text)]">
             <span
               aria-hidden="true"
-              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-medium text-surface"
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--app-text)] text-xs font-medium text-[var(--app-surface)]"
             >
               {i + 1}
             </span>
@@ -53,20 +53,20 @@ export default function InvitationOnboarding({
         <button
           type="button"
           onClick={() => (onDemarrer ? onDemarrer() : router.push("/dossier"))}
-          className="btn btn-primaire justify-center"
+          className="btn justify-center bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
         >
           Démarrer l&apos;assistant
         </button>
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="btn btn-secondaire justify-center"
+          className="btn justify-center border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]"
         >
           Passer pour le moment
         </button>
       </div>
 
-      <p className="mt-4 text-xs text-texte-doux">
+      <p className="mt-4 text-xs text-[var(--app-text-muted)]">
         Vous pouvez passer cette étape : l&apos;invitation restera disponible sur
         votre accueil tant que l&apos;assistant n&apos;est pas terminé.
       </p>

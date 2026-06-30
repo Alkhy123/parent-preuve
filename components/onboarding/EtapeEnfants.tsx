@@ -16,7 +16,7 @@ import {
 } from "@/lib/onboarding/sauvegarde";
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
 
 export default function EtapeEnfants({
   onContinuer,
@@ -77,7 +77,7 @@ export default function EtapeEnfants({
   }
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   if (!procId) {
@@ -99,7 +99,7 @@ export default function EtapeEnfants({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Ajoutez chaque enfant concerné par cette procédure. Vous pourrez en ajouter
         d&apos;autres plus tard depuis « Mes enfants ».
       </p>
@@ -132,7 +132,7 @@ export default function EtapeEnfants({
         type="button"
         onClick={ajouter}
         disabled={occupe || prenom.trim() === ""}
-        className="btn btn-secondaire mt-3 disabled:opacity-50"
+        className="btn mt-3 border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:opacity-50"
       >
         {occupe ? "Ajout…" : "Ajouter cet enfant"}
       </button>
@@ -141,14 +141,14 @@ export default function EtapeEnfants({
 
       <ul className="mt-5 space-y-2">
         {enfants.length === 0 ? (
-          <li className="text-sm text-texte-doux">Aucun enfant pour le moment.</li>
+          <li className="text-sm text-[var(--app-text-muted)]">Aucun enfant pour le moment.</li>
         ) : (
           enfants.map((e) => (
             <li
               key={e.id}
               className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-sm"
             >
-              <span className="text-texte">
+              <span className="text-[var(--app-text)]">
                 {e.prenom_ou_alias}
                 {e.date_naissance ? ` — né(e) le ${e.date_naissance}` : ""}
               </span>

@@ -15,7 +15,7 @@ import {
 } from "@/lib/onboarding/sauvegarde";
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
 
 export default function EtapeVosInformations({
   onContinuer,
@@ -58,7 +58,7 @@ export default function EtapeVosInformations({
   }
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   const champs: { cle: keyof ChampsDeclarant; label: string; type?: string }[] = [
@@ -74,7 +74,7 @@ export default function EtapeVosInformations({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Vos informations de déclarant sont réutilisées dans vos courriers et votre
         note de synthèse. Vous pourrez les compléter ou les corriger plus tard.
       </p>

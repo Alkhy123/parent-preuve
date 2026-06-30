@@ -21,7 +21,7 @@ export default function EtapeValidationRegles({
 }: EtapeProps) {
   return (
     <div>
-      <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4 text-sm text-texte">
+      <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 text-sm text-[var(--app-text)]">
         Relisez chaque règle de la procédure active et validez-la. Si une règle a été
         proposée à partir de votre jugement, vérifiez qu&apos;elle correspond bien
         avant de la valider. Rien n&apos;est enregistré comme validé sans votre

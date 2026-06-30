@@ -18,9 +18,9 @@ type Ton = "ok" | "attention" | "neutre";
 type Ligne = { cle: string; label: string; valeur: string; ton: Ton };
 
 const BADGE: Record<Ton, string> = {
-  ok: "badge-succes",
-  attention: "badge-attention",
-  neutre: "badge-neutre",
+  ok: "border border-emerald-300/60 bg-emerald-50 text-emerald-700",
+  attention: "border border-amber-300/60 bg-amber-50 text-amber-700",
+  neutre: "border border-slate-300/60 bg-slate-50 text-[var(--app-text-muted)]",
 };
 
 export default function EtapeResumeFinal({
@@ -136,25 +136,25 @@ export default function EtapeResumeFinal({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Voici l&apos;état de votre dossier. Tout reste modifiable à tout moment depuis
         votre tableau de bord et les pages dédiées.
       </p>
 
       {lignes === null ? (
-        <p className="mt-4 text-sm text-texte-doux">Préparation du résumé…</p>
+        <p className="mt-4 text-sm text-[var(--app-text-muted)]">Préparation du résumé…</p>
       ) : (
-        <ul className="mt-4 divide-y divide-[#15233F]/10">
+        <ul className="mt-4 divide-y divide-[var(--app-border)]">
           {lignes.map((l) => (
             <li key={l.cle} className="flex items-center justify-between gap-3 py-3">
-              <span className="text-sm text-texte">{l.label}</span>
+              <span className="text-sm text-[var(--app-text)]">{l.label}</span>
               <span className={`badge ${BADGE[l.ton]}`}>{l.valeur}</span>
             </li>
           ))}
         </ul>
       )}
 
-      <p className="mt-4 text-xs text-texte-doux">
+      <p className="mt-4 text-xs text-[var(--app-text-muted)]">
         Les points « À compléter » ne bloquent pas : vous pouvez y revenir quand vous
         le souhaitez.
       </p>
