@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import AppSidebar from "@/components/app/AppSidebar";
+import AppSupportPanel from "@/components/app/AppSupportPanel";
 
 type AppShellProps = {
   titre: string;
@@ -16,6 +17,9 @@ type AppShellProps = {
   // "Procédure active") n'a pas de sens. Optionnel, défaut false : ne change
   // rien pour les pages existantes qui ne le passent pas.
   masquerSidebar?: boolean;
+  // Masque uniquement le panneau d'aide (ex. page /copilote elle-même, où le
+  // lien "Ouvrir le Copilote" serait redondant). Optionnel, défaut false.
+  masquerAide?: boolean;
 };
 
 export default function AppShell({
@@ -25,6 +29,7 @@ export default function AppShell({
   children,
   avertissement,
   masquerSidebar = false,
+  masquerAide = false,
 }: AppShellProps) {
   return (
     <div className="app-shell min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]">
@@ -64,6 +69,8 @@ export default function AppShell({
             {children}
           </main>
         </div>
+
+        {masquerSidebar || masquerAide ? null : <AppSupportPanel />}
       </div>
     </div>
   );
