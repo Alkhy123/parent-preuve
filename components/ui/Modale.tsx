@@ -11,7 +11,7 @@ type Props = {
 
 // Modale générique, réutilisable partout dans l'application.
 // - overlay assombri ;
-// - panneau centré au style app (.carte, palette navy/or/crème) ;
+// - panneau centré, style sobre (bordure neutre, fond clair) ;
 // - fermeture par la croix, le clic sur le fond ou la touche Échap ;
 // - scroll de la page bloqué tant que la modale est ouverte.
 export default function Modale({ ouverte, onFermer, titre, children }: Props) {
@@ -34,12 +34,12 @@ export default function Modale({ ouverte, onFermer, titre, children }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-navy/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:items-center"
       onClick={onFermer}
       role="presentation"
     >
       <div
-        className="carte my-8 w-full max-w-lg rounded-2xl bg-surface p-5"
+        className="my-8 w-full max-w-lg rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -47,7 +47,7 @@ export default function Modale({ ouverte, onFermer, titre, children }: Props) {
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           {titre ? (
-            <h2 className="font-display text-xl text-texte">{titre}</h2>
+            <h2 className="font-display text-xl text-[var(--app-text)]">{titre}</h2>
           ) : (
             <span />
           )}
@@ -55,7 +55,7 @@ export default function Modale({ ouverte, onFermer, titre, children }: Props) {
             type="button"
             onClick={onFermer}
             aria-label="Fermer"
-            className="shrink-0 rounded-full p-1 text-texte-doux transition hover:bg-navy/10 hover:text-texte"
+            className="shrink-0 rounded-full p-1 text-[var(--app-text-muted)] transition hover:bg-black/10 hover:text-[var(--app-text)]"
           >
             <svg
               width="20"

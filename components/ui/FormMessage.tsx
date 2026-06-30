@@ -19,7 +19,7 @@ export default function FormMessage({ message, type }: Props) {
   return (
     <p
       role="status"
-      className={`text-sm ${erreur ? "text-[#9B2C2C]" : "text-[#2E6A4D]"}`}
+      className={`text-sm ${erreur ? "text-red-700" : "text-emerald-700"}`}
     >
       {message}
     </p>
