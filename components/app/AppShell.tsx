@@ -5,6 +5,10 @@ type AppShellProps = {
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
+  // Rappel prudent facultatif (ex. « outil d'organisation, ne remplace pas un
+  // conseil juridique »), affiché sous la description si fourni. N'apparaît
+  // sur aucune page existante tant qu'il n'est pas explicitement passé.
+  avertissement?: ReactNode;
 };
 
 export default function AppShell({
@@ -12,10 +16,11 @@ export default function AppShell({
   description,
   actions,
   children,
+  avertissement,
 }: AppShellProps) {
   return (
     <div className="app-shell min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:gap-8 lg:px-8">
         <header className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -32,13 +37,19 @@ export default function AppShell({
                   {description}
                 </p>
               ) : null}
+
+              {avertissement ? (
+                <p className="mt-3 max-w-3xl text-xs leading-5 text-[var(--app-text-muted)]">
+                  {avertissement}
+                </p>
+              ) : null}
             </div>
 
             {actions ? <div className="shrink-0">{actions}</div> : null}
           </div>
         </header>
 
-        <main className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm sm:p-6">
+        <main className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

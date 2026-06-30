@@ -147,7 +147,7 @@ export default function NavBar() {
   }
 
   return (
-    <nav ref={navRef} className="bg-[#15233F] text-[#F8F6F1] shadow-sm">
+    <nav ref={navRef} className="bg-[var(--app-text)] text-[var(--app-surface)] shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link
           href="/"
@@ -155,7 +155,7 @@ export default function NavBar() {
             setMenuOuvert(null);
             setMobileOuvert(false);
           }}
-          className="text-base font-semibold tracking-tight text-[#F8F6F1] transition hover:text-[#C2A24C]"
+          className="text-base font-semibold tracking-tight text-[var(--app-surface)] transition hover:text-[var(--app-accent)]"
         >
           Parent Preuve
         </Link>
@@ -165,10 +165,10 @@ export default function NavBar() {
             <Link
               href={ACCUEIL.href}
               onClick={() => setMenuOuvert(null)}
-              className={`rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
+              className={`rounded px-2 py-1 text-sm transition hover:text-[var(--app-accent)] ${
                 estActif(ACCUEIL.href)
-                  ? "text-[#C2A24C]"
-                  : "text-[#F8F6F1]/80"
+                  ? "text-[var(--app-accent)]"
+                  : "text-[var(--app-surface)]/80"
               }`}
             >
               {ACCUEIL.label}
@@ -185,8 +185,8 @@ export default function NavBar() {
                   <button
                     type="button"
                     onClick={() => setMenuOuvert(ouvert ? null : groupe.label)}
-                    className={`flex items-center gap-1 rounded px-2 py-1 text-sm transition hover:text-[#C2A24C] ${
-                      actif ? "text-[#C2A24C]" : "text-[#F8F6F1]/80"
+                    className={`flex items-center gap-1 rounded px-2 py-1 text-sm transition hover:text-[var(--app-accent)] ${
+                      actif ? "text-[var(--app-accent)]" : "text-[var(--app-surface)]/80"
                     }`}
                   >
                     {groupe.label}
@@ -194,16 +194,16 @@ export default function NavBar() {
                   </button>
 
                   {ouvert && (
-                    <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 text-[#1F2733] shadow-lg">
+                    <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-2 text-[var(--app-text)] shadow-lg">
                       {groupe.liens.map((lien) => (
                         <Link
                           key={lien.href}
                           href={lien.href}
                           onClick={() => setMenuOuvert(null)}
-                          className={`block px-4 py-2 text-sm transition hover:bg-[#15233F]/5 hover:text-[#15233F] ${
+                          className={`block px-4 py-2 text-sm transition hover:bg-[var(--app-text)]/5 hover:text-[var(--app-text)] ${
                             estActif(lien.href)
-                              ? "font-semibold text-[#15233F]"
-                              : "text-[#1F2733]"
+                              ? "font-semibold text-[var(--app-text)]"
+                              : "text-[var(--app-text)]"
                           }`}
                         >
                           {lien.label}
@@ -222,7 +222,7 @@ export default function NavBar() {
               <Link
                 href="/compte"
                 onClick={() => setMenuOuvert(null)}
-                className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+                className="ml-1 text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)]"
               >
                 Mon compte
               </Link>
@@ -230,7 +230,7 @@ export default function NavBar() {
               <button
                 type="button"
                 onClick={seDeconnecter}
-                className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+                className="ml-1 text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)]"
               >
                 Se déconnecter
               </button>
@@ -239,7 +239,7 @@ export default function NavBar() {
             <Link
               href="/connexion"
               onClick={() => setMenuOuvert(null)}
-              className="ml-1 text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+              className="ml-1 text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)]"
             >
               Connexion
             </Link>
@@ -252,7 +252,7 @@ export default function NavBar() {
             onClick={() => setMobileOuvert((ouvert) => !ouvert)}
             aria-label="Ouvrir le menu"
             aria-expanded={mobileOuvert}
-            className="rounded p-1 text-[#F8F6F1] transition hover:text-[#C2A24C] md:hidden"
+            className="rounded p-1 text-[var(--app-surface)] transition hover:text-[var(--app-accent)] md:hidden"
           >
             <span className="text-2xl leading-none">
               {mobileOuvert ? "×" : "☰"}
@@ -261,7 +261,7 @@ export default function NavBar() {
         ) : (
           <Link
             href="/connexion"
-            className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C] md:hidden"
+            className="text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)] md:hidden"
           >
             Connexion
           </Link>
@@ -269,7 +269,7 @@ export default function NavBar() {
       </div>
 
       {mobileOuvert && utilisateur && (
-        <div className="border-t border-[#F8F6F1]/10 px-4 py-4 md:hidden">
+        <div className="border-t border-[var(--app-surface)]/10 px-4 py-4 md:hidden">
           <div className="mb-4">
             <SelecteurProcedure />
           </div>
@@ -277,10 +277,10 @@ export default function NavBar() {
           <Link
             href={ACCUEIL.href}
             onClick={() => setMobileOuvert(false)}
-            className={`block rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
+            className={`block rounded px-2 py-2 text-sm transition hover:text-[var(--app-accent)] ${
               estActif(ACCUEIL.href)
-                ? "font-semibold text-[#C2A24C]"
-                : "text-[#F8F6F1]/80"
+                ? "font-semibold text-[var(--app-accent)]"
+                : "text-[var(--app-surface)]/80"
             }`}
           >
             {ACCUEIL.label}
@@ -291,8 +291,8 @@ export default function NavBar() {
               <p
                 className={`px-2 text-xs font-semibold uppercase tracking-wide ${
                   groupeActif(groupe)
-                    ? "text-[#C2A24C]"
-                    : "text-[#F8F6F1]/60"
+                    ? "text-[var(--app-accent)]"
+                    : "text-[var(--app-surface)]/60"
                 }`}
               >
                 {groupe.label}
@@ -304,10 +304,10 @@ export default function NavBar() {
                     key={lien.href}
                     href={lien.href}
                     onClick={() => setMobileOuvert(false)}
-                    className={`rounded px-2 py-2 text-sm transition hover:text-[#C2A24C] ${
+                    className={`rounded px-2 py-2 text-sm transition hover:text-[var(--app-accent)] ${
                       estActif(lien.href)
-                        ? "font-semibold text-[#C2A24C]"
-                        : "text-[#F8F6F1]/80"
+                        ? "font-semibold text-[var(--app-accent)]"
+                        : "text-[var(--app-surface)]/80"
                     }`}
                   >
                     {lien.label}
@@ -317,11 +317,11 @@ export default function NavBar() {
             </div>
           ))}
 
-          <div className="mt-5 flex flex-col gap-3 border-t border-[#F8F6F1]/10 pt-4">
+          <div className="mt-5 flex flex-col gap-3 border-t border-[var(--app-surface)]/10 pt-4">
             <Link
               href="/compte"
               onClick={() => setMobileOuvert(false)}
-              className="text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+              className="text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)]"
             >
               Mon compte
             </Link>
@@ -332,7 +332,7 @@ export default function NavBar() {
                 setMobileOuvert(false);
                 seDeconnecter();
               }}
-              className="text-left text-sm text-[#F8F6F1]/80 transition hover:text-[#C2A24C]"
+              className="text-left text-sm text-[var(--app-surface)]/80 transition hover:text-[var(--app-accent)]"
             >
               Se déconnecter
             </button>
