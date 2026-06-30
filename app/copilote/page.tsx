@@ -202,29 +202,29 @@ function BlocProposition({
 }) {
   if (!proposition) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h3 className="font-semibold text-[#15233F]">{titre}</h3>
-        <p className="mt-1 text-xs text-slate-500">{sousTitre}</p>
-        <p className="mt-4 text-sm text-slate-500">Aucun résultat.</p>
+      <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+        <h3 className="font-semibold text-[var(--app-text)]">{titre}</h3>
+        <p className="mt-1 text-xs text-[var(--app-text-muted)]">{sousTitre}</p>
+        <p className="mt-4 text-sm text-[var(--app-text-muted)]">Aucun résultat.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="font-semibold text-[#15233F]">{titre}</h3>
-          <p className="mt-1 text-xs text-slate-500">{sousTitre}</p>
+          <h3 className="font-semibold text-[var(--app-text)]">{titre}</h3>
+          <p className="mt-1 text-xs text-[var(--app-text-muted)]">{sousTitre}</p>
         </div>
 
-        <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+        <span className="inline-flex w-fit rounded-full border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--app-text)]">
           {libelleTypeProposition(proposition.type)}
         </span>
       </div>
 
       {source && (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-[var(--app-text-muted)]">
           Source : <span className="font-medium">{source}</span>
         </p>
       )}
@@ -246,37 +246,37 @@ function BlocProposition({
 
       {proposition.type === "frais" && (
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Libellé</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Libellé</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.libelle)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Catégorie</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Catégorie</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {proposition.champs.categorie}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Montant</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Montant</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.montant)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Date</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Date</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.date)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Enfant</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Enfant</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.enfant)}
             </dd>
           </div>
@@ -285,37 +285,37 @@ function BlocProposition({
 
       {proposition.type === "journal" && (
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Titre</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Titre</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.titre)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Catégorie</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Catégorie</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {proposition.champs.categorie}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Date</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Date</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.date)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Enfant</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Enfant</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.enfant)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
-            <dt className="text-xs text-slate-500">Description</dt>
-            <dd className="mt-1 whitespace-pre-wrap font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3 sm:col-span-2">
+            <dt className="text-xs text-[var(--app-text-muted)]">Description</dt>
+            <dd className="mt-1 whitespace-pre-wrap font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.description)}
             </dd>
           </div>
@@ -324,30 +324,30 @@ function BlocProposition({
 
       {proposition.type === "pension" && (
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Mois</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Mois</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.mois)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Montant dû</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Montant dû</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.montant_du)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Montant payé</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Montant payé</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.montant_paye)}
             </dd>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3">
-            <dt className="text-xs text-slate-500">Date de réception</dt>
-            <dd className="mt-1 font-medium text-[#15233F]">
+          <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+            <dt className="text-xs text-[var(--app-text-muted)]">Date de réception</dt>
+            <dd className="mt-1 font-medium text-[var(--app-text)]">
               {valeurLisible(proposition.champs.date_paiement)}
             </dd>
           </div>
@@ -658,7 +658,7 @@ export default function PageCopilote() {
         description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
         masquerAide
       >
-        <p className="text-sm text-slate-500">Chargement...</p>
+        <p className="text-sm text-[var(--app-text-muted)]">Chargement...</p>
       </AppShell>
     );
   }
@@ -699,7 +699,7 @@ export default function PageCopilote() {
         Aucune ecriture automatique. Validation humaine obligatoire. Pas de conseil juridique.
       </AppNotice>
 
-      <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+      <section className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
           Cette page permet de tester le dry-run, le Copilote Mistral, le
           resume factuel du dossier et le pre-remplissage Agent. Le
@@ -710,7 +710,7 @@ export default function PageCopilote() {
         <form onSubmit={analyserDemande} className="mt-6">
           <label
             htmlFor="demande-agent"
-            className="block text-sm font-semibold text-[#15233F]"
+            className="block text-sm font-semibold text-[var(--app-text)]"
           >
             Demande à analyser
           </label>
@@ -725,10 +725,10 @@ export default function PageCopilote() {
             rows={5}
             maxLength={1000}
             placeholder="Ex. : Je veux ajouter une facture de cantine"
-            className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+            className="mt-2 w-full rounded-xl border border-[var(--app-border)] p-3 text-sm leading-6 outline-none transition focus:border-[var(--app-accent)] focus:ring-2 focus:ring-[var(--app-accent)]/30"
           />
 
-          <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+          <div className="mt-2 flex items-center justify-between gap-3 text-xs text-[var(--app-text-muted)]">
             <span>{message.length}/1000 caractères</span>
 
             <button
@@ -737,7 +737,7 @@ export default function PageCopilote() {
                 setMessage("");
                 viderResultats();
               }}
-              className="text-[#8A6F2A] underline-offset-2 hover:underline"
+              className="text-[var(--app-accent)] underline-offset-2 hover:underline"
             >
               Effacer
             </button>
@@ -747,12 +747,12 @@ export default function PageCopilote() {
             <button
               type="submit"
               disabled={chargementGlobal || message.trim() === ""}
-              className="inline-flex rounded-lg bg-[#15233F] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0F1A2E] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex rounded-lg bg-[var(--app-primary)] px-4 py-2 text-sm font-medium text-[var(--app-on-primary)] transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {chargementDryRun ? "Analyse dry-run..." : "Analyser en dry-run"}
             </button>
 
-            <div className="rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
+            <div className="rounded-xl border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] p-3">
               <ConsentementIA
                 fonctionnalite="agent"
                 titre="Avant d'utiliser le Copilote Agent avec Mistral"
@@ -766,7 +766,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                     type="button"
                     onClick={analyserAvecMistral}
                     disabled={chargementGlobal || message.trim() === ""}
-                    className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex rounded-lg border border-[var(--app-accent)]/60 bg-[var(--app-surface)] px-4 py-2 text-sm font-medium text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {chargementMistral
                       ? inclureResume
@@ -796,8 +796,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           </div>
         </form>
 
-        <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-          <p className="text-sm font-semibold text-[#15233F]">
+        <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+          <p className="text-sm font-semibold text-[var(--app-text)]">
             Exemples de test
           </p>
 
@@ -810,7 +810,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   setMessage(exemple);
                   viderResultats();
                 }}
-                className="rounded-full border border-[#C2A24C]/50 bg-white px-3 py-1 text-xs text-[#15233F] transition hover:bg-[#F1E8D0]"
+                className="rounded-full border border-[var(--app-accent)]/50 bg-[var(--app-surface)] px-3 py-1 text-xs text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)]"
               >
                 {exemple}
               </button>
@@ -827,24 +827,24 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
       )}
 
       {reponse && (
-        <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
                 Réponse structurée
               </p>
 
-              <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+              <h2 className="mt-1 font-display text-2xl text-[var(--app-text)]">
                 Résultat du copilote
               </h2>
             </div>
 
             <div className="flex flex-col gap-2 sm:items-end">
-              <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+              <span className="inline-flex w-fit rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-1 text-xs font-medium text-[var(--app-text)]">
                 {reponse.version}
               </span>
 
-              <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+              <span className="inline-flex w-fit rounded-full border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--app-text)]">
                 {libelleMode(modeReponse)}
               </span>
 
@@ -857,7 +857,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           </div>
 
           {sourceApi && (
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-[var(--app-text-muted)]">
               Source API : <span className="font-medium">{sourceApi}</span>
             </p>
           )}
@@ -891,16 +891,16 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </div>
           )}
 
-          <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-            <h3 className="font-semibold text-[#15233F]">Résumé</h3>
+          <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Résumé</h3>
             <p className="mt-2 text-sm leading-6 text-[#5A6473]">
               {reponse.resume}
             </p>
           </div>
 
           {reponse.messages.length > 0 && (
-            <div className="mt-4 rounded-xl border border-slate-200 p-4">
-              <h3 className="font-semibold text-[#15233F]">Messages</h3>
+            <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+              <h3 className="font-semibold text-[var(--app-text)]">Messages</h3>
 
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
                 {reponse.messages.map((item, index) => (
@@ -911,8 +911,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           )}
 
           {reponse.actionProposee && (
-            <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4">
-              <h3 className="font-semibold text-[#15233F]">
+            <div className="mt-4 rounded-xl border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] p-4">
+              <h3 className="font-semibold text-[var(--app-text)]">
                 {reponse.actionProposee.titre}
               </h3>
 
@@ -930,35 +930,35 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </div>
           )}
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-[#15233F]">Garde-fous</h3>
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Garde-fous</h3>
 
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Conseil juridique refusé
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(reponse.gardeFous.conseilJuridiqueRefuse)}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Écriture automatique refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponse.gardeFous.ecritureAutomatiqueRefusee
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Validation humaine requise
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponse.gardeFous.validationHumaineRequise
                   )}
@@ -969,13 +969,13 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+      <section className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
             Pré-remplissage Agent
           </p>
 
-          <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+          <h2 className="mt-1 font-display text-2xl text-[var(--app-text)]">
             Test du pré-remplissage Agent
           </h2>
 
@@ -987,7 +987,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
         <label
           htmlFor="phrase-pre-remplissage-agent"
-          className="mt-5 block text-sm font-semibold text-[#15233F]"
+          className="mt-5 block text-sm font-semibold text-[var(--app-text)]"
         >
           Phrase à pré-remplir
         </label>
@@ -1002,10 +1002,10 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           rows={4}
           maxLength={500}
           placeholder="Ex. : J'ai payé 45 € de cantine pour Léa le 12 mars"
-          className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+          className="mt-2 w-full rounded-xl border border-[var(--app-border)] p-3 text-sm leading-6 outline-none transition focus:border-[var(--app-accent)] focus:ring-2 focus:ring-[var(--app-accent)]/30"
         />
 
-        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-[var(--app-text-muted)]">
           <span>{phrasePreRemplissage.length}/500 caractères</span>
 
           <button
@@ -1014,13 +1014,13 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
               setPhrasePreRemplissage("");
               viderResultatsPreRemplissage();
             }}
-            className="text-[#8A6F2A] underline-offset-2 hover:underline"
+            className="text-[var(--app-accent)] underline-offset-2 hover:underline"
           >
             Effacer
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
+        <div className="mt-4 rounded-xl border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] p-3">
           <ConsentementIA
             fonctionnalite="agent"
             titre="Avant de tester le pré-remplissage Agent"
@@ -1035,7 +1035,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   chargementPreRemplissage ||
                   phrasePreRemplissage.trim() === ""
                 }
-                className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex rounded-lg border border-[var(--app-accent)]/60 bg-[var(--app-surface)] px-4 py-2 text-sm font-medium text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {chargementPreRemplissageAgent
                   ? "Test Agent..."
@@ -1050,8 +1050,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           </ConsentementIA>
         </div>
 
-        <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-          <p className="text-sm font-semibold text-[#15233F]">
+        <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+          <p className="text-sm font-semibold text-[var(--app-text)]">
             Exemples de pré-remplissage
           </p>
 
@@ -1064,7 +1064,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   setPhrasePreRemplissage(exemple);
                   viderResultatsPreRemplissage();
                 }}
-                className="rounded-full border border-[#C2A24C]/50 bg-white px-3 py-1 text-xs text-[#15233F] transition hover:bg-[#F1E8D0]"
+                className="rounded-full border border-[var(--app-accent)]/50 bg-[var(--app-surface)] px-3 py-1 text-xs text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)]"
               >
                 {exemple}
               </button>
@@ -1085,25 +1085,25 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
       )}
 
       {reponsePreRemplissage && (
-        <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
                 Pré-remplissage Agent
               </p>
 
-              <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+              <h2 className="mt-1 font-display text-2xl text-[var(--app-text)]">
                 Résultat du pré-remplissage
               </h2>
             </div>
 
-            <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+            <span className="inline-flex w-fit rounded-full border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--app-text)]">
               {reponsePreRemplissage.version}
             </span>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-            <h3 className="font-semibold text-[#15233F]">Résumé Agent</h3>
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Résumé Agent</h3>
 
             <p className="mt-2 text-sm leading-6 text-[#5A6473]">
               {reponsePreRemplissage.resume}
@@ -1128,28 +1128,28 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             />
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-[#15233F]">
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">
               Garde-fous Agent
             </h3>
 
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Conseil juridique refusé
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponsePreRemplissage.gardeFous.conseilJuridiqueRefuse
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Écriture automatique refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponsePreRemplissage.gardeFous
                       .ecritureAutomatiqueRefusee
@@ -1157,22 +1157,22 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Validation humaine requise
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponsePreRemplissage.gardeFous.validationHumaineRequise
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   UUID enfant interdit
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponsePreRemplissage.gardeFous.enfantUuidInterdit
                   )}
@@ -1181,20 +1181,20 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </dl>
           </div>
 
-          <p className="mt-4 text-xs leading-5 text-slate-500">
+          <p className="mt-4 text-xs leading-5 text-[var(--app-text-muted)]">
             Ce test ne crée aucune donnée. Il affiche seulement la proposition
             structurée que l&apos;utilisateur devra vérifier avant toute validation.
           </p>
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+      <section className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
             Question dossier Agent
           </p>
 
-          <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+          <h2 className="mt-1 font-display text-2xl text-[var(--app-text)]">
             Test de la question dossier Agent
           </h2>
 
@@ -1209,7 +1209,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
         <label
           htmlFor="question-dossier-agent"
-          className="mt-5 block text-sm font-semibold text-[#15233F]"
+          className="mt-5 block text-sm font-semibold text-[var(--app-text)]"
         >
           Question sur le dossier
         </label>
@@ -1224,10 +1224,10 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           rows={4}
           maxLength={1000}
           placeholder="Ex. : Où en est ma pension ?"
-          className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none transition focus:border-[#C2A24C] focus:ring-2 focus:ring-[#C2A24C]/30"
+          className="mt-2 w-full rounded-xl border border-[var(--app-border)] p-3 text-sm leading-6 outline-none transition focus:border-[var(--app-accent)] focus:ring-2 focus:ring-[var(--app-accent)]/30"
         />
 
-        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-[var(--app-text-muted)]">
           <span>{questionDossier.length}/1000 caractères</span>
 
           <button
@@ -1236,13 +1236,13 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
               setQuestionDossier("");
               viderResultatsQuestionDossier();
             }}
-            className="text-[#8A6F2A] underline-offset-2 hover:underline"
+            className="text-[var(--app-accent)] underline-offset-2 hover:underline"
           >
             Effacer
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-3">
+        <div className="mt-4 rounded-xl border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] p-3">
           <ConsentementIA
             fonctionnalite="agent"
             titre="Avant de tester la question dossier Agent"
@@ -1257,7 +1257,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   chargementQuestionDossier ||
                   questionDossier.trim() === ""
                 }
-                className="inline-flex rounded-lg border border-[#C2A24C]/60 bg-white px-4 py-2 text-sm font-medium text-[#15233F] transition hover:bg-[#F1E8D0] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex rounded-lg border border-[var(--app-accent)]/60 bg-[var(--app-surface)] px-4 py-2 text-sm font-medium text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {chargementQuestionDossier
                   ? "Test question dossier..."
@@ -1287,8 +1287,8 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           </ConsentementIA>
         </div>
 
-        <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-          <p className="text-sm font-semibold text-[#15233F]">
+        <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+          <p className="text-sm font-semibold text-[var(--app-text)]">
             Exemples de question
           </p>
 
@@ -1301,7 +1301,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   setQuestionDossier(exemple);
                   viderResultatsQuestionDossier();
                 }}
-                className="rounded-full border border-[#C2A24C]/50 bg-white px-3 py-1 text-xs text-[#15233F] transition hover:bg-[#F1E8D0]"
+                className="rounded-full border border-[var(--app-accent)]/50 bg-[var(--app-surface)] px-3 py-1 text-xs text-[var(--app-text)] transition hover:bg-[var(--app-accent-soft)]"
               >
                 {exemple}
               </button>
@@ -1320,25 +1320,25 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
       )}
 
       {reponseQuestionDossier && (
-        <section className="mt-6 rounded-2xl border border-[#E1D7C4] bg-white p-5 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6F2A]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
                 Question dossier Agent
               </p>
 
-              <h2 className="mt-1 font-display text-2xl text-[#15233F]">
+              <h2 className="mt-1 font-display text-2xl text-[var(--app-text)]">
                 Résultat de la question dossier
               </h2>
             </div>
 
-            <span className="inline-flex w-fit rounded-full border border-[#C2A24C]/40 bg-[#F8F6F1] px-3 py-1 text-xs font-medium text-[#15233F]">
+            <span className="inline-flex w-fit rounded-full border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--app-text)]">
               {reponseQuestionDossier.version}
             </span>
           </div>
 
           {sourceQuestionDossier && (
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-[var(--app-text-muted)]">
               Source API :{" "}
               <span className="font-medium">{sourceQuestionDossier}</span>
             </p>
@@ -1377,23 +1377,23 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </div>
           )}
 
-          <div className="mt-5 rounded-xl border border-slate-200 bg-[#F8F6F1] p-4">
-            <h3 className="font-semibold text-[#15233F]">Résumé</h3>
+          <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Résumé</h3>
             <p className="mt-2 text-sm leading-6 text-[#5A6473]">
               {reponseQuestionDossier.resume}
             </p>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-[#15233F]">Réponse</h3>
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Réponse</h3>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#5A6473]">
               {reponseQuestionDossier.reponse}
             </p>
           </div>
 
           {reponseQuestionDossier.pointsAppui.length > 0 && (
-            <div className="mt-4 rounded-xl border border-slate-200 p-4">
-              <h3 className="font-semibold text-[#15233F]">Points d&apos;appui</h3>
+            <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+              <h3 className="font-semibold text-[var(--app-text)]">Points d&apos;appui</h3>
 
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
                 {reponseQuestionDossier.pointsAppui.map((item, index) => (
@@ -1415,70 +1415,70 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </div>
           )}
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-[#15233F]">Garde-fous</h3>
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
+            <h3 className="font-semibold text-[var(--app-text)]">Garde-fous</h3>
 
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Conseil juridique refusé
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.conseilJuridiqueRefuse
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Stratégie judiciaire refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.strategieJudiciaireRefusee
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Rédaction conclusions refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.redactionConclusionsRefusee
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Prédiction décision refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.predictionDecisionRefusee
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Écriture automatique refusée
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.ecritureAutomatiqueRefusee
                   )}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">
+              <div className="rounded-lg bg-[var(--app-surface-muted)] p-3">
+                <dt className="text-xs text-[var(--app-text-muted)]">
                   Validation humaine requise
                 </dt>
-                <dd className="mt-1 font-semibold text-[#15233F]">
+                <dd className="mt-1 font-semibold text-[var(--app-text)]">
                   {libelleBooleen(
                     reponseQuestionDossier.gardeFous.validationHumaineRequise
                   )}
@@ -1487,7 +1487,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             </dl>
           </div>
 
-          <p className="mt-4 text-xs leading-5 text-slate-500">
+          <p className="mt-4 text-xs leading-5 text-[var(--app-text-muted)]">
             Ce test ne crée aucune donnée. La réponse reste informative et doit
             être vérifiée par l&apos;utilisateur.
           </p>

@@ -271,7 +271,7 @@ export default function DocumentsPage() {
         <p className="text-sm text-[var(--app-text-muted)]">
           Rangez ici vos justificatifs et pièces utiles (factures, certificats,
           captures, courriers). Pour une photo à horodater, utilisez plutôt{" "}
-          <a href="/preuves" className="text-[#15233F] underline">
+          <a href="/preuves" className="text-[var(--app-primary)] underline">
             Preuves photo
           </a>
           .
@@ -279,7 +279,7 @@ export default function DocumentsPage() {
 
         <p className="text-sm text-[var(--app-text-muted)]">
           Cette page affiche vos pièces actives.{" "}
-          <a href="/documents/coffre-fort" className="text-[#15233F] underline">
+          <a href="/documents/coffre-fort" className="text-[var(--app-primary)] underline">
             Voir toutes les pièces au coffre-fort
           </a>
           .
@@ -289,7 +289,7 @@ export default function DocumentsPage() {
           <button
             onClick={exporterCsv}
             disabled={groupes.length === 0}
-            className="rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Exporter en CSV
           </button>
@@ -322,7 +322,7 @@ export default function DocumentsPage() {
                 type="file"
                 accept="image/*,application/pdf"
                 onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-sm text-[var(--app-text-muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[#15233F] file:px-4 file:py-2 file:text-white"
+                className="mt-1 w-full text-sm text-[var(--app-text-muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--app-primary)] file:px-4 file:py-2 file:text-[var(--app-on-primary)]"
               />
               <p className="mt-1 text-xs text-[var(--app-text-muted)]">Image ou PDF.</p>
             </div>
@@ -386,7 +386,7 @@ export default function DocumentsPage() {
             <button
               onClick={envoyerDocument}
               disabled={enCours}
-              className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52] disabled:opacity-50"
+              className="rounded-lg bg-[var(--app-primary)] px-5 py-2 text-[var(--app-on-primary)] hover:bg-[var(--app-primary-hover)] disabled:opacity-50"
             >
               {enCours ? "Envoi en cours..." : "Envoyer le document"}
             </button>
@@ -395,7 +395,7 @@ export default function DocumentsPage() {
         </AppCard>
 
         {confirmation && (
-          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+          <div className="rounded-lg border border-[var(--app-success,#2e6a4d)]/30 bg-[var(--app-success-soft,rgba(46,106,77,0.08))] px-4 py-3">
             <FormMessage message={confirmation} type="succes" />
           </div>
         )}
@@ -432,7 +432,7 @@ export default function DocumentsPage() {
                     {t.docs.map((doc) => {
                       const implication = libelleImplication(doc.implication_categorie);
                       return (
-                        <div key={doc.id} className="rounded-xl border border-[var(--app-border)] bg-white p-4">
+                        <div key={doc.id} className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
                           <div className="flex items-start justify-between">
                             <div>
                               <p className="font-semibold text-[var(--app-text)]">{doc.libelle}</p>
@@ -440,7 +440,7 @@ export default function DocumentsPage() {
                                 {doc.date_document ?? "Sans date"}
                               </p>
                               {implication && (
-                                <span className="mt-2 inline-block rounded-full border border-[#C2A24C]/40 bg-[#C2A24C]/10 px-2.5 py-0.5 text-xs text-[#8A5A12]">
+                                <span className="mt-2 inline-block rounded-full border border-[var(--app-accent)]/40 bg-[var(--app-accent-soft)] px-2.5 py-0.5 text-xs text-[var(--app-accent)]">
                                   Implication : {implication}
                                 </span>
                               )}
@@ -472,13 +472,13 @@ export default function DocumentsPage() {
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <button
                                   onClick={() => archiverDocument(doc)}
-                                  className="rounded-lg bg-[#2E6A4D] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
+                                  className="rounded-lg bg-[var(--app-success,#2e6a4d)] px-3 py-1.5 text-sm text-white hover:bg-[#27583f]"
                                 >
                                   Conserver au coffre-fort
                                 </button>
                                 <button
                                   onClick={() => supprimerDocument(doc)}
-                                  className="rounded-lg bg-[#9B2C2C] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
+                                  className="rounded-lg bg-[var(--app-danger,#9b2c2c)] px-3 py-1.5 text-sm text-white hover:bg-[#822525]"
                                 >
                                   Supprimer définitivement
                                 </button>

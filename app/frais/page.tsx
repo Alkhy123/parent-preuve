@@ -487,11 +487,11 @@ export default function FraisPage() {
 
         {/* Bandeau de totaux */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[var(--app-border)] bg-white p-4">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
             <p className="text-sm text-[var(--app-text-muted)]">Reste à percevoir</p>
             <p className="mt-1 text-2xl font-bold text-[var(--app-text)]">{euros(resteAPercevoir)}</p>
           </div>
-          <div className="rounded-2xl border border-[var(--app-border)] bg-white p-4">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
             <p className="text-sm text-[var(--app-text-muted)]">Déjà remboursé</p>
             <p className="mt-1 text-2xl font-bold text-[var(--app-text-muted)]">{euros(dejaRembourse)}</p>
           </div>
@@ -502,7 +502,7 @@ export default function FraisPage() {
           <button
             onClick={exporterCsv}
             disabled={fraisProcedure.length === 0}
-            className="rounded-lg border border-[var(--app-border)] bg-white px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Exporter en CSV
           </button>
@@ -543,8 +543,8 @@ export default function FraisPage() {
                 </AppNotice>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700">
-                  Libellé <span className="text-[#9B2C2C]">*</span>
+                <label className="block text-sm font-medium text-[var(--app-text)]">
+                  Libellé <span className="text-[var(--app-danger,#9b2c2c)]">*</span>
                 </label>
                 <input
                   type="text" placeholder="Ex : Consultation orthodontiste"
@@ -555,8 +555,8 @@ export default function FraisPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">
-                    Montant total (€) <span className="text-[#9B2C2C]">*</span>
+                  <label className="block text-sm font-medium text-[var(--app-text)]">
+                    Montant total (€) <span className="text-[var(--app-danger,#9b2c2c)]">*</span>
                   </label>
                   <input
                     type="text" inputMode="decimal" placeholder="80"
@@ -565,8 +565,8 @@ export default function FraisPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">
-                    Date <span className="text-[#9B2C2C]">*</span>
+                  <label className="block text-sm font-medium text-[var(--app-text)]">
+                    Date <span className="text-[var(--app-danger,#9b2c2c)]">*</span>
                   </label>
                   <input
                     type="date" value={dateFrais}
@@ -577,7 +577,7 @@ export default function FraisPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700">Enfant concerné</label>
+                <label className="block text-sm font-medium text-[var(--app-text)]">Enfant concerné</label>
                 <select
                   value={childId} onChange={(e) => setChildId(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
@@ -593,7 +593,7 @@ export default function FraisPage() {
                   S'ouvrent d'office quand l'Agent a pré-rempli (clé remontée plus haut). */}
               <OptionsAvancees ouvertParDefaut={preRempli}>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Catégorie</label>
+                  <label className="block text-sm font-medium text-[var(--app-text)]">Catégorie</label>
                   <select
                     value={categorie} onChange={(e) => setCategorie(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
@@ -603,13 +603,13 @@ export default function FraisPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Part de l&apos;autre (€)</label>
+                  <label className="block text-sm font-medium text-[var(--app-text)]">Part de l&apos;autre (€)</label>
                   <input
                     type="text" inputMode="decimal" placeholder="Laisser vide pour la moitié"
                     value={partAutre} onChange={(e) => setPartAutre(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-[var(--app-border)] px-3 py-2"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-[var(--app-text-muted)]">
                     Si vous laissez ce champ vide, la part de l&apos;autre parent est
                     estimée à la moitié du montant. Vous pouvez saisir un autre montant
                     selon la règle de partage de votre dossier.
@@ -620,25 +620,25 @@ export default function FraisPage() {
               {/* Justificatif guidé. Optionnel : sans justificatif, le frais reste
                   valable et exportable. */}
               <div className="rounded-lg border border-[var(--app-border)] p-4">
-                <p className="text-sm font-medium text-slate-700">Justificatif</p>
+                <p className="text-sm font-medium text-[var(--app-text)]">Justificatif</p>
 
                 {documentId ? (
                   <div className="mt-2 flex flex-wrap items-center gap-3">
                     <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800">
                       ✓ Justificatif joint
                     </span>
-                    <span className="text-sm text-slate-600">{nomDocument(documentId)}</span>
+                    <span className="text-sm text-[var(--app-text-muted)]">{nomDocument(documentId)}</span>
                     <button
                       type="button"
                       onClick={reinitialiserJustificatif}
-                      className="text-sm text-slate-700 hover:underline"
+                      className="text-sm text-[var(--app-text)] hover:underline"
                     >
                       Changer
                     </button>
                   </div>
                 ) : justifEtape === "question" ? (
                   <>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-[var(--app-text-muted)]">
                       Un justificatif n&apos;est pas obligatoire : le frais reste
                       valable et exportable.
                     </p>
@@ -646,14 +646,14 @@ export default function FraisPage() {
                       <button
                         type="button"
                         onClick={() => setJustifEtape("oui")}
-                        className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                        className="rounded-lg border border-[var(--app-primary)]/30 px-3 py-2 text-sm text-[var(--app-primary)] hover:bg-[var(--app-primary-soft)]"
                       >
                         Oui, j&apos;ai un justificatif
                       </button>
                       <button
                         type="button"
                         onClick={() => setJustifEtape("aucun")}
-                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        className="rounded-lg border border-[var(--app-border)] px-3 py-2 text-sm text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]"
                       >
                         Non, pas de justificatif
                       </button>
@@ -661,13 +661,13 @@ export default function FraisPage() {
                   </>
                 ) : justifEtape === "aucun" ? (
                   <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-[var(--app-text-muted)]">
                       Aucun justificatif. Le frais reste valable et exportable.
                     </p>
                     <button
                       type="button"
                       onClick={() => setJustifEtape("question")}
-                      className="text-sm text-slate-700 hover:underline"
+                      className="text-sm text-[var(--app-text)] hover:underline"
                     >
                       Modifier
                     </button>
@@ -679,14 +679,14 @@ export default function FraisPage() {
                         type="button"
                         onClick={() => champFichierRef.current?.click()}
                         disabled={uploadEnCours}
-                        className="rounded-lg bg-[#15233F] px-3 py-2 text-sm text-white hover:bg-[#1d2f52] disabled:opacity-50"
+                        className="rounded-lg bg-[var(--app-primary)] px-3 py-2 text-sm text-[var(--app-on-primary)] hover:bg-[var(--app-primary-hover)] disabled:opacity-50"
                       >
                         {uploadEnCours ? "Envoi en cours..." : "Téléverser un justificatif"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setMontrerSelection((v) => !v)}
-                        className="rounded-lg border border-[#15233F]/30 px-3 py-2 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+                        className="rounded-lg border border-[var(--app-primary)]/30 px-3 py-2 text-sm text-[var(--app-primary)] hover:bg-[var(--app-primary-soft)]"
                       >
                         Sélectionner un justificatif existant
                       </button>
@@ -704,7 +704,7 @@ export default function FraisPage() {
                       }}
                     />
 
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-[var(--app-text-muted)]">
                       Le téléversement ouvre l&apos;appareil photo ou les fichiers de
                       votre appareil. La pièce est aussi ajoutée à « Documents ».
                     </p>
@@ -724,7 +724,7 @@ export default function FraisPage() {
                           ))}
                         </select>
                         {documentsProcedure.length === 0 && (
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-[var(--app-text-muted)]">
                             Aucune pièce disponible. Ajoutez vos pièces dans « Documents ».
                           </p>
                         )}
@@ -734,7 +734,7 @@ export default function FraisPage() {
                     <button
                       type="button"
                       onClick={() => setJustifEtape("question")}
-                      className="text-xs text-slate-500 hover:underline"
+                      className="text-xs text-[var(--app-text-muted)] hover:underline"
                     >
                       Retour
                     </button>
@@ -745,7 +745,7 @@ export default function FraisPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={ajouterFrais}
-                  className="rounded-lg bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f52]"
+                  className="rounded-lg bg-[var(--app-primary)] px-5 py-2 text-[var(--app-on-primary)] hover:bg-[var(--app-primary-hover)]"
                 >
                   {editionId ? "Enregistrer les modifications" : "Ajouter le frais"}
                 </button>
@@ -765,7 +765,7 @@ export default function FraisPage() {
         </div>
 
         {confirmation && (
-          <div className="rounded-lg border border-[#2E6A4D]/30 bg-[#2E6A4D]/5 px-4 py-3">
+          <div className="rounded-lg border border-[var(--app-success,#2e6a4d)]/30 bg-[var(--app-success-soft,rgba(46,106,77,0.08))] px-4 py-3">
             <FormMessage message={confirmation} type="succes" />
           </div>
         )}
@@ -790,16 +790,16 @@ export default function FraisPage() {
               <div
                 key={f.id}
                 className={`rounded-xl border p-4 ${
-                  f.rembourse ? "border-[var(--app-border)] bg-[var(--app-surface-muted)]" : "border-[var(--app-border)] bg-white"
+                  f.rembourse ? "border-[var(--app-border)] bg-[var(--app-surface-muted)]" : "border-[var(--app-border)] bg-[var(--app-surface)]"
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                    <span className="inline-block rounded-full bg-[var(--app-tag-bg)] px-2.5 py-0.5 text-xs text-[var(--app-tag-text)]">
                       {f.categorie}
                     </span>
-                    <p className="mt-1.5 font-semibold text-[#15233F]">{f.libelle}</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="mt-1.5 font-semibold text-[var(--app-text)]">{f.libelle}</p>
+                    <p className="text-sm text-[var(--app-text-muted)]">
                       {f.date_frais} · Total {euros(Number(f.montant))} · Part due {euros(Number(f.part_autre))}
                       {nomEnfant(f.child_id) ? ` · ${nomEnfant(f.child_id)}` : ""}
                     </p>
@@ -818,13 +818,13 @@ export default function FraisPage() {
                           </span>
                           <button
                             onClick={() => ouvrirJustificatif(f.document_id!)}
-                            className="text-xs text-slate-700 hover:underline"
+                            className="text-xs text-[var(--app-text)] hover:underline"
                           >
                             Ouvrir
                           </button>
                         </>
                       ) : f.sans_justificatif ? (
-                        <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                        <span className="inline-block rounded-full border border-[var(--app-tag-border)] bg-[var(--app-tag-bg)] px-2.5 py-0.5 text-xs text-[var(--app-tag-text)]">
                           Sans justificatif (choisi)
                         </span>
                       ) : (
@@ -847,19 +847,19 @@ export default function FraisPage() {
                   <div className="flex flex-col items-end gap-2">
                     <button
                       onClick={() => chargerPourEdition(f)}
-                      className="text-sm text-[#15233F] hover:underline"
+                      className="text-sm text-[var(--app-primary)] hover:underline"
                     >
                       Modifier
                     </button>
                     <button
                       onClick={() => basculerRembourse(f)}
-                      className="text-sm text-slate-700 hover:underline"
+                      className="text-sm text-[var(--app-text)] hover:underline"
                     >
                       {f.rembourse ? "Annuler" : "Marquer remboursé"}
                     </button>
                     <button
                       onClick={() => supprimerFrais(f.id)}
-                      className="text-sm text-red-600 hover:underline"
+                      className="text-sm text-[var(--app-danger,#dc2626)] hover:underline"
                     >
                       Supprimer
                     </button>

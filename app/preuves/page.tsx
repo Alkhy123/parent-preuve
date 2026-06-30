@@ -393,7 +393,7 @@ export default function PreuvesPage() {
           Une preuve photo, c&apos;est une image accompagnée de ses informations
           techniques (empreinte, horodatage), pour mieux l&apos;organiser dans votre
           dossier. Pour ranger une facture ou un document déjà reçu, utilisez plutôt{" "}
-          <a href="/documents" className="font-medium text-[#15233F] underline">
+          <a href="/documents" className="font-medium text-[var(--app-primary)] underline">
             Documents et justificatifs
           </a>
           .
@@ -439,7 +439,7 @@ export default function PreuvesPage() {
               {liste.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border border-[var(--app-border)] bg-white p-5 space-y-3"
+                  className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -463,7 +463,7 @@ export default function PreuvesPage() {
                       <button
                         onClick={() => genererRapport(p)}
                         disabled={genEnCours === p.id}
-                        className="rounded-md bg-[#15233F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#15233F]/90 disabled:opacity-50"
+                        className="rounded-md bg-[var(--app-primary)] px-3 py-1.5 text-xs font-medium text-[var(--app-on-primary)] hover:bg-[var(--app-primary-hover)] disabled:opacity-50"
                       >
                         {genEnCours === p.id ? "Génération..." : "Rapport PDF"}
                       </button>
