@@ -46,18 +46,18 @@ export default function BrouillonsChronologieInfo() {
   const derniersBrouillons = brouillons.slice(0, 3);
 
   return (
-    <section className="carte rounded-2xl bg-[var(--surface)] p-6">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
             Brouillons locaux
           </p>
 
-          <h2 className="mt-1 text-xl font-bold text-texte">
+          <h2 className="mt-1 text-xl font-bold text-[var(--app-text)]">
             Vérifier les brouillons avant de lire la chronologie
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-texte-doux">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--app-text-muted)]">
             Les brouillons issus de la collecte rapide ne sont pas ajoutés
             automatiquement à la chronologie. Ils doivent être relus, ouverts
             dans le bon module, puis enregistrés manuellement.
@@ -75,19 +75,19 @@ export default function BrouillonsChronologieInfo() {
 
       {verificationFaite && (
         <div className="mt-5 rounded-xl border border-slate-200 bg-white/70 p-4">
-          <p className="font-semibold text-texte">
+          <p className="font-semibold text-[var(--app-text)]">
             {libelleBrouillons(brouillons.length)}
           </p>
 
           {brouillons.length === 0 ? (
-            <p className="mt-2 text-sm leading-6 text-texte-doux">
+            <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
               Aucun brouillon local n’a été trouvé dans ce navigateur. La
               chronologie affiche uniquement les éléments déjà enregistrés dans
               le dossier.
             </p>
           ) : (
             <>
-              <p className="mt-2 text-sm leading-6 text-texte-doux">
+              <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                 Ces brouillons ne sont pas encore des éléments du dossier. Ils
                 ne seront visibles dans la chronologie qu’après validation dans
                 le module correspondant.
@@ -103,11 +103,11 @@ export default function BrouillonsChronologieInfo() {
                       {brouillon.type}
                     </p>
 
-                    <h3 className="mt-1 font-semibold text-texte">
+                    <h3 className="mt-1 font-semibold text-[var(--app-text)]">
                       {brouillon.titre || "Brouillon sans titre"}
                     </h3>
 
-                    <p className="mt-1 text-sm text-texte-doux">
+                    <p className="mt-1 text-sm text-[var(--app-text-muted)]">
                       Date : {formaterDate(brouillon.date)} · Enfant :{" "}
                       {brouillon.enfant || "à compléter"}
                     </p>
@@ -116,7 +116,7 @@ export default function BrouillonsChronologieInfo() {
               </div>
 
               {brouillons.length > derniersBrouillons.length && (
-                <p className="mt-3 text-sm text-texte-doux">
+                <p className="mt-3 text-sm text-[var(--app-text-muted)]">
                   {brouillons.length - derniersBrouillons.length} autre
                   {brouillons.length - derniersBrouillons.length > 1
                     ? "s brouillon(s)"

@@ -64,9 +64,9 @@ function CarteResume({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
-      <p className="text-sm text-texte-doux">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-texte">{valeur}</p>
-      <p className="mt-1 text-xs leading-5 text-texte-doux">{aide}</p>
+      <p className="text-sm text-[var(--app-text-muted)]">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-[var(--app-text)]">{valeur}</p>
+      <p className="mt-1 text-xs leading-5 text-[var(--app-text-muted)]">{aide}</p>
     </div>
   );
 }
@@ -77,26 +77,26 @@ function ResumeLecture({ resume }: { resume: ResumeTimeline }) {
     .join(", ");
 
   return (
-    <section className="carte rounded-2xl bg-[var(--surface)] p-6">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
             Résumé de lecture
           </p>
 
-          <h2 className="mt-1 text-xl font-bold text-texte">
+          <h2 className="mt-1 text-xl font-bold text-[var(--app-text)]">
             Vue d’ensemble de la chronologie
           </h2>
 
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
+          <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
             Ce résumé est calculé automatiquement à partir des éléments déjà
             enregistrés. Il sert à repérer les zones à compléter avant un export
             de travail.
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white/70 p-4 text-sm text-texte-doux md:max-w-xs">
-          <p className="font-semibold text-texte">Période couverte</p>
+        <div className="rounded-xl border border-slate-200 bg-white/70 p-4 text-sm text-[var(--app-text-muted)] md:max-w-xs">
+          <p className="font-semibold text-[var(--app-text)]">Période couverte</p>
           <p className="mt-1">{resume.periodeLisible}</p>
         </div>
       </div>
@@ -129,8 +129,8 @@ function ResumeLecture({ resume }: { resume: ResumeTimeline }) {
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
-          <p className="font-semibold text-texte">Sources alimentées</p>
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
+          <p className="font-semibold text-[var(--app-text)]">Sources alimentées</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
             {sources || "Aucune source alimentée pour le moment."}
           </p>
         </div>
@@ -230,14 +230,14 @@ export default function TimelineDossier({
         key={`${item.source}-${item.id}`}
         type="button"
         onClick={() => setItemActif(item)}
-        className="carte block w-full p-4 text-left transition hover:opacity-90"
+        className="block w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 text-left shadow-sm transition hover:opacity-90"
       >
         <div className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h3 className="font-semibold text-texte">{item.titre}</h3>
+              <h3 className="font-semibold text-[var(--app-text)]">{item.titre}</h3>
 
-              <p className="mt-1 text-sm text-texte-doux">
+              <p className="mt-1 text-sm text-[var(--app-text-muted)]">
                 {item.date ? dateFr(item.date) : "Sans date"}
                 {item.heure ? ` · ${item.heure}` : ""}
               </p>
@@ -255,7 +255,7 @@ export default function TimelineDossier({
           </div>
 
           {item.description && (
-            <p className="text-sm leading-6 text-texte-doux">
+            <p className="text-sm leading-6 text-[var(--app-text-muted)]">
               {item.description}
             </p>
           )}
@@ -300,7 +300,7 @@ export default function TimelineDossier({
       />
 
       {vide ? (
-        <div className="carte p-6 text-texte-doux">
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 text-[var(--app-text-muted)] shadow-sm">
           Aucun élément à afficher pour cette sélection.
         </div>
       ) : (

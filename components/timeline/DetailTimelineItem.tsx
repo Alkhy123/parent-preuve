@@ -58,9 +58,9 @@ function statutPension(du: number, paye: number): { texte: string; classe: strin
 // Petite ligne "label : valeur".
 function Ligne({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p className="text-sm text-texte-doux">
-      <span className="text-texte-doux">{label} : </span>
-      <span className="text-texte">{children}</span>
+    <p className="text-sm text-[var(--app-text-muted)]">
+      <span className="text-[var(--app-text-muted)]">{label} : </span>
+      <span className="text-[var(--app-text)]">{children}</span>
     </p>
   );
 }
@@ -172,8 +172,8 @@ export default function DetailTimelineItem({
   // Bloc de confirmation de suppression, réutilisé par les sources concernées.
   function confirmationSuppression(fn: () => Promise<ResultatAction>) {
     return (
-      <div className="mt-3 rounded-lg bg-navy/5 p-3">
-        <p className="text-sm text-texte">
+      <div className="mt-3 rounded-lg bg-slate-100 p-3">
+        <p className="text-sm text-[var(--app-text)]">
           Confirmer la suppression définitive de cet élément ?
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -181,7 +181,7 @@ export default function DetailTimelineItem({
             type="button"
             disabled={busy}
             onClick={() => lancer(fn, { ferme: true })}
-            className="btn btn-danger"
+            className="btn bg-red-700 text-white hover:bg-red-800"
           >
             Supprimer définitivement
           </button>
@@ -189,7 +189,7 @@ export default function DetailTimelineItem({
             type="button"
             disabled={busy}
             onClick={() => setConfirmSuppr(false)}
-            className="btn btn-discret"
+            className="btn text-[var(--app-text-muted)] hover:bg-black/5 hover:text-[var(--app-text)]"
           >
             Annuler
           </button>
@@ -199,10 +199,10 @@ export default function DetailTimelineItem({
   }
 
   function corps() {
-    if (chargement) return <p className="text-texte-doux">Chargement…</p>;
+    if (chargement) return <p className="text-[var(--app-text-muted)]">Chargement…</p>;
     if (!detail) {
       return (
-        <p className="text-texte-doux">
+        <p className="text-[var(--app-text-muted)]">
           Élément introuvable. Il a peut-être été supprimé.
         </p>
       );
@@ -227,7 +227,7 @@ export default function DetailTimelineItem({
               <Ligne label="Enfant">{nomEnfant(detail.child_id)}</Ligne>
             )}
             {detail.description_factuelle && (
-              <p className="text-sm text-texte">{detail.description_factuelle}</p>
+              <p className="text-sm text-[var(--app-text)]">{detail.description_factuelle}</p>
             )}
 
             <div className="flex flex-wrap gap-2 pt-1">
@@ -236,7 +236,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => changerStatutFait(detail.id, "valide"))}
-                  className="btn btn-primaire"
+                  className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
                 >
                   Marquer comme validé
                 </button>
@@ -246,7 +246,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => changerStatutFait(detail.id, "brouillon"))}
-                  className="btn btn-primaire"
+                  className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
                 >
                   Repasser en brouillon
                 </button>
@@ -260,7 +260,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => setConfirmSuppr(true)}
-                className="btn btn-discret text-rouge"
+                className="btn text-red-700 hover:bg-red-50 hover:text-red-800"
               >
                 Supprimer
               </button>
@@ -306,7 +306,7 @@ export default function DetailTimelineItem({
                 onClick={() =>
                   lancer(() => basculerRemboursementFrais(detail.id, detail.rembourse))
                 }
-                className="btn btn-primaire"
+                className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
               >
                 {rembourse ? "Annuler le remboursement" : "Marquer remboursé"}
               </button>
@@ -315,7 +315,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => ouvrir(() => urlSigneeJustificatifFrais(detail.document_id))}
-                  className="btn btn-primaire"
+                  className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
                 >
                   Ouvrir le justificatif
                 </button>
@@ -329,7 +329,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => setConfirmSuppr(true)}
-                className="btn btn-discret text-rouge"
+                className="btn text-red-700 hover:bg-red-50 hover:text-red-800"
               >
                 Supprimer
               </button>
@@ -364,7 +364,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => setConfirmSuppr(true)}
-                className="btn btn-discret text-rouge"
+                className="btn text-red-700 hover:bg-red-50 hover:text-red-800"
               >
                 Supprimer ce mois
               </button>
@@ -399,7 +399,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => ouvrir(() => urlSigneeDocument(detail.chemin_fichier))}
-                className="btn btn-primaire"
+                className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
               >
                 Ouvrir le fichier
               </button>
@@ -408,7 +408,7 @@ export default function DetailTimelineItem({
                   type="button"
                   disabled={busy}
                   onClick={() => lancer(() => archiverDocument(detail.id))}
-                  className="btn btn-primaire"
+                  className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
                 >
                   Conserver au coffre-fort
                 </button>
@@ -424,7 +424,7 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => setConfirmSuppr(true)}
-                className="btn btn-discret text-rouge"
+                className="btn text-red-700 hover:bg-red-50 hover:text-red-800"
               >
                 Supprimer définitivement
               </button>
@@ -446,7 +446,7 @@ export default function DetailTimelineItem({
             )}
             {detail.nom_fichier && <Ligne label="Fichier">{detail.nom_fichier}</Ligne>}
             {detail.description && (
-              <p className="text-sm text-texte">{detail.description}</p>
+              <p className="text-sm text-[var(--app-text)]">{detail.description}</p>
             )}
 
             {detail.storage_path && (
@@ -454,13 +454,13 @@ export default function DetailTimelineItem({
                 type="button"
                 disabled={busy}
                 onClick={() => ouvrir(() => urlSigneePreuve(detail.storage_path))}
-                className="btn btn-primaire"
+                className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
               >
                 Voir l&apos;original
               </button>
             )}
 
-            <p className="pt-1 text-xs text-texte-doux">
+            <p className="pt-1 text-xs text-[var(--app-text-muted)]">
               Preuve numérique renforcée, scellée et horodatée. Horodatage non
               qualifié : ce n&apos;est pas un constat de commissaire de justice.
             </p>
@@ -506,7 +506,7 @@ export default function DetailTimelineItem({
             {badgeQualite(qualite.niveau).label}
           </span>
           {qualite.manquants.length > 0 && (
-            <p className="mt-1 text-xs text-texte-doux">
+            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
               À compléter : {qualite.manquants.join(", ")}.
             </p>
           )}
