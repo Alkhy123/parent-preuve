@@ -12,7 +12,7 @@ import type {
 
 function Bloc({ bloc }: { bloc: BlocRendu }) {
   if (bloc.type === "paragraphe") {
-    return <p className="text-sm text-texte whitespace-pre-line">{bloc.texte}</p>;
+    return <p className="text-sm text-[var(--app-text)] whitespace-pre-line">{bloc.texte}</p>;
   }
 
   if (bloc.type === "champs") {
@@ -20,8 +20,8 @@ function Bloc({ bloc }: { bloc: BlocRendu }) {
       <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
         {bloc.champs.map((c, i) => (
           <div key={i} className="text-sm">
-            <dt className="text-texte-doux">{c.label}</dt>
-            <dd className="text-texte">{c.valeur}</dd>
+            <dt className="text-[var(--app-text-muted)]">{c.label}</dt>
+            <dd className="text-[var(--app-text)]">{c.valeur}</dd>
           </div>
         ))}
       </dl>
@@ -33,7 +33,7 @@ function Bloc({ bloc }: { bloc: BlocRendu }) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-[#15233F]/15 text-texte-doux">
+          <tr className="border-b border-[var(--app-border)] text-[var(--app-text-muted)]">
             {bloc.entetes.map((h, i) => (
               <th key={i} className="py-2 pr-3 font-medium">
                 {h}
@@ -43,9 +43,9 @@ function Bloc({ bloc }: { bloc: BlocRendu }) {
         </thead>
         <tbody>
           {bloc.lignes.map((ligne, i) => (
-            <tr key={i} className="border-b border-[#15233F]/10 align-top">
+            <tr key={i} className="border-b border-[var(--app-border)] align-top">
               {ligne.map((cell, j) => (
-                <td key={j} className="py-2 pr-3 text-texte">
+                <td key={j} className="py-2 pr-3 text-[var(--app-text)]">
                   {cell}
                 </td>
               ))}
@@ -59,8 +59,8 @@ function Bloc({ bloc }: { bloc: BlocRendu }) {
 
 function Section({ section }: { section: SectionRendue }) {
   return (
-    <section className="carte rounded-xl bg-white p-5">
-      <h2 className="font-display text-lg text-navy">{section.titre}</h2>
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <h2 className="font-display text-lg text-[var(--app-text)]">{section.titre}</h2>
       <div className="mt-3 space-y-3">
         {section.blocs.map((bloc, i) => (
           <Bloc key={i} bloc={bloc} />
