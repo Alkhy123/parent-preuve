@@ -35,8 +35,11 @@ export default function AppSidebar() {
           Procédure active
         </p>
         <div className="mt-2 px-2">
-          <SelecteurProcedure />
+          <SelecteurProcedure variant="sidebar" afficherSiUnique />
         </div>
+        <p className="mt-2 px-2 text-xs leading-5 text-[var(--app-sidebar-muted,var(--app-sidebar-text-muted,var(--app-text-muted)))]">
+          Les pages du dossier utilisent cette procédure comme contexte.
+        </p>
       </div>
 
       <nav className="flex flex-col gap-1">
