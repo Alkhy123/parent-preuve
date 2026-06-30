@@ -14,13 +14,13 @@ const OPTIONS: { id: InterfaceStyle; label: string; description: string }[] = [
     id: "board10",
     label: "Board 10",
     description:
-      "Esprit cockpit : prochaine action, priorités du jour, assistant visible.",
+      "Cockpit guidé, actions du jour, priorités et accompagnement.",
   },
   {
     id: "vue-ensemble",
     label: "Vue d'ensemble",
     description:
-      "Esprit dashboard : vue globale, indicateurs, progression du dossier.",
+      "Tableau de bord synthétique, indicateurs et vision globale du dossier.",
   },
 ];
 

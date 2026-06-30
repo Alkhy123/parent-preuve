@@ -9,6 +9,8 @@ import AppCard from "@/components/app/AppCard";
 import AppNotice from "@/components/app/AppNotice";
 import AppShell from "@/components/app/AppShell";
 import ThemeSelector from "@/components/theme/ThemeSelector";
+import ComfortModeSelector from "@/components/ui-preferences/ComfortModeSelector";
+import InterfaceStyleSelector from "@/components/ui-preferences/InterfaceStyleSelector";
 import { enteteAuth } from "@/lib/enteteAuth";
 import { supabase } from "@/lib/supabase";
 
@@ -123,7 +125,7 @@ export default function ComptePage() {
   return (
     <AppShell
       titre="Mon compte"
-      description="Gerez les informations du compte, l'apparence locale, l'export RGPD et la suppression des donnees."
+      description="Gerez les informations du compte, l'apparence locale, le confort d'utilisation, l'export RGPD et la suppression des donnees."
       actions={
         <AppButtonLink href="/" variant="secondary">
           Retour accueil
@@ -159,6 +161,31 @@ export default function ComptePage() {
           description="Choisissez le style visuel de votre espace Parent Preuve. Ce reglage modifie uniquement l'apparence de l'application sur cet appareil."
         >
           <ThemeSelector />
+        </AppCard>
+
+        <AppCard
+          titre="Confort d'utilisation"
+          description="Ajustez le niveau d'accompagnement et le style d'interface de votre espace. Ce reglage est enregistre sur cet appareil et ne modifie aucune donnee de votre dossier."
+        >
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--app-text-muted)]">
+                Mode d&apos;accompagnement
+              </h3>
+              <div className="mt-3">
+                <ComfortModeSelector />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--app-text-muted)]">
+                Style d&apos;interface
+              </h3>
+              <div className="mt-3">
+                <InterfaceStyleSelector />
+              </div>
+            </div>
+          </div>
         </AppCard>
 
         <AppCard

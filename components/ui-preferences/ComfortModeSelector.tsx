@@ -12,15 +12,15 @@ import type { ComfortMode } from "@/lib/ui-preferences/types";
 const OPTIONS: { id: ComfortMode; label: string; description: string }[] = [
   {
     id: "guided",
-    label: "Accompagné",
+    label: "Guidé",
     description:
-      "Infobulles activées, aide contextuelle visible, parcours plus guidé. Mode par défaut.",
+      "Conseillé au démarrage. Affiche davantage d'aide contextuelle, d'infobulles et de recommandations.",
   },
   {
     id: "comfort",
     label: "Confort",
     description:
-      "Plus calme, moins d'aide affichée à l'écran. Mêmes fonctionnalités, accès identique.",
+      "Plus calme. Réduit les explications visibles et laisse davantage de place au dossier.",
   },
 ];
 
