@@ -17,7 +17,7 @@
 // accessibles et journalise celles qui ont redirigé (ex. vers /connexion).
 // Une page en erreur n'interrompt jamais le reste des captures.
 
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 // Petit chargeur .env.local (même convention que les autres scripts/*.mjs).
@@ -89,6 +89,36 @@ const CSS_SANS_ANIMATION = `
   }
 `;
 
+// Délai laissé à chaque signal de connexion pour apparaître (en millisecondes).
+const TIMEOUT_SIGNAL_CONNEXION = 12000;
+
+// Connexion réussie si l'UN de ces signaux arrive en premier (pas de dépendance
+// à un seul texte fragile, ex. accents qui diffèrent entre le code et la page) :
+//   - l'URL n'est plus /connexion ;
+//   - le bouton "Se deconnecter" apparaît (session active côté formulaire) ;
+//   - le formulaire de connexion (champ e-mail) disparaît du DOM.
+// Si aucun de ces signaux n'arrive, on tente en dernier recours une page
+// protégée (/compte) et on regarde si elle redirige vers /connexion.
+async function attendreSignalConnexion(page) {
+  try {
+    return await Promise.any([
+      page
+        .waitForURL((url) => url.pathname !== "/connexion", { timeout: TIMEOUT_SIGNAL_CONNEXION })
+        .then(() => "url"),
+      page
+        .getByRole("button", { name: "Se deconnecter" })
+        .waitFor({ timeout: TIMEOUT_SIGNAL_CONNEXION })
+        .then(() => "session-active"),
+      page
+        .getByPlaceholder("Adresse e-mail")
+        .waitFor({ state: "hidden", timeout: TIMEOUT_SIGNAL_CONNEXION })
+        .then(() => "formulaire-disparu"),
+    ]);
+  } catch {
+    return null;
+  }
+}
+
 async function seConnecter(page) {
   const email = process.env.TEST_EMAIL;
   const motDePasse = process.env.TEST_PASSWORD;
@@ -99,7 +129,26 @@ async function seConnecter(page) {
     await page.getByPlaceholder("Adresse e-mail").fill(email);
     await page.getByPlaceholder("Mot de passe").fill(motDePasse);
     await page.getByRole("button", { name: "Se connecter" }).click();
-    await page.getByText("Vous êtes connecté").waitFor({ timeout: 15000 });
+
+    let signal = await attendreSignalConnexion(page);
+
+    if (!signal) {
+      // Dernier recours : une page protégée redirige-t-elle encore vers /connexion ?
+      // Les pages protégées sont des composants client : elles répondent d'abord
+      // 200 (coquille), puis redirigent via JS après vérification de session.
+      // On laisse donc le temps à cette vérification client de s'exécuter avant
+      // de lire l'URL finale, sinon le signal est lu trop tôt et toujours faux positif.
+      await page
+        .goto(`${BASE_URL}/compte`, { waitUntil: "domcontentloaded", timeout: 15000 })
+        .catch(() => {});
+      await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+      if (new URL(page.url()).pathname !== "/connexion") signal = "page-protegee-accessible";
+    }
+
+    if (!signal) {
+      console.warn("⚠ Connexion impossible : aucun signal de session active détecté. Capture sans session.");
+      return false;
+    }
 
     // Modale RGPD éventuelle (compte neuf) : on l'accepte si présente.
     await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -109,7 +158,9 @@ async function seConnecter(page) {
     } catch {
       // Déjà acceptée, ou non affichée : rien à faire.
     }
-    console.log(`✅ Connecté en tant que ${email}.`);
+
+    // Le mot de passe n'est jamais journalisé, seul l'e-mail et le signal détecté le sont.
+    console.log(`✅ Connecté en tant que ${email} (signal : ${signal}).`);
     return true;
   } catch (e) {
     console.warn(`⚠ Connexion impossible (${e.message ?? e}). Capture sans session.`);
@@ -153,7 +204,7 @@ async function main() {
   console.log(`Captures UI — base ${BASE_URL}, dossier ${DOSSIER}`);
 
   const navigateur = await chromium.launch();
-  const resultats = { ok: [], erreurs: [], redirigees: [] };
+  const resultats = { ok: [], erreurs: [], redirigees: [], connecte: false };
 
   // Connexion (une fois, viewport desktop) puis réutilisation de la session
   // pour le contexte mobile, comme playwright.config.ts (storageState).
@@ -163,6 +214,7 @@ async function main() {
   });
   const pageAuth = await contexteAuth.newPage();
   const connecte = await seConnecter(pageAuth);
+  resultats.connecte = connecte;
   if (connecte) storageState = await contexteAuth.storageState();
 
   for (const viewport of VIEWPORTS) {
@@ -185,6 +237,7 @@ async function main() {
   await navigateur.close();
 
   console.log("\n— Résumé —");
+  console.log(`Connecté   : ${resultats.connecte ? "oui" : "non"}`);
   console.log(`OK         : ${resultats.ok.length}`);
   console.log(`Redirigées : ${resultats.redirigees.length}`);
   for (const r of resultats.redirigees) {
@@ -194,7 +247,30 @@ async function main() {
   for (const r of resultats.erreurs) {
     console.log(`  - ${r.viewport} ${r.chemin} : ${r.erreur}`);
   }
-  console.log(`\nCaptures dans ${DOSSIER}/`);
+  console.log(`Dossier    : ${DOSSIER}/`);
+
+  // Petit rapport texte pour relecture rapide. captures-ui/ est ignoré par
+  // git : ce fichier n'est jamais commité, comme les images du dossier.
+  try {
+    writeFileSync(
+      `${DOSSIER}/rapport.json`,
+      JSON.stringify(
+        {
+          base: BASE_URL,
+          label: LABEL,
+          date: DATE,
+          connecte: resultats.connecte,
+          ok: resultats.ok,
+          redirigees: resultats.redirigees,
+          erreurs: resultats.erreurs,
+        },
+        null,
+        2,
+      ),
+    );
+  } catch (e) {
+    console.warn(`⚠ Rapport JSON non écrit (${e.message ?? e}).`);
+  }
 }
 
 main().catch((e) => {
