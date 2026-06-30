@@ -24,6 +24,7 @@ export default function AccueilPublic() {
     <AppShell
       titre="Parent Preuve"
       description="Organiser les faits, pieces, frais et elements utiles d un dossier parental."
+      masquerSidebar
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/connexion">Creer un compte</AppButtonLink>
