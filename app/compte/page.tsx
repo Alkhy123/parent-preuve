@@ -210,14 +210,14 @@ export default function ComptePage() {
             <input
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
-              className="mt-2 block w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-sm text-red-950 focus:border-red-600 focus:outline-none"
+              className="mt-2 block w-full rounded-xl border border-red-200 bg-[var(--app-surface)] px-3 py-2 text-sm text-red-950 focus:border-red-600 focus:outline-none"
               placeholder="SUPPRIMER"
               autoComplete="off"
             />
           </label>
 
           {erreur ? (
-            <p className="mt-3 rounded-xl border border-red-200 bg-white p-3 text-sm text-red-700">
+            <p className="mt-3 rounded-xl border border-red-200 bg-[var(--app-surface)] p-3 text-sm text-red-700">
               {erreur}
             </p>
           ) : null}

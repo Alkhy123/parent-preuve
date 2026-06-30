@@ -187,7 +187,7 @@ export default function CalendrierPage() {
   const fmtHeure = (d: Date) =>
     d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-  const champ = "w-full rounded-md border border-[var(--app-border)] bg-white text-[var(--app-text)] p-2";
+  const champ = "w-full rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] p-2";
   const labelCss = "block text-sm font-medium text-[var(--app-text)] mb-1";
 
   return (
@@ -287,7 +287,7 @@ export default function CalendrierPage() {
                 <button
                   onClick={enregistrer}
                   disabled={chargement}
-                  className="rounded-md bg-[#15233F] px-5 py-2 text-white hover:bg-[#1d2f54] disabled:opacity-50"
+                  className="rounded-md bg-[var(--app-primary)] px-5 py-2 text-[var(--app-on-primary)] hover:bg-[var(--app-primary-hover)] disabled:opacity-50"
                 >
                   {chargement ? "Enregistrement..." : "Enregistrer la règle"}
                 </button>
@@ -329,7 +329,7 @@ export default function CalendrierPage() {
                       <li key={i} className="py-3 flex items-start gap-3">
                         <span
                           className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: p.chezQui === "moi" ? "#C2A24C" : "#9CA3AF" }}
+                          style={{ backgroundColor: p.chezQui === "moi" ? "var(--app-accent)" : "var(--app-border)" }}
                         />
                         <span className="text-[var(--app-text)]">
                           Du <strong>{fmt(p.debut)}</strong> {fmtHeure(p.debut)} au{" "}
