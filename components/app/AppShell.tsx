@@ -1,7 +1,10 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import AppSidebar from "@/components/app/AppSidebar";
 import AppSupportPanel from "@/components/app/AppSupportPanel";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 type AppShellProps = {
   titre: string;
@@ -31,8 +34,17 @@ export default function AppShell({
   masquerSidebar = false,
   masquerAide = false,
 }: AppShellProps) {
+  // Lecture du style d'interface choisi (board10 / vue-ensemble). Point
+  // d'extension pour une déclinaison future de layout par interfaceStyle :
+  // aujourd'hui data-interface-style n'est ciblé par aucun style, donc
+  // aucun changement visuel pour les pages existantes.
+  const { interfaceStyle } = useUiPreferences();
+
   return (
-    <div className="app-shell min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]">
+    <div
+      className="app-shell min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]"
+      data-interface-style={interfaceStyle}
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-8 lg:px-8">
         {masquerSidebar ? null : <AppSidebar />}
 
