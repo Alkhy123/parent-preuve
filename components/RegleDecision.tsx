@@ -196,12 +196,12 @@ export default function RegleDecision({
     }
   }
 
-  const champ = 'w-full rounded-md border border-gray-300 bg-white text-[#1F2733] px-3 py-2';
-  const label = 'block text-sm font-medium text-[#15233F] mb-1';
+  const champ = 'w-full rounded-md border border-gray-300 bg-white text-[var(--app-text)] px-3 py-2';
+  const label = 'block text-sm font-medium text-[var(--app-text)] mb-1';
 
   if (chargement) {
     return (
-      <div className="rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-4 text-[#1F2733]">
+      <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 text-[var(--app-text)]">
         Chargement de la nature de la décision…
       </div>
     );
@@ -367,11 +367,11 @@ export default function RegleDecision({
         <button
           onClick={enregistrer}
           disabled={enregistrement}
-          className="rounded-md bg-[#15233F] px-4 py-2 text-white disabled:opacity-50"
+          className="rounded-md bg-[var(--app-text)] px-4 py-2 text-[var(--app-surface)] disabled:opacity-50"
         >
           {enregistrement ? 'Enregistrement…' : 'Enregistrer la règle'}
         </button>
-        {message && <span className="text-sm text-[#15233F]">{message}</span>}
+        {message && <span className="text-sm text-[var(--app-text)]">{message}</span>}
       </div>
     </div>
   );
@@ -386,22 +386,22 @@ export default function RegleDecision({
       idPersistance={procedureId ? `regle-decision:${procedureId}` : undefined}
     >
       {valide === false && (
-        <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
-          <p className="mt-1 text-[#1F2733]/70">
+        <div className="mb-4 rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm">
+          <p className="font-medium text-amber-900">Proposée par l&apos;IA — à vérifier</p>
+          <p className="mt-1 text-amber-800">
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             cliquez sur « Valider cette règle » ; sinon, corrigez puis enregistrez à nouveau.
           </p>
           <button
             onClick={valider}
-            className="mt-2 rounded-lg bg-[#15233F] px-4 py-1.5 text-sm text-[#F8F6F1] transition hover:bg-[#1d2f52]"
+            className="mt-2 rounded-lg bg-[var(--app-text)] px-4 py-1.5 text-sm text-[var(--app-surface)] transition hover:opacity-90"
           >
             Valider cette règle
           </button>
         </div>
       )}
 
-      <p className="mb-4 text-sm text-[#1F2733]/80">
+      <p className="mb-4 text-sm text-[var(--app-text-muted)]">
         Consigne ici le <strong>statut procédural</strong> de la décision (provisoire, appel,
         exécution provisoire, mise en état). Ces informations factuelles ne constituent pas un
         conseil juridique.

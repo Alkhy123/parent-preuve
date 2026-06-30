@@ -15,18 +15,18 @@ export default function ApercuExportChronologie({ lignes }: Props) {
             Aperçu avant export
           </p>
 
-          <h3 className="mt-1 text-lg font-bold text-texte">
+          <h3 className="mt-1 text-lg font-bold text-[var(--app-text)]">
             Vérifier les lignes qui partiront dans le PDF ou le CSV
           </h3>
 
-          <p className="mt-2 text-sm leading-6 text-texte-doux">
+          <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
             Cet aperçu reprend les mêmes filtres que les boutons d’export :
             période, types sélectionnés et procédure active.
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-texte-doux">
-          <p className="font-semibold text-texte">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[var(--app-text-muted)]">
+          <p className="font-semibold text-[var(--app-text)]">
             {apercu.totalLignes} ligne
             {apercu.totalLignes > 1 ? "s" : ""} à exporter
           </p>
@@ -50,7 +50,7 @@ export default function ApercuExportChronologie({ lignes }: Props) {
       ) : (
         <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-texte-doux">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-[var(--app-text-muted)]">
               <tr>
                 {apercu.colonnes.map((colonne) => (
                   <th key={colonne} scope="col" className="px-3 py-3">
@@ -66,7 +66,7 @@ export default function ApercuExportChronologie({ lignes }: Props) {
                   {apercu.colonnes.map((colonne, colonneIndex) => (
                     <td
                       key={`${colonne}-${colonneIndex}`}
-                      className="max-w-[260px] px-3 py-3 align-top text-texte-doux"
+                      className="max-w-[260px] px-3 py-3 align-top text-[var(--app-text-muted)]"
                     >
                       <span className="line-clamp-3">
                         {ligne[colonneIndex] || "—"}
@@ -80,7 +80,7 @@ export default function ApercuExportChronologie({ lignes }: Props) {
         </div>
       )}
 
-      <p className="mt-4 text-xs leading-5 text-texte-doux">
+      <p className="mt-4 text-xs leading-5 text-[var(--app-text-muted)]">
         L’aperçu est un contrôle de cohérence. Relisez le PDF ou le CSV généré
         avant toute transmission.
       </p>
