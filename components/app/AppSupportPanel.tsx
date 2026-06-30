@@ -44,7 +44,7 @@ export default function AppSupportPanel() {
         ))}
       </ul>
 
-      <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-warning-soft,var(--app-banner-bg,#fef3c7))] px-3 py-2.5">
+      <div className="rounded-xl border border-[var(--app-warning-border,var(--app-border))] bg-[var(--app-warning-soft,#fef3c7)] px-3 py-2.5">
         <p className="text-xs leading-5 text-[var(--app-text)]">
           Il ne remplace pas un conseil juridique et ne déclenche aucune
           action automatique.
