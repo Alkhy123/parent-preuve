@@ -53,11 +53,11 @@ export default function CalendrierMensuel({
   const titreMois = MOIS[mois].charAt(0).toUpperCase() + MOIS[mois].slice(1);
 
   return (
-    <section className="carte rounded-lg border border-gray-200 bg-white p-5">
+    <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={moisPrecedent} className="rounded-md px-3 py-1 text-[#15233F] hover:bg-gray-100">‹</button>
-        <h2 className="font-display text-xl text-[#15233F]">{titreMois} {annee}</h2>
-        <button onClick={moisSuivant} className="rounded-md px-3 py-1 text-[#15233F] hover:bg-gray-100">›</button>
+        <button onClick={moisPrecedent} className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-gray-100">‹</button>
+        <h2 className="font-display text-xl text-[var(--app-text)]">{titreMois} {annee}</h2>
+        <button onClick={moisSuivant} className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-gray-100">›</button>
       </div>
 
       {!regle ? (
@@ -83,11 +83,11 @@ export default function CalendrierMensuel({
                   key={i}
                   className={
                     "relative min-h-[52px] rounded-md p-1.5 text-sm " +
-                    (estAujourdhui(jour) ? "ring-2 ring-[#15233F] " : "")
+                    (estAujourdhui(jour) ? "ring-2 ring-[var(--app-ring)] " : "")
                   }
                   style={{
                     backgroundColor: fondMoi ? "#F6EFD6" : "#F3F4F6",
-                    color: fondMoi ? "#15233F" : "#6B7280",
+                    color: fondMoi ? "var(--app-text)" : "#6B7280",
                   }}
                   title={vac ? vac.nom : undefined}
                 >
