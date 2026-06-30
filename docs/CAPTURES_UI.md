@@ -68,6 +68,30 @@ La connexion est considérée réussie dès que l'un de ces signaux apparaît
 En cas d'échec, l'erreur est journalisée clairement (sans jamais afficher le
 mot de passe) et le script continue les captures sans session, comme avant.
 
+## Compte de test et audit authentifié
+
+`TEST_EMAIL` / `TEST_PASSWORD` doivent correspondre à un compte Supabase
+**confirmé et utilisable** (e-mail validé, mot de passe à jour). Si ce n'est
+pas le cas, la connexion échoue silencieusement côté script : le résumé
+affiche `Connecté : non` et toutes les pages protégées sont capturées en
+redirection vers `/connexion` (comportement normal, pas un bug du script).
+
+Avant de relancer une capture authentifiée :
+
+1. Vérifier côté Supabase (dashboard Auth) que le compte de test existe
+   toujours et que son e-mail est confirmé.
+2. Réinitialiser le mot de passe si besoin et mettre à jour `.env.local`
+   en conséquence.
+3. Relancer :
+
+   ```bash
+   npm run capture:ui -- --label audit-final-auth
+   ```
+
+Ne jamais utiliser un compte réel pour ces captures, et ne jamais commiter
+`.env.local`. Ce document ne décrit pas de procédure de création
+automatique de compte de test : la vérification reste manuelle.
+
 ## Quoi contrôler visuellement après une capture
 
 - **Desktop** : sidebar visible, contenu principal lisible, panneau d'aide
