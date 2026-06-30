@@ -14,7 +14,8 @@
     "test": "node --import tsx --import ./tests/setup.ts --test \"tests/**/*.test.ts\"",
     "e2e:compte": "node scripts/creer-compte-test.mjs",
     "e2e:install": "playwright install chromium",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "capture:ui": "node scripts/captures-ui.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
@@ -27,6 +28,7 @@
     "unpdf": "^1.6.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -85,3 +85,6 @@ cleapi.txt
 /test-results/
 /blob-report/
 .last-run.json
+
+# captures UI locales (scripts/captures-ui.mjs)
+/captures-ui/
