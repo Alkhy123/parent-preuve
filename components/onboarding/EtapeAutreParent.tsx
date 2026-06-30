@@ -110,7 +110,7 @@ export default function EtapeAutreParent({
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {champs.map((c) => (
           <label key={c.cle} className="block">
-            <span className="text-sm font-medium text-navy">{c.label}</span>
+            <span className="text-sm font-medium text-[var(--app-text)]">{c.label}</span>
             <input
               type="text"
               value={form[c.cle]}
@@ -121,7 +121,7 @@ export default function EtapeAutreParent({
         ))}
       </div>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <PiedEtape
         onPrecedent={onPrecedent}

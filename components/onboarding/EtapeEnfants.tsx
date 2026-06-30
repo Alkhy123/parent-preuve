@@ -106,7 +106,7 @@ export default function EtapeEnfants({
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-navy">Prénom ou alias</span>
+          <span className="text-sm font-medium text-[var(--app-text)]">Prénom ou alias</span>
           <input
             type="text"
             value={prenom}
@@ -116,7 +116,7 @@ export default function EtapeEnfants({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-navy">
+          <span className="text-sm font-medium text-[var(--app-text)]">
             Date de naissance (facultatif)
           </span>
           <input
@@ -137,7 +137,7 @@ export default function EtapeEnfants({
         {occupe ? "Ajout…" : "Ajouter cet enfant"}
       </button>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <ul className="mt-5 space-y-2">
         {enfants.length === 0 ? (
@@ -155,7 +155,7 @@ export default function EtapeEnfants({
               <button
                 type="button"
                 onClick={() => retirer(e.id)}
-                className="text-sm text-rouge hover:underline"
+                className="text-sm text-red-700 hover:underline"
               >
                 Retirer
               </button>

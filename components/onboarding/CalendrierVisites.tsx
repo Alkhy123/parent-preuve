@@ -140,18 +140,18 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
         <button
           type="button"
           onClick={moisPrecedent}
-          className="rounded-md px-3 py-1 text-navy hover:bg-black/5"
+          className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-black/5"
           aria-label="Mois précédent"
         >
           ‹
         </button>
-        <h4 className="font-display text-base text-navy">
+        <h4 className="font-display text-base text-[var(--app-text)]">
           {titreMois} {annee}
         </h4>
         <button
           type="button"
           onClick={moisSuivant}
-          className="rounded-md px-3 py-1 text-navy hover:bg-black/5"
+          className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-black/5"
           aria-label="Mois suivant"
         >
           ›
@@ -181,7 +181,7 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
               aria-pressed={visite}
               className={[
                 "min-h-[44px] rounded-md p-1.5 text-sm transition disabled:opacity-60",
-                estAujourdhui(jour) ? "ring-1 ring-navy " : "",
+                estAujourdhui(jour) ? "ring-1 ring-[var(--app-ring)] " : "",
                 visite
                   ? "bg-[var(--app-text)] font-semibold text-[var(--app-surface)]"
                   : "bg-slate-50 text-[var(--app-text)] hover:bg-black/5",
@@ -206,7 +206,7 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
         </span>
       </div>
 
-      {erreur && <p className="mt-2 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-2 text-sm text-red-700">{erreur}</p>}
     </div>
   );
 }

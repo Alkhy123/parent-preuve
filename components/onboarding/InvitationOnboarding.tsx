@@ -34,7 +34,7 @@ export default function InvitationOnboarding({
         avant validation.
       </p>
 
-      <h2 className="mt-5 font-display text-lg text-navy">Les étapes à venir</h2>
+      <h2 className="mt-5 font-display text-lg text-[var(--app-text)]">Les étapes à venir</h2>
       <ol className="mt-3 space-y-2">
         {ETAPES.map((etape, i) => (
           <li key={etape} className="flex items-start gap-3 text-sm text-[var(--app-text)]">

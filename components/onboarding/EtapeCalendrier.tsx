@@ -24,7 +24,7 @@ type Enfant = { id: string; prenom_ou_alias: string };
 
 const champCss =
   "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
-const labelCss = "text-sm font-medium text-navy";
+const labelCss = "text-sm font-medium text-[var(--app-text)]";
 
 export default function EtapeCalendrier({
   onContinuer,
@@ -312,7 +312,7 @@ export default function EtapeCalendrier({
 
       {apercu.length > 0 && (
         <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="font-display text-base text-navy">Prochains week-ends</h3>
+          <h3 className="font-display text-base text-[var(--app-text)]">Prochains week-ends</h3>
           <ul className="mt-2 space-y-1 text-sm text-[var(--app-text)]">
             {apercu.map((p, i) => (
               <li key={i}>
@@ -328,7 +328,7 @@ export default function EtapeCalendrier({
           convenu avec le centre. L'utilisateur coche directement les dates. */}
       {mediatise && (
         <div className="mt-6 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4">
-          <h3 className="font-display text-base text-navy">Visites médiatisées</h3>
+          <h3 className="font-display text-base text-[var(--app-text)]">Visites médiatisées</h3>
           <p className="mt-1 text-sm text-[var(--app-text-muted)]">
             Le droit de visite est médiatisé : le jugement ne fixe pas de calendrier, il
             est convenu avec le centre de visite. Cochez ci-dessous les dates de visite

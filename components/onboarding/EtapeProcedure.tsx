@@ -88,7 +88,7 @@ export default function EtapeProcedure({
 
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="text-sm font-medium text-navy">
+          <span className="text-sm font-medium text-[var(--app-text)]">
             Procédure (l&apos;autre parent concerné)
           </span>
           <select
@@ -107,7 +107,7 @@ export default function EtapeProcedure({
 
         {choix === NOUVELLE && (
           <label className="block">
-            <span className="text-sm font-medium text-navy">
+            <span className="text-sm font-medium text-[var(--app-text)]">
               Nom de la procédure
             </span>
             <input
@@ -121,7 +121,7 @@ export default function EtapeProcedure({
         )}
       </div>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <PiedEtape
         onPrecedent={onPrecedent}

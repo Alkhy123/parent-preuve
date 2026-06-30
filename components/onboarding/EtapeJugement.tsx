@@ -93,7 +93,7 @@ export default function EtapeJugement({
             choix === "oui" ? "ring-2 ring-[var(--app-ring)]" : "hover:bg-black/5",
           ].join(" ")}
         >
-          <span className="font-medium text-navy">Oui, j&apos;ai un jugement</span>
+          <span className="font-medium text-[var(--app-text)]">Oui, j&apos;ai un jugement</span>
           <span className="mt-1 block text-[var(--app-text-muted)]">
             Renseignez sa référence et, si besoin, extrayez les règles.
           </span>
@@ -106,7 +106,7 @@ export default function EtapeJugement({
             choix === "non" ? "ring-2 ring-[var(--app-ring)]" : "hover:bg-black/5",
           ].join(" ")}
         >
-          <span className="font-medium text-navy">Pas de jugement (ou pas encore)</span>
+          <span className="font-medium text-[var(--app-text)]">Pas de jugement (ou pas encore)</span>
           <span className="mt-1 block text-[var(--app-text-muted)]">
             Vous pourrez renseigner les règles à la main, sans être bloqué.
           </span>
@@ -117,7 +117,7 @@ export default function EtapeJugement({
         <div className="mt-5 space-y-5">
           {/* Reference du jugement, enregistree sur la procedure active. */}
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="font-display text-base text-navy">Référence du jugement</h3>
+            <h3 className="font-display text-base text-[var(--app-text)]">Référence du jugement</h3>
             <p className="mt-1 text-xs text-[var(--app-text-muted)]">
               La juridiction et la date suffisent à marquer le jugement comme
               renseigné dans votre dossier.
@@ -130,7 +130,7 @@ export default function EtapeJugement({
             )}
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-medium text-navy">Juridiction</span>
+                <span className="text-sm font-medium text-[var(--app-text)]">Juridiction</span>
                 <input
                   type="text"
                   value={form.jugement_juridiction}
@@ -140,7 +140,7 @@ export default function EtapeJugement({
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-navy">Date du jugement</span>
+                <span className="text-sm font-medium text-[var(--app-text)]">Date du jugement</span>
                 <input
                   type="date"
                   value={form.jugement_date}
@@ -149,7 +149,7 @@ export default function EtapeJugement({
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-navy">Numéro RG (facultatif)</span>
+                <span className="text-sm font-medium text-[var(--app-text)]">Numéro RG (facultatif)</span>
                 <input
                   type="text"
                   value={form.jugement_numero_rg}
@@ -158,7 +158,7 @@ export default function EtapeJugement({
                 />
               </label>
               <label className="block sm:col-span-2">
-                <span className="text-sm font-medium text-navy">
+                <span className="text-sm font-medium text-[var(--app-text)]">
                   Intitulé / objet (facultatif)
                 </span>
                 <textarea
@@ -207,7 +207,7 @@ export default function EtapeJugement({
         </div>
       )}
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <PiedEtape
         onPrecedent={onPrecedent}

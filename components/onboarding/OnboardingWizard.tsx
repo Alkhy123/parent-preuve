@@ -116,7 +116,7 @@ export default function OnboardingWizard() {
                   actif
                     ? "bg-[var(--app-text)] text-[var(--app-surface)]"
                     : fait
-                      ? "text-vert"
+                      ? "text-emerald-700"
                       : "text-[var(--app-text-muted)]",
                   accessible ? "hover:bg-black/5" : "cursor-default opacity-60",
                 ].join(" ")}
@@ -126,9 +126,9 @@ export default function OnboardingWizard() {
                   className={[
                     "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium",
                     actif
-                      ? "bg-[var(--app-surface)] text-navy"
+                      ? "bg-[var(--app-surface)] text-[var(--app-text)]"
                       : fait
-                        ? "bg-emerald-100 text-vert"
+                        ? "bg-emerald-100 text-emerald-700"
                         : "bg-slate-100 text-[var(--app-text-muted)]",
                   ].join(" ")}
                 >
@@ -141,7 +141,7 @@ export default function OnboardingWizard() {
         })}
       </ol>
 
-      <h2 className="mt-6 font-display text-xl text-navy">{def.titre}</h2>
+      <h2 className="mt-6 font-display text-xl text-[var(--app-text)]">{def.titre}</h2>
       <p className="mt-1 text-xs text-[var(--app-text-muted)]">
         Étape {idx + 1} sur {ETAPES_ONBOARDING.length}
       </p>
