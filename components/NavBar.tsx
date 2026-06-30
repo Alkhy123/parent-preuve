@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import SelecteurProcedure from "@/components/SelecteurProcedure";
+import { estRouteAppShell } from "@/components/app/appShellNavigation";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -146,8 +147,19 @@ export default function NavBar() {
     );
   }
 
+  // Sur une route AppShell, la navigation desktop est désormais portée par
+  // AppSidebar : on masque la NavBar uniquement en desktop pour éviter la
+  // double navigation. Le mobile garde la NavBar (AppSidebar y est masquée).
+  const routeAppShell = estRouteAppShell(pathname);
+  const masquerEnDesktop = !!utilisateur && routeAppShell;
+
   return (
-    <nav ref={navRef} className="bg-[var(--app-text)] text-[var(--app-surface)] shadow-sm">
+    <nav
+      ref={navRef}
+      className={`bg-[var(--app-text)] text-[var(--app-surface)] shadow-sm ${
+        masquerEnDesktop ? "lg:hidden" : ""
+      }`}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link
           href="/"
