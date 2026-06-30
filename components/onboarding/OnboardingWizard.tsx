@@ -98,7 +98,7 @@ export default function OnboardingWizard() {
   const def = ETAPES_ONBOARDING[idx];
 
   return (
-    <div className="carte rounded-xl bg-white p-6">
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
       {/* Barre de progression : retour libre vers une etape deja atteinte. */}
       <ol className="flex flex-wrap gap-x-2 gap-y-2 text-xs">
         {ETAPES_ONBOARDING.map((e, i) => {
@@ -114,11 +114,11 @@ export default function OnboardingWizard() {
                 className={[
                   "flex items-center gap-1.5 rounded-full px-2.5 py-1 transition",
                   actif
-                    ? "bg-navy text-surface"
+                    ? "bg-[var(--app-text)] text-[var(--app-surface)]"
                     : fait
-                      ? "text-vert"
-                      : "text-texte-doux",
-                  accessible ? "hover:bg-navy/5" : "cursor-default opacity-60",
+                      ? "text-emerald-700"
+                      : "text-[var(--app-text-muted)]",
+                  accessible ? "hover:bg-black/5" : "cursor-default opacity-60",
                 ].join(" ")}
               >
                 <span
@@ -126,10 +126,10 @@ export default function OnboardingWizard() {
                   className={[
                     "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium",
                     actif
-                      ? "bg-surface text-navy"
+                      ? "bg-[var(--app-surface)] text-[var(--app-text)]"
                       : fait
-                        ? "bg-vert/15 text-vert"
-                        : "bg-slate-100 text-texte-doux",
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-slate-100 text-[var(--app-text-muted)]",
                   ].join(" ")}
                 >
                   {fait && !actif ? "✓" : i + 1}
@@ -141,8 +141,8 @@ export default function OnboardingWizard() {
         })}
       </ol>
 
-      <h2 className="mt-6 font-display text-xl text-navy">{def.titre}</h2>
-      <p className="mt-1 text-xs text-texte-doux">
+      <h2 className="mt-6 font-display text-xl text-[var(--app-text)]">{def.titre}</h2>
+      <p className="mt-1 text-xs text-[var(--app-text-muted)]">
         Étape {idx + 1} sur {ETAPES_ONBOARDING.length}
       </p>
 

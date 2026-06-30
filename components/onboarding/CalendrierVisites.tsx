@@ -140,18 +140,18 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
         <button
           type="button"
           onClick={moisPrecedent}
-          className="rounded-md px-3 py-1 text-navy hover:bg-navy/5"
+          className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-black/5"
           aria-label="Mois précédent"
         >
           ‹
         </button>
-        <h4 className="font-display text-base text-navy">
+        <h4 className="font-display text-base text-[var(--app-text)]">
           {titreMois} {annee}
         </h4>
         <button
           type="button"
           onClick={moisSuivant}
-          className="rounded-md px-3 py-1 text-navy hover:bg-navy/5"
+          className="rounded-md px-3 py-1 text-[var(--app-text)] hover:bg-black/5"
           aria-label="Mois suivant"
         >
           ›
@@ -160,7 +160,7 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
 
       <div className="mb-1 grid grid-cols-7 gap-1">
         {JOURS_COURTS.map((j) => (
-          <div key={j} className="py-1 text-center text-xs font-medium text-texte-doux">
+          <div key={j} className="py-1 text-center text-xs font-medium text-[var(--app-text-muted)]">
             {j}
           </div>
         ))}
@@ -181,10 +181,10 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
               aria-pressed={visite}
               className={[
                 "min-h-[44px] rounded-md p-1.5 text-sm transition disabled:opacity-60",
-                estAujourdhui(jour) ? "ring-1 ring-navy " : "",
+                estAujourdhui(jour) ? "ring-1 ring-[var(--app-ring)] " : "",
                 visite
-                  ? "bg-[#C2A24C] font-semibold text-[#15233F]"
-                  : "bg-slate-50 text-texte hover:bg-navy/5",
+                  ? "bg-[var(--app-text)] font-semibold text-[var(--app-surface)]"
+                  : "bg-slate-50 text-[var(--app-text)] hover:bg-black/5",
               ].join(" ")}
             >
               {enCours ? "…" : jour}
@@ -193,11 +193,11 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
         })}
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs text-texte-doux">
+      <div className="mt-3 flex items-center justify-between text-xs text-[var(--app-text-muted)]">
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-3 w-3 rounded"
-            style={{ backgroundColor: "#C2A24C" }}
+            style={{ backgroundColor: "var(--app-text)" }}
           />
           Date de visite cochée
         </span>
@@ -206,7 +206,7 @@ export default function CalendrierVisites({ enfantId }: { enfantId: string }) {
         </span>
       </div>
 
-      {erreur && <p className="mt-2 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-2 text-sm text-red-700">{erreur}</p>}
     </div>
   );
 }

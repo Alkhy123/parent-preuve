@@ -21,7 +21,7 @@ import {
 const NOUVELLE = "__nouvelle__";
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
 
 function libelle(p: ProcedureLigne) {
   return p.etiquette?.trim() ? p.etiquette : "Procédure sans nom";
@@ -75,12 +75,12 @@ export default function EtapeProcedure({
   }
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   return (
     <div>
-      <div className="rounded-md border border-[#C2A24C]/40 bg-[#F8F6F1] px-4 py-3 text-sm text-texte">
+      <div className="rounded-md border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 py-3 text-sm text-[var(--app-text)]">
         Les enfants ayant le même autre parent peuvent être regroupés dans une
         procédure. Si un enfant concerne un autre parent différent, l&apos;application
         créera une procédure séparée.
@@ -88,7 +88,7 @@ export default function EtapeProcedure({
 
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="text-sm font-medium text-navy">
+          <span className="text-sm font-medium text-[var(--app-text)]">
             Procédure (l&apos;autre parent concerné)
           </span>
           <select
@@ -107,7 +107,7 @@ export default function EtapeProcedure({
 
         {choix === NOUVELLE && (
           <label className="block">
-            <span className="text-sm font-medium text-navy">
+            <span className="text-sm font-medium text-[var(--app-text)]">
               Nom de la procédure
             </span>
             <input
@@ -121,7 +121,7 @@ export default function EtapeProcedure({
         )}
       </div>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <PiedEtape
         onPrecedent={onPrecedent}

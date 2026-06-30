@@ -39,7 +39,7 @@ export default function RetourAssistant({
   const lien = (
     <Link
       href="/onboarding?etape=validation-regles"
-      className="btn btn-primaire justify-center whitespace-nowrap"
+      className="btn justify-center whitespace-nowrap bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90"
     >
       Continuer dans l&apos;assistant
     </Link>
@@ -47,7 +47,7 @@ export default function RetourAssistant({
 
   if (variante === "pied") {
     return (
-      <div className="mt-8 flex flex-col gap-3 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-8 flex flex-col gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[#1F2733]">
           Vos règles sont en place ? Revenez à l&apos;assistant pour continuer votre
           parcours.
@@ -58,7 +58,7 @@ export default function RetourAssistant({
   }
 
   return (
-    <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-[#1F2733]">
         Vous préparez votre dossier avec l&apos;assistant de démarrage. Une fois vos
         règles établies, revenez à l&apos;assistant pour continuer.

@@ -16,7 +16,7 @@ import {
 } from "@/lib/onboarding/sauvegarde";
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
 
 export default function EtapeEnfants({
   onContinuer,
@@ -77,7 +77,7 @@ export default function EtapeEnfants({
   }
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   if (!procId) {
@@ -99,14 +99,14 @@ export default function EtapeEnfants({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Ajoutez chaque enfant concerné par cette procédure. Vous pourrez en ajouter
         d&apos;autres plus tard depuis « Mes enfants ».
       </p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-navy">Prénom ou alias</span>
+          <span className="text-sm font-medium text-[var(--app-text)]">Prénom ou alias</span>
           <input
             type="text"
             value={prenom}
@@ -116,7 +116,7 @@ export default function EtapeEnfants({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-navy">
+          <span className="text-sm font-medium text-[var(--app-text)]">
             Date de naissance (facultatif)
           </span>
           <input
@@ -132,30 +132,30 @@ export default function EtapeEnfants({
         type="button"
         onClick={ajouter}
         disabled={occupe || prenom.trim() === ""}
-        className="btn btn-secondaire mt-3 disabled:opacity-50"
+        className="btn mt-3 border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:opacity-50"
       >
         {occupe ? "Ajout…" : "Ajouter cet enfant"}
       </button>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <ul className="mt-5 space-y-2">
         {enfants.length === 0 ? (
-          <li className="text-sm text-texte-doux">Aucun enfant pour le moment.</li>
+          <li className="text-sm text-[var(--app-text-muted)]">Aucun enfant pour le moment.</li>
         ) : (
           enfants.map((e) => (
             <li
               key={e.id}
               className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-sm"
             >
-              <span className="text-texte">
+              <span className="text-[var(--app-text)]">
                 {e.prenom_ou_alias}
                 {e.date_naissance ? ` — né(e) le ${e.date_naissance}` : ""}
               </span>
               <button
                 type="button"
                 onClick={() => retirer(e.id)}
-                className="text-sm text-rouge hover:underline"
+                className="text-sm text-red-700 hover:underline"
               >
                 Retirer
               </button>

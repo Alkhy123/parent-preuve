@@ -16,7 +16,7 @@ import {
 } from "@/lib/onboarding/sauvegarde";
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
 
 export default function EtapeAutreParent({
   onContinuer,
@@ -70,7 +70,7 @@ export default function EtapeAutreParent({
   }
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   if (!procId) {
@@ -102,7 +102,7 @@ export default function EtapeAutreParent({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Ces coordonnées concernent la procédure active. Elles alimentent vos
         courriers et votre note de synthèse. Tous les champs sont facultatifs ici.
       </p>
@@ -110,7 +110,7 @@ export default function EtapeAutreParent({
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {champs.map((c) => (
           <label key={c.cle} className="block">
-            <span className="text-sm font-medium text-navy">{c.label}</span>
+            <span className="text-sm font-medium text-[var(--app-text)]">{c.label}</span>
             <input
               type="text"
               value={form[c.cle]}
@@ -121,7 +121,7 @@ export default function EtapeAutreParent({
         ))}
       </div>
 
-      {erreur && <p className="mt-3 text-sm text-rouge">{erreur}</p>}
+      {erreur && <p className="mt-3 text-sm text-red-700">{erreur}</p>}
 
       <PiedEtape
         onPrecedent={onPrecedent}

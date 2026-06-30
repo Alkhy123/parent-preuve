@@ -23,8 +23,8 @@ import CalendrierVisites from "@/components/onboarding/CalendrierVisites";
 type Enfant = { id: string; prenom_ou_alias: string };
 
 const champCss =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-texte focus:border-[#C2A24C] focus:outline-none focus:ring-1 focus:ring-[#C2A24C]";
-const labelCss = "text-sm font-medium text-navy";
+  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none focus:ring-1 focus:ring-[var(--app-ring)]";
+const labelCss = "text-sm font-medium text-[var(--app-text)]";
 
 export default function EtapeCalendrier({
   onContinuer,
@@ -172,7 +172,7 @@ export default function EtapeCalendrier({
     d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
   if (chargement) {
-    return <p className="text-sm text-texte-doux">Chargement…</p>;
+    return <p className="text-sm text-[var(--app-text-muted)]">Chargement…</p>;
   }
 
   if (enfants.length === 0) {
@@ -196,7 +196,7 @@ export default function EtapeCalendrier({
 
   return (
     <div>
-      <p className="text-sm text-texte-doux">
+      <p className="text-sm text-[var(--app-text-muted)]">
         Enregistrez la règle « un week-end sur deux » pour chaque enfant. Vous pourrez
         l&apos;ajuster plus tard depuis « Calendrier de garde ».
       </p>
@@ -302,18 +302,18 @@ export default function EtapeCalendrier({
           type="button"
           onClick={enregistrer}
           disabled={occupe}
-          className="btn btn-secondaire disabled:opacity-50"
+          className="btn border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)] disabled:opacity-50"
         >
           {occupe ? "Enregistrement…" : "Enregistrer la règle"}
         </button>
 
-        {message && <p className="text-sm text-texte">{message}</p>}
+        {message && <p className="text-sm text-[var(--app-text)]">{message}</p>}
       </div>
 
       {apercu.length > 0 && (
         <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="font-display text-base text-navy">Prochains week-ends</h3>
-          <ul className="mt-2 space-y-1 text-sm text-texte">
+          <h3 className="font-display text-base text-[var(--app-text)]">Prochains week-ends</h3>
+          <ul className="mt-2 space-y-1 text-sm text-[var(--app-text)]">
             {apercu.map((p, i) => (
               <li key={i}>
                 Du {fmt(p.debut)} au {fmt(p.fin)} —{" "}
@@ -327,9 +327,9 @@ export default function EtapeCalendrier({
       {/* Visites mediatisees : le jugement ne fixe pas le calendrier, il est
           convenu avec le centre. L'utilisateur coche directement les dates. */}
       {mediatise && (
-        <div className="mt-6 rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-4">
-          <h3 className="font-display text-base text-navy">Visites médiatisées</h3>
-          <p className="mt-1 text-sm text-texte-doux">
+        <div className="mt-6 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4">
+          <h3 className="font-display text-base text-[var(--app-text)]">Visites médiatisées</h3>
+          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
             Le droit de visite est médiatisé : le jugement ne fixe pas de calendrier, il
             est convenu avec le centre de visite. Cochez ci-dessous les dates de visite
             prévues pour {enfants.find((e) => e.id === enfantId)?.prenom_ou_alias ?? "cet enfant"}.

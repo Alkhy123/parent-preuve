@@ -34,7 +34,7 @@ export default function PiedEtape({
         type="button"
         onClick={onPrecedent}
         disabled={estPremiere || occupe}
-        className="btn btn-discret disabled:opacity-40"
+        className="btn text-[var(--app-text-muted)] hover:bg-black/5 hover:text-[var(--app-text)] disabled:opacity-40"
       >
         Précédent
       </button>
@@ -42,7 +42,7 @@ export default function PiedEtape({
         type="button"
         onClick={onContinuer}
         disabled={continuerDesactive || occupe}
-        className="btn btn-primaire disabled:opacity-50"
+        className="btn bg-[var(--app-text)] text-[var(--app-surface)] hover:opacity-90 disabled:opacity-50"
       >
         {occupe ? "Enregistrement…" : libelleContinuer}
       </button>
