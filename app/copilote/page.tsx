@@ -656,6 +656,7 @@ export default function PageCopilote() {
       <AppShell
         titre="Copilote"
         description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+        masquerAide
       >
         <p className="text-sm text-slate-500">Chargement...</p>
       </AppShell>
@@ -667,6 +668,7 @@ export default function PageCopilote() {
       <AppShell
         titre="Copilote"
         description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+        masquerAide
       >
         <div className="space-y-4">
           <AppNotice titre="Connexion requise">
@@ -685,6 +687,7 @@ export default function PageCopilote() {
     <AppShell
       titre="Copilote"
       description="Tester les fonctions Agent du dossier avec validation humaine et garde-fous actifs."
+      masquerAide
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/" variant="secondary">Retour accueil</AppButtonLink>

@@ -160,6 +160,13 @@ html[data-theme="classique-bleu"] {
   --app-chip-bg: #f1f5f9;
   --app-chip-text: #475569;
   --app-chip-border: #e2e8f0;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(46, 106, 77, 0.14);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-text-muted);
 }
 
 html[data-theme="ivoire-greffe"] {
@@ -189,6 +196,13 @@ html[data-theme="ivoire-greffe"] {
   --app-chip-bg: #fffcf6;
   --app-chip-text: #5f6b7a;
   --app-chip-border: #d5be98;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(66, 107, 79, 0.16);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-text-muted);
 }
 
 html[data-theme="noir-or-sombre"] {
@@ -218,6 +232,13 @@ html[data-theme="noir-or-sombre"] {
   --app-chip-bg: #111827;
   --app-chip-text: #cbd5e1;
   --app-chip-border: #2d3542;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(123, 201, 155, 0.18);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-text-muted);
 }
 
 html[data-theme="marine-laiton"] {
@@ -258,6 +279,13 @@ html[data-theme="marine-laiton"] {
   --app-sidebar-procedure-bg: #1b2f4d;
   --app-sidebar-procedure-border: #2c405c;
   --app-sidebar-procedure-text: #eaf0f8;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(47, 107, 85, 0.14);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-sidebar-text-muted);
 }
 
 html[data-theme="bordeaux-juridique"] {
@@ -298,6 +326,13 @@ html[data-theme="bordeaux-juridique"] {
   --app-sidebar-procedure-bg: #641c26;
   --app-sidebar-procedure-border: #7a2e37;
   --app-sidebar-procedure-text: #f6e9e2;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(63, 107, 78, 0.14);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-sidebar-text-muted);
 }
 
 html[data-theme="ardoise-parchemin"] {
@@ -338,6 +373,13 @@ html[data-theme="ardoise-parchemin"] {
   --app-sidebar-procedure-bg: #353c44;
   --app-sidebar-procedure-border: #454c54;
   --app-sidebar-procedure-text: #ede7d7;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(69, 107, 85, 0.14);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-sidebar-text-muted);
 }
 
 html[data-theme="vert-ministere"] {
@@ -378,4 +420,11 @@ html[data-theme="vert-ministere"] {
   --app-sidebar-procedure-bg: #1d4231;
   --app-sidebar-procedure-border: #2c5440;
   --app-sidebar-procedure-text: #ecf3e9;
+  --app-accent-soft: var(--app-primary-soft);
+  --app-success: var(--pp-success);
+  --app-success-soft: rgba(47, 112, 79, 0.14);
+  --app-warning: var(--app-banner-text);
+  --app-warning-soft: var(--app-banner-bg);
+  --app-warning-border: var(--app-banner-border);
+  --app-sidebar-muted: var(--app-sidebar-text-muted);
 }
