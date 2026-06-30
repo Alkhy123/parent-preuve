@@ -27,10 +27,10 @@ export default function OptionsAvancees({
         type="button"
         onClick={() => setOuvert((v) => !v)}
         aria-expanded={ouvert}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-[#15233F]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-[var(--app-text)]"
       >
         <span>{titre}</span>
-        <span className="shrink-0 text-[#15233F]/60">
+        <span className="shrink-0 text-[var(--app-text-muted)]">
           {ouvert ? "Masquer ▴" : "Afficher ▾"}
         </span>
       </button>
