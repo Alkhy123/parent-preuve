@@ -67,19 +67,19 @@ export default function EncartPliable({
   }, [signalFermeture]);
 
   return (
-    <div className="carte rounded-lg border border-[#C2A24C]/40 bg-[#F8F6F1] p-5 text-[#1F2733]">
+    <div className="carte rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-5 text-[var(--app-text)]">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="font-display text-xl text-[#15233F]">{titre}</h2>
+          <h2 className="font-display text-xl text-[var(--app-text)]">{titre}</h2>
           {pliable && replie && resume && (
-            <p className="mt-1 text-sm text-[#1F2733]/80">{resume}</p>
+            <p className="mt-1 text-sm text-[var(--app-text-muted)]">{resume}</p>
           )}
         </div>
         {pliable && (
           <button
             onClick={() => appliquerEtat(!replie)}
             aria-expanded={!replie}
-            className="shrink-0 rounded-md border border-[#15233F]/20 px-3 py-1 text-sm text-[#15233F] hover:bg-[#15233F]/5"
+            className="shrink-0 rounded-md border border-[var(--app-border)] px-3 py-1 text-sm text-[var(--app-text)] hover:bg-black/5"
           >
             {replie ? 'Afficher ▾' : 'Réduire ▴'}
           </button>

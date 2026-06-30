@@ -12,14 +12,14 @@ type Onglet = TypeEntree | "tout";
 
 // Onglets + pastille de couleur (l'or reste rare → pas utilisé ici).
 const TYPES: { cle: TypeEntree; libelle: string; pastille: string }[] = [
-  { cle: "fait", libelle: "Faits", pastille: "bg-navy" },
-  { cle: "frais", libelle: "Frais", pastille: "bg-amber" },
-  { cle: "pension", libelle: "Pension", pastille: "bg-vert" },
-  { cle: "preuve", libelle: "Preuves", pastille: "bg-texte-doux" },
+  { cle: "fait", libelle: "Faits", pastille: "bg-slate-700" },
+  { cle: "frais", libelle: "Frais", pastille: "bg-amber-500" },
+  { cle: "pension", libelle: "Pension", pastille: "bg-emerald-600" },
+  { cle: "preuve", libelle: "Preuves", pastille: "bg-slate-400" },
 ];
 
 function pastilleDe(type: TypeEntree): string {
-  return TYPES.find((t) => t.cle === type)?.pastille ?? "bg-texte-doux";
+  return TYPES.find((t) => t.cle === type)?.pastille ?? "bg-slate-400";
 }
 
 // "AAAA-MM-JJ" -> "JJ/MM/AAAA"
@@ -30,11 +30,11 @@ function dateFr(d: string): string {
 
 // Couleur du texte de statut (factuel : vert = réglé, rouge = en attente).
 function couleurStatut(statut: string | null): string {
-  if (!statut) return "text-texte-doux";
-  if (statut === "Payé" || statut === "Remboursé") return "text-vert";
+  if (!statut) return "text-[var(--app-text-muted)]";
+  if (statut === "Payé" || statut === "Remboursé") return "text-emerald-700";
   if (statut === "Impayé" || statut === "Partiel" || statut === "Non remboursé")
-    return "text-rouge";
-  return "text-texte-doux";
+    return "text-red-700";
+  return "text-[var(--app-text-muted)]";
 }
 
 export default function Chronologie({ entrees, enfants }: Props) {
@@ -59,8 +59,8 @@ export default function Chronologie({ entrees, enfants }: Props) {
   const styleOnglet = (actif: boolean) =>
     "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition " +
     (actif
-      ? "border-navy bg-navy text-surface"
-      : "border-texte-doux/30 bg-surface text-texte-doux hover:border-navy/40");
+      ? "border-slate-700 bg-slate-700 text-white"
+      : "border-slate-300 bg-white text-slate-500 hover:border-slate-400");
 
   return (
     <div>
@@ -68,7 +68,7 @@ export default function Chronologie({ entrees, enfants }: Props) {
       <div className="mb-6 flex flex-wrap gap-2">
         <button type="button" onClick={() => setOnglet("tout")} className={styleOnglet(onglet === "tout")}>
           Tout
-          <span className={onglet === "tout" ? "text-surface/70" : "text-texte-doux/70"}>
+          <span className={onglet === "tout" ? "text-white/70" : "text-[var(--app-text-muted)]/70"}>
             {entrees.length}
           </span>
         </button>
@@ -78,7 +78,7 @@ export default function Chronologie({ entrees, enfants }: Props) {
             <button key={t.cle} type="button" onClick={() => setOnglet(t.cle)} className={styleOnglet(actif)}>
               <span className={"h-2 w-2 rounded-full " + t.pastille} />
               {t.libelle}
-              <span className={actif ? "text-surface/70" : "text-texte-doux/70"}>
+              <span className={actif ? "text-white/70" : "text-[var(--app-text-muted)]/70"}>
                 {compte[t.cle]}
               </span>
             </button>
@@ -88,13 +88,13 @@ export default function Chronologie({ entrees, enfants }: Props) {
 
       {/* Liste */}
       {visibles.length === 0 ? (
-        <p className="rounded-lg bg-surface px-4 py-8 text-center text-texte-doux">
+        <p className="rounded-lg bg-[var(--app-surface)] px-4 py-8 text-center text-[var(--app-text-muted)]">
           Aucune entrée à afficher pour cette sélection.
         </p>
       ) : (
         <ol className="space-y-3">
           {visibles.map((e) => (
-            <li key={`${e.type}-${e.id}`} className="carte p-4">
+            <li key={`${e.type}-${e.id}`} className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
               <div className="flex items-start gap-3">
                 <span
                   className={"mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full " + pastilleDe(e.type)}
@@ -102,25 +102,25 @@ export default function Chronologie({ entrees, enfants }: Props) {
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <p className="font-display text-lg text-texte">{e.titre}</p>
-                    <p className="text-sm text-texte-doux">
+                    <p className="font-display text-lg text-[var(--app-text)]">{e.titre}</p>
+                    <p className="text-sm text-[var(--app-text-muted)]">
                       {dateFr(e.date)}
                       {e.heure ? ` · ${e.heure}` : ""}
                     </p>
                   </div>
 
                   {e.details && (
-                    <p className="mt-1 text-sm text-texte-doux">{e.details}</p>
+                    <p className="mt-1 text-sm text-[var(--app-text-muted)]">{e.details}</p>
                   )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     {nomEnfant(e.enfantId) && (
-                      <span className="text-texte-doux">
+                      <span className="text-[var(--app-text-muted)]">
                         Enfant : {nomEnfant(e.enfantId)}
                       </span>
                     )}
                     {e.montant != null && (
-                      <span className="text-texte">
+                      <span className="text-[var(--app-text)]">
                         {e.montant.toLocaleString("fr-FR", {
                           style: "currency",
                           currency: "EUR",

@@ -59,8 +59,8 @@ export default function BienvenueRGPD() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-      <div className="carte w-full max-w-md rounded-xl bg-white p-6 text-[#1F2733]">
-        <h2 className="font-display text-xl text-[#15233F]">Bienvenue sur Parent Preuve</h2>
+      <div className="w-full max-w-md rounded-xl bg-[var(--app-surface)] p-6 text-[var(--app-text)] shadow-sm">
+        <h2 className="font-display text-xl text-[var(--app-text)]">Bienvenue sur Parent Preuve</h2>
 
         <p className="mt-3 text-sm">
           Parent Preuve vous aide à organiser un dossier clair, daté et factuel.
@@ -76,7 +76,7 @@ export default function BienvenueRGPD() {
           <Link
             href="/confidentialite"
             target="_blank"
-            className="text-[#15233F] underline"
+            className="text-[var(--app-text)] underline"
           >
             politique de confidentialité
           </Link>{" "}
@@ -86,13 +86,13 @@ export default function BienvenueRGPD() {
         <button
           onClick={accepter}
           disabled={enregistrement}
-          className="mt-5 w-full rounded-lg bg-[#15233F] px-4 py-2.5 text-sm font-medium text-[#F8F6F1] transition hover:bg-[#1d3057] disabled:opacity-50"
+          className="mt-5 w-full rounded-lg bg-[var(--app-text)] px-4 py-2.5 text-sm font-medium text-[var(--app-surface)] transition hover:opacity-90 disabled:opacity-50"
         >
           {enregistrement ? "Enregistrement…" : "J'ai lu et j'accepte"}
         </button>
         <button
           onClick={() => supabase.auth.signOut()}
-          className="mt-2 w-full text-center text-xs text-[#1F2733]/60 underline"
+          className="mt-2 w-full text-center text-xs text-[var(--app-text-muted)] underline"
         >
           Se déconnecter
         </button>

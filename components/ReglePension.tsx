@@ -166,19 +166,19 @@ export default function ReglePension({
 
   if (chargement) {
     return (
-      <div className="carte rounded-xl border border-black/5 bg-[#F8F6F1] p-6">
-        <p className="text-[#1F2733]/50">Chargement de la règle…</p>
+      <div className="rounded-xl border border-black/5 bg-[var(--app-surface-muted)] p-6 shadow-sm">
+        <p className="text-[var(--app-text-muted)]">Chargement de la règle…</p>
       </div>
     );
   }
 
   if (edition) {
     const champ =
-      "w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[#1F2733] focus:border-[#C2A24C] focus:outline-none";
+      "w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[var(--app-text)] focus:border-[var(--app-ring)] focus:outline-none";
     return (
-      <div className="carte rounded-xl border border-[#C2A24C]/40 bg-[#F8F6F1] p-6 text-[#1F2733]">
-        <h2 className="font-display text-xl font-semibold text-[#15233F]">Règle de pension</h2>
-        <p className="mt-1 text-sm text-[#1F2733]/60">
+      <div className="carte rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-6 text-[var(--app-text)]">
+        <h2 className="font-display text-xl font-semibold text-[var(--app-text)]">Règle de pension</h2>
+        <p className="mt-1 text-sm text-[var(--app-text-muted)]">
           Saisissez ce que le jugement impose (le dispositif), pas une demande.
         </p>
 
@@ -282,11 +282,11 @@ export default function ReglePension({
 
         <div className="mt-5 flex gap-3">
           <button onClick={enregistrer} disabled={enregistrement}
-            className="rounded-lg bg-[#15233F] px-5 py-2 text-[#F8F6F1] transition hover:bg-[#1d2f52] disabled:opacity-50">
+            className="rounded-lg bg-[var(--app-text)] px-5 py-2 text-[var(--app-surface)] transition hover:opacity-90 disabled:opacity-50">
             {enregistrement ? "Enregistrement…" : "Enregistrer"}
           </button>
           <button onClick={() => setEdition(false)}
-            className="rounded-lg border border-black/10 px-5 py-2 text-[#1F2733] hover:bg-white">
+            className="rounded-lg border border-black/10 px-5 py-2 text-[var(--app-text)] hover:bg-white">
             Annuler
           </button>
         </div>
@@ -296,12 +296,12 @@ export default function ReglePension({
 
   if (!regle) {
     return (
-      <div className="carte rounded-xl border border-black/5 bg-[#F8F6F1] p-6">
-        <h2 className="font-display text-xl font-semibold text-[#15233F]">Règle de pension</h2>
-        <p className="mt-1 text-sm text-[#1F2733]/60">Aucune règle enregistrée pour le moment.</p>
+      <div className="carte rounded-xl border border-black/5 bg-[var(--app-surface-muted)] p-6">
+        <h2 className="font-display text-xl font-semibold text-[var(--app-text)]">Règle de pension</h2>
+        <p className="mt-1 text-sm text-[var(--app-text-muted)]">Aucune règle enregistrée pour le moment.</p>
         {erreur && <p className="mt-2 text-sm text-red-600">{erreur}</p>}
         <button onClick={ouvrirEdition}
-          className="mt-4 rounded-lg bg-[#15233F] px-5 py-2 text-[#F8F6F1] transition hover:bg-[#1d2f52]">
+          className="mt-4 rounded-lg bg-[var(--app-text)] px-5 py-2 text-[var(--app-surface)] transition hover:opacity-90">
           Ajouter la règle de pension
         </button>
       </div>
@@ -332,32 +332,32 @@ export default function ReglePension({
       idPersistance={procedureId ? `regle-pension:${procedureId}` : undefined}
     >
       {regle.valide === false && (
-        <div className="mb-4 rounded-lg border border-[#C2A24C]/60 bg-[#C2A24C]/10 p-3 text-sm">
-          <p className="font-medium text-[#15233F]">Proposée par l&apos;IA — à vérifier</p>
-          <p className="mt-1 text-[#1F2733]/70">
+        <div className="mb-4 rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm">
+          <p className="font-medium text-amber-900">Proposée par l&apos;IA — à vérifier</p>
+          <p className="mt-1 text-amber-800">
             Relisez les informations ci-dessous. Si elles sont fidèles au jugement,
             validez ; sinon, cliquez sur « Modifier ».
           </p>
           <button
             onClick={valider}
-            className="mt-2 rounded-lg bg-[#15233F] px-4 py-1.5 text-sm text-[#F8F6F1] transition hover:bg-[#1d2f52]"
+            className="mt-2 rounded-lg bg-[var(--app-text)] px-4 py-1.5 text-sm text-[var(--app-surface)] transition hover:opacity-90"
           >
             Valider cette règle
           </button>
         </div>
       )}
       <div className="flex items-start justify-between">
-        <p className="font-display text-3xl font-semibold text-[#15233F]">
+        <p className="font-display text-3xl font-semibold text-[var(--app-text)]">
           {euros(Number(regle.montant_courant ?? regle.montant_base))}
-          <span className="ml-2 text-base font-normal text-[#1F2733]/60">par mois</span>
+          <span className="ml-2 text-base font-normal text-[var(--app-text-muted)]">par mois</span>
         </p>
         <button onClick={ouvrirEdition}
-          className="rounded-lg border border-black/10 px-4 py-1.5 text-sm text-[#1F2733] hover:bg-white">
+          className="rounded-lg border border-black/10 px-4 py-1.5 text-sm text-[var(--app-text)] hover:bg-white">
           Modifier
         </button>
       </div>
 
-      <div className="mt-3 space-y-1 text-sm text-[#1F2733]/80">
+      <div className="mt-3 space-y-1 text-sm text-[var(--app-text-muted)]">
         <p>Payée par {regle.debiteur === "moi" ? "vous" : "l'autre parent"}
           {regle.jour_echeance ? `, le ${regle.jour_echeance} de chaque mois` : ""}.</p>
         {modalites.length > 0 && <p>Modalités : {modalites.join(", ")}.</p>}
@@ -366,7 +366,7 @@ export default function ReglePension({
             {regle.indexation_premiere_date ? ` (1re fois le ${regle.indexation_premiere_date})` : ""}
             {regle.indexation_indice ? ` — indice : ${regle.indexation_indice}` : ""}.</p>
         )}
-        {regle.notes && <p className="text-[#1F2733]/60">Note : {regle.notes}</p>}
+        {regle.notes && <p className="text-[var(--app-text-muted)]">Note : {regle.notes}</p>}
       </div>
     </EncartPliable>
   );

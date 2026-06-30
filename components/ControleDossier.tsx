@@ -54,7 +54,7 @@ export default function ControleDossier({ du, au, onChange }: Props) {
 
   if (problemes === null) {
     return (
-      <div className="carte rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-sm text-slate-500 shadow-sm">
         Vérification du dossier…
       </div>
     );
@@ -63,8 +63,8 @@ export default function ControleDossier({ du, au, onChange }: Props) {
   const resume = resumeControle(problemes);
 
   return (
-    <div className="carte rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="font-display text-lg text-[#15233F]">Contrôle du dossier</h2>
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <h2 className="font-display text-lg text-[var(--app-text)]">Contrôle du dossier</h2>
 
       {erreur && <p className="mt-2 text-sm text-slate-500">{erreur}</p>}
 

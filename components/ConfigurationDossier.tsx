@@ -8,7 +8,7 @@ import {
 } from "@/lib/etatConfiguration";
 
 // Couleurs sémantiques (jamais l'or) : vert = fait, ambre = à faire.
-const VERT = "#2E6A4D";
+const VERT = "#047857";
 const AMBRE = "#8A5A12";
 const GRIS = "#5A6473"; // état neutre pendant le chargement
 
@@ -57,7 +57,7 @@ export default function ConfigurationDossier() {
 
   return (
     <>
-      <h2 className="font-display text-xl text-[#15233F]">Configuration du dossier</h2>
+      <h2 className="font-display text-xl text-[var(--app-text)]">Configuration du dossier</h2>
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {CARTES.map((carte) => {
           const { couleur, texte } = presentation(etat, carte.cle);
@@ -65,7 +65,7 @@ export default function ConfigurationDossier() {
             <Link
               key={carte.href}
               href={carte.href}
-              className="carte flex flex-col items-center gap-2 rounded-xl bg-white px-4 py-4 text-center text-sm font-medium text-[#15233F] transition hover:bg-[#15233F]/5"
+              className="flex flex-col items-center gap-2 rounded-xl bg-[var(--app-surface)] px-4 py-4 text-center text-sm font-medium text-[var(--app-text)] shadow-sm transition hover:bg-black/5"
             >
               <span>{carte.libelle}</span>
               <span
