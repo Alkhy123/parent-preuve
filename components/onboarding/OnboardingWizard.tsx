@@ -25,6 +25,7 @@ import {
   type Progression,
 } from "@/lib/onboarding/progression";
 import { type EtapeProps } from "@/components/onboarding/PiedEtape";
+import AssistantShell from "@/components/onboarding/AssistantShell";
 import EtapeVosInformations from "@/components/onboarding/EtapeVosInformations";
 import EtapeProcedure from "@/components/onboarding/EtapeProcedure";
 import EtapeAutreParent from "@/components/onboarding/EtapeAutreParent";
@@ -95,58 +96,15 @@ export default function OnboardingWizard() {
     }
   }
 
-  const def = ETAPES_ONBOARDING[idx];
-
   return (
-    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
-      {/* Barre de progression : retour libre vers une etape deja atteinte. */}
-      <ol className="flex flex-wrap gap-x-2 gap-y-2 text-xs">
-        {ETAPES_ONBOARDING.map((e, i) => {
-          const fait = progression.completees.includes(e.id);
-          const actif = e.id === courante;
-          const accessible = i <= idx || fait;
-          return (
-            <li key={e.id} className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => accessible && allerA(e.id)}
-                disabled={!accessible}
-                className={[
-                  "flex items-center gap-1.5 rounded-full px-2.5 py-1 transition",
-                  actif
-                    ? "bg-[var(--app-text)] text-[var(--app-surface)]"
-                    : fait
-                      ? "text-emerald-700"
-                      : "text-[var(--app-text-muted)]",
-                  accessible ? "hover:bg-black/5" : "cursor-default opacity-60",
-                ].join(" ")}
-              >
-                <span
-                  aria-hidden="true"
-                  className={[
-                    "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium",
-                    actif
-                      ? "bg-[var(--app-surface)] text-[var(--app-text)]"
-                      : fait
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-slate-100 text-[var(--app-text-muted)]",
-                  ].join(" ")}
-                >
-                  {fait && !actif ? "✓" : i + 1}
-                </span>
-                <span className="hidden sm:inline">{e.titreCourt}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      <h2 className="mt-6 font-display text-xl text-[var(--app-text)]">{def.titre}</h2>
-      <p className="mt-1 text-xs text-[var(--app-text-muted)]">
-        Étape {idx + 1} sur {ETAPES_ONBOARDING.length}
-      </p>
-
-      <div className="mt-4">{corps()}</div>
-    </div>
+    <AssistantShell
+      etapes={ETAPES_ONBOARDING}
+      idx={idx}
+      courante={courante}
+      completees={progression.completees}
+      onAller={allerA}
+    >
+      {corps()}
+    </AssistantShell>
   );
 }
