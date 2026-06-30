@@ -13,12 +13,12 @@ export const SOURCES_TIMELINE: {
   libelle: string;
   pastille: string;
 }[] = [
-  { cle: "journal", libelle: "Faits", pastille: "bg-navy" },
-  { cle: "frais", libelle: "Frais", pastille: "bg-amber" },
-  { cle: "pension", libelle: "Pension", pastille: "bg-vert" },
-  { cle: "document", libelle: "Documents", pastille: "bg-texte-doux" },
-  { cle: "preuve", libelle: "Preuves", pastille: "bg-navy/60" },
-  { cle: "garde", libelle: "Garde", pastille: "bg-amber/60" },
+  { cle: "journal", libelle: "Faits", pastille: "bg-slate-700" },
+  { cle: "frais", libelle: "Frais", pastille: "bg-amber-500" },
+  { cle: "pension", libelle: "Pension", pastille: "bg-emerald-600" },
+  { cle: "document", libelle: "Documents", pastille: "bg-slate-400" },
+  { cle: "preuve", libelle: "Preuves", pastille: "bg-slate-700/60" },
+  { cle: "garde", libelle: "Garde", pastille: "bg-amber-500/60" },
 ];
 
 const MODES_LECTURE: {
@@ -61,13 +61,13 @@ type Props = {
   compteModes: Record<ModeLectureTimeline, number>;
 };
 
-// Style commun d'une puce (chip), actif = navy plein.
+// Style commun d'une puce (chip), actif = fond plein foncé.
 function styleChip(actif: boolean): string {
   return (
     "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition " +
     (actif
-      ? "border-navy bg-navy text-surface"
-      : "border-texte-doux/30 bg-surface text-texte-doux hover:border-navy/40")
+      ? "border-slate-700 bg-slate-700 text-white"
+      : "border-slate-300 bg-white text-slate-500 hover:border-slate-400")
   );
 }
 
@@ -86,7 +86,7 @@ export default function FiltresTimeline({
   const toutActif = actives.size === SOURCES_TIMELINE.length;
 
   return (
-    <section className="carte rounded-2xl bg-[var(--surface)] p-5">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
       <div className="space-y-5">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[var(--or-fonce)]">
