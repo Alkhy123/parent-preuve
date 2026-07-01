@@ -13,6 +13,10 @@ import { exporterPreuvePdf } from "@/lib/preuvePdf";
 import { getEnfantsDeProcedureActive, getProcedureActiveId } from "@/lib/procedureActive";
 import { construireCsv } from "@/lib/csvExport";
 import { telechargerCsv } from "@/lib/telechargerCsv";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import SecondaryMetrics from "@/components/secondary/SecondaryMetrics";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 type Preuve = {
   id: string;
@@ -116,6 +120,9 @@ export default function PreuvesPage() {
   const [preuves, setPreuves] = useState<Preuve[]>([]);
   const [enfants, setEnfants] = useState<Enfant[]>([]);
   const [chargement, setChargement] = useState(true);
+
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
 
   const [genEnCours, setGenEnCours] = useState<string | null>(null);
 
@@ -320,6 +327,17 @@ export default function PreuvesPage() {
   // Cloisonnement assuré en base (procedure_id) lors du chargement.
   const preuvesProcedure = preuves;
 
+  // Métriques pour Vue d'ensemble (dérivées depuis l'état déjà chargé).
+  const nbHorodatees = preuvesProcedure.filter(
+    (p) => p.horodatage_statut && p.horodatage_statut !== "a_refaire"
+  ).length;
+  const nbARefaire = preuvesProcedure.filter((p) => p.horodatage_statut === "a_refaire").length;
+  const metriquesPreuves = [
+    { label: "Preuves conservées", value: preuvesProcedure.length, variant: "neutre" as const },
+    { label: "Horodatées", value: nbHorodatees, variant: "success" as const },
+    { label: "À refaire", value: nbARefaire, variant: nbARefaire > 0 ? "warning" as const : "neutre" as const },
+  ];
+
   // Export CSV : bordereau léger des preuves de la procédure active.
   // Champs non sensibles uniquement (pas de GPS, pas de chemin de stockage).
   function exporterPreuvePhotoCsv() {
@@ -376,7 +394,7 @@ export default function PreuvesPage() {
   return (
     <AppShell
       titre="Preuves photo"
-      description="Consulter les preuves importees, verifier leurs informations et preparer un rapport si necessaire."
+      description={isBoard10 ? "Ajoutez et vérifiez vos preuves photo horodatées." : "Gérez et vérifiez les preuves conservées dans la procédure."}
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
@@ -389,6 +407,17 @@ export default function PreuvesPage() {
       }
     >
       <div className="space-y-6">
+        {/* Hero Board10 ou métriques Vue d'ensemble */}
+        {isBoard10 ? (
+          <SecondaryHero
+            titre="Action rapide"
+            ctaLabel="Ajouter une preuve photo"
+            ctaHref="/preuves/nouvelle"
+          />
+        ) : (
+          <SecondaryMetrics items={metriquesPreuves} />
+        )}
+
         <p className="text-sm text-[var(--app-text-muted)]">
           Une preuve photo, c&apos;est une image accompagnée de ses informations
           techniques (empreinte, horodatage), pour mieux l&apos;organiser dans votre
@@ -560,6 +589,13 @@ export default function PreuvesPage() {
             informations avant tout usage. Le rapport PDF reste un document de travail.
           </p>
         </AppNotice>
+
+        {/* Aide contextuelle — visible uniquement en mode guided */}
+        <HomeGuidedHint>
+          Chaque preuve est associée à une empreinte numérique et un horodatage interne.
+          Conservez le fichier original. Ce système renforce la traçabilité mais ne
+          remplace pas un constat de commissaire de justice.
+        </HomeGuidedHint>
       </div>
     </AppShell>
   );

@@ -16,6 +16,10 @@ import {
   CATEGORIES_IMPLICATION,
   libelleImplication,
 } from "@/lib/implicationParentale";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import SecondaryMetrics from "@/components/secondary/SecondaryMetrics";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -34,6 +38,9 @@ const CATEGORIES = ["Facture", "Certificat médical", "Capture d'écran", "Courr
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [enfants, setEnfants] = useState<Enfant[]>([]);
+
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
 
   const [libelle, setLibelle] = useState("");
   const [categorie, setCategorie] = useState("Autre");
@@ -110,6 +117,16 @@ export default function DocumentsPage() {
       return { enfantId: cle, types };
     });
   }, [documents, enfants]);
+
+  // Métriques pour Vue d'ensemble (dérivées depuis l'état déjà chargé).
+  const compteParCategorie = CATEGORIES.map((cat) => ({
+    label: cat,
+    value: documents.filter((d) => d.categorie === cat).length,
+  })).filter((c) => c.value > 0);
+  const metriquesDocuments = [
+    { label: "Total documents", value: documents.length, variant: "neutre" as const },
+    ...compteParCategorie.slice(0, 3).map((c) => ({ label: c.label, value: c.value, variant: "neutre" as const })),
+  ];
 
   async function envoyerDocument() {
     setMessage("");
@@ -255,7 +272,7 @@ export default function DocumentsPage() {
   return (
     <AppShell
       titre="Documents"
-      description="Importer, classer et consulter les pieces utiles de la procedure active."
+      description={isBoard10 ? "Importez rapidement une pièce ou un justificatif." : "Classez, consultez et vérifiez les pièces de la procédure."}
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
@@ -268,6 +285,18 @@ export default function DocumentsPage() {
       }
     >
       <div className="space-y-6">
+        {/* Hero Board10 ou métriques Vue d'ensemble */}
+        {isBoard10 ? (
+          <SecondaryHero
+            titre="Action rapide"
+            ctaLabel="Importer un document"
+            ctaHref="#ajouter-document"
+          />
+        ) : (
+          <SecondaryMetrics items={metriquesDocuments} />
+        )}
+
+        <div id="ajouter-document" />
         <p className="text-sm text-[var(--app-text-muted)]">
           Rangez ici vos justificatifs et pièces utiles (factures, certificats,
           captures, courriers). Pour une photo à horodater, utilisez plutôt{" "}
@@ -500,6 +529,13 @@ export default function DocumentsPage() {
             ))}
           </div>
         </AppCard>
+
+        {/* Aide contextuelle — visible uniquement en mode guided */}
+        <HomeGuidedHint>
+          Ajoutez vos pièces dès que vous les recevez (facture, courrier, jugement).
+          Vous pourrez les lier à un frais ou à un fait du journal depuis les autres pages.
+          Les pièces restent privées et ne sont jamais envoyées automatiquement.
+        </HomeGuidedHint>
       </div>
     </AppShell>
   );

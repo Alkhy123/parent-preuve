@@ -22,6 +22,10 @@ import {
   nettoyerProposition,
   CLE_SESSION_PREREMPLISSAGE,
 } from "@/lib/preRemplissage";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import SecondaryMetrics from "@/components/secondary/SecondaryMetrics";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -107,6 +111,9 @@ export default function JournalPage() {
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
 
   // Pré-remplissage proposé par l'assistant (lecture seule, à VÉRIFIER avant ajout).
   // preRempli ouvre le formulaire ; enfantPropose est le prénom/alias en TEXTE,
@@ -335,6 +342,15 @@ export default function JournalPage() {
       ? evenementsProcedure
       : evenementsProcedure.filter((e) => e.categorie === filtreCategorie);
 
+  // Métriques pour Vue d'ensemble (dérivées depuis l'état déjà chargé).
+  const nbValides = evenementsProcedure.filter((e) => e.statut === "valide").length;
+  const nbBrouillons = evenementsProcedure.filter((e) => e.statut === "brouillon").length;
+  const metriquesJournal = [
+    { label: "Faits notés", value: evenementsProcedure.length, variant: "neutre" as const },
+    { label: "Validés", value: nbValides, variant: "success" as const },
+    { label: "Brouillons", value: nbBrouillons, variant: nbBrouillons > 0 ? "warning" as const : "neutre" as const },
+  ];
+
   // Export CSV de ce qui est affiché à l'écran : on repart de evenementsFiltres,
   // donc le cloisonnement par procédure active ET le filtre catégorie en cours
   // sont respectés. On n'exporte que les faits saisis par l'utilisateur, sans
@@ -377,7 +393,7 @@ export default function JournalPage() {
   return (
     <AppShell
       titre="Journal factuel"
-      description="Ajouter, filtrer et relire les faits dates de la procedure active."
+      description={isBoard10 ? "Notez rapidement les faits importants de la procédure." : "Filtrez, relisez et exportez les faits enregistrés."}
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/collecter" variant="secondary">
@@ -390,12 +406,26 @@ export default function JournalPage() {
       }
     >
       <div className="space-y-6">
+        {/* Hero Board10 ou métriques Vue d'ensemble */}
+        {isBoard10 ? (
+          <SecondaryHero
+            titre="Action rapide"
+            ctaLabel="Ajouter un fait au journal"
+            ctaHref="#ajouter-fait"
+          />
+        ) : (
+          <SecondaryMetrics items={metriquesJournal} />
+        )}
+
+        {/* Ancre pour le hero Board10 */}
+        <div id="ajouter-fait" />
+
         {/* Formulaire. La clé force l'ouverture de l'encart quand un
             pré-remplissage arrive (sans modifier le composant partagé). */}
         <EncartPliable
           key={preRempli ? "journal-prerempli" : "journal-standard"}
           titre="Ajouter un fait"
-          replieParDefaut={!preRempli}
+          replieParDefaut={isBoard10 ? false : !preRempli}
           signalFermeture={signalAjout}
         >
           <div className="space-y-4">
@@ -666,6 +696,13 @@ export default function JournalPage() {
             })}
           </div>
         </AppCard>
+
+        {/* Aide contextuelle — visible uniquement en mode guided */}
+        <HomeGuidedHint>
+          Notez les faits au moment où ils se produisent, même brièvement. Vous pourrez
+          compléter la description et valider ensuite. Un fait daté et factuel est plus
+          utile qu&apos;un fait précis noté trop tard.
+        </HomeGuidedHint>
       </div>
     </AppShell>
   );

@@ -19,6 +19,10 @@ import {
   nettoyerProposition,
   CLE_SESSION_PREREMPLISSAGE,
 } from "@/lib/preRemplissage";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import SecondaryMetrics from "@/components/secondary/SecondaryMetrics";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 type Enfant = { id: string; prenom_ou_alias: string };
 
@@ -61,6 +65,9 @@ export default function FraisPage() {
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signalAjout, setSignalAjout] = useState(0);
+
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
 
   // Section justificatif guidée. "question" = on demande oui/non ;
   // "oui" = on propose téléverser ou sélectionner ; "aucun" = pas de justificatif
@@ -433,6 +440,15 @@ export default function FraisPage() {
     .filter((f) => f.rembourse)
     .reduce((somme, f) => somme + Number(f.part_autre), 0);
 
+  // Métriques pour Vue d'ensemble (dérivées depuis l'état déjà chargé).
+  const nbSansJustif = fraisProcedure.filter((f) => !f.rembourse && !f.sans_justificatif && !f.document_id).length;
+  const metriqueFrais = [
+    { label: "Frais saisis", value: fraisProcedure.length, variant: "neutre" as const },
+    { label: "En attente", value: fraisProcedure.filter((f) => !f.rembourse).length, variant: resteAPercevoir > 0 ? "warning" as const : "neutre" as const },
+    { label: "Remboursés", value: fraisProcedure.filter((f) => f.rembourse).length, variant: "success" as const },
+    { label: "Sans justificatif", value: nbSansJustif, variant: nbSansJustif > 0 ? "danger" as const : "neutre" as const },
+  ];
+
   // Export CSV des frais de la procédure active (ce qui est affiché à l'écran).
   // Données factuelles uniquement : aucun jugement, aucune qualification.
   function exporterCsv() {
@@ -470,7 +486,7 @@ export default function FraisPage() {
   return (
     <AppShell
       titre="Frais"
-      description="Enregistrer les frais, suivre les remboursements et conserver les justificatifs lies a la procedure active."
+      description={isBoard10 ? "Ajoutez rapidement vos frais et conservez les justificatifs." : "Suivez les remboursements, les totaux et les justificatifs manquants."}
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/collecter" variant="secondary">
@@ -483,6 +499,18 @@ export default function FraisPage() {
       }
     >
       <div className="space-y-6">
+        {/* Hero Board10 ou métriques Vue d'ensemble */}
+        {isBoard10 ? (
+          <SecondaryHero
+            titre="Action rapide"
+            ctaLabel="Ajouter un frais"
+            ctaHref="#ajouter-frais"
+          />
+        ) : (
+          <SecondaryMetrics items={metriqueFrais} />
+        )}
+
+        <div id="ajouter-frais" />
         <RegleFrais />
 
         {/* Bandeau de totaux */}
@@ -514,7 +542,7 @@ export default function FraisPage() {
           <EncartPliable
             key={editionId ? `frais-edition-${editionId}` : preRempli ? "frais-prerempli" : "frais-standard"}
             titre={editionId ? "Modifier le frais" : "Ajouter un frais"}
-            replieParDefaut={!preRempli && !editionId}
+            replieParDefaut={isBoard10 ? false : !preRempli && !editionId}
             signalFermeture={signalAjout}
           >
             <div className="space-y-4">
@@ -869,6 +897,13 @@ export default function FraisPage() {
             ))}
           </div>
         </AppCard>
+
+        {/* Aide contextuelle — visible uniquement en mode guided */}
+        <HomeGuidedHint>
+          Ajoutez chaque frais dès qu&apos;il se produit, même sans justificatif immédiat.
+          Vous pourrez lier la pièce justificative plus tard. Un frais daté et documenté
+          est plus facilement pris en compte.
+        </HomeGuidedHint>
       </div>
     </AppShell>
   );
