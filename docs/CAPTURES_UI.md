@@ -107,3 +107,103 @@ automatique de compte de test : la vérification reste manuelle.
   `/calendrier`, `/compte`, `/exporter`, `/copilote`) : vérifier qu'elles
   sont bien capturées avec session (et non redirigées vers `/connexion`)
   quand `TEST_EMAIL` / `TEST_PASSWORD` sont renseignés.
+
+## Captures variantes UI
+
+Outil dédié aux deux variantes d'interface (`board10` / `vue-ensemble`) et
+aux deux modes d'accompagnement (`guided` / `comfort`).
+
+Produit **32 captures** : 4 pages × 4 combinaisons × 2 viewports.
+
+### Commande
+
+```bash
+npm run captures:ui-variants
+```
+
+### Pré-requis
+
+- Serveur local lancé (`npm run dev`).
+- Chromium Playwright installé (`npm run e2e:install`).
+- Compte de test configuré dans `.env.local` (cf. section Variables d'environnement ci-dessus).
+- Dossier `design-ui-bank/` disponible pour comparaison visuelle manuelle.
+
+### Pages capturées
+
+| Route | Nom |
+|---|---|
+| `/` | home |
+| `/collecter` | collecter |
+| `/organiser` | organiser |
+| `/exporter` | exporter |
+
+### Combinaisons
+
+| interfaceStyle | comfortMode |
+|---|---|
+| board10 | guided |
+| board10 | comfort |
+| vue-ensemble | guided |
+| vue-ensemble | comfort |
+
+### Fichiers de sortie
+
+```
+captures-ui/<AAAA-MM-JJ>_ui-variants/
+  desktop_home_board10_guided.png
+  mobile_home_board10_guided.png
+  desktop_home_board10_comfort.png
+  mobile_home_board10_comfort.png
+  desktop_home_vue-ensemble_guided.png
+  mobile_home_vue-ensemble_guided.png
+  desktop_home_vue-ensemble_comfort.png
+  mobile_home_vue-ensemble_comfort.png
+  desktop_collecter_board10_guided.png
+  mobile_collecter_board10_guided.png
+  ... (32 fichiers au total)
+  rapport.json
+```
+
+### Rapport JSON
+
+`rapport.json` contient :
+- date, URL de base, état de connexion, procédure active ;
+- liste des captures OK (fichier, page, viewport, comfortMode, interfaceStyle, durée) ;
+- redirections éventuelles (page non connectée) ;
+- erreurs éventuelles.
+
+### Critères de contrôle visuel par page
+
+**Accueil (`/`)**
+- Board10 : prochaine action visible en premier plan ; CTA hero bien ancré en haut.
+- Vue d'ensemble : dossier actif + indicateurs chiffrés ; modules accessibles.
+- Guided : aide contextuelle HomeGuidedHint visible en bas.
+- Comfort : aide contextuelle absente.
+
+**Collecter (`/collecter`)**
+- Board10 : CTA hero full-width (Ajouter un élément) ; grille 3+2 tuiles lisibles.
+- Vue d'ensemble : étapes 3-col, cartes détaillées avec badges.
+- Mobile : grille compacte, pas de scroll horizontal.
+
+**Organiser (`/organiser`)**
+- Board10 : liste de liens avec icônes colorées ; CTA chronologie visible.
+- Vue d'ensemble : piliers + structure dossier + classement.
+- Sidebar : groupe Organiser ouvert/actif.
+
+**Exporter (`/exporter`)**
+- Board10 : hero "Préparer un document" + grille 2×2 modèles + état dossier + grand CTA.
+- Vue d'ensemble : piliers + 4 exports prioritaires + formats complémentaires.
+- CTA final (board10) : "Préparer l'export" visible en bas.
+
+**Navigation (toutes pages, desktop)**
+- Aucune navbar horizontale legacy sur `/collecter`, `/organiser`, `/exporter`.
+- Sidebar AppShell visible avec groupes Collecter/Organiser/Exporter.
+- Groupe actif de la page ouvert automatiquement.
+
+### Comparaison avec design-ui-bank/
+
+Références de comparaison :
+- `design-ui-bank/02_INTERFACE_BOARD10_GUIDAGE/` — référence visuelle Board10
+- `design-ui-bank/03_INTERFACE_VUE_ENSEMBLE_DASHBOARD/` — référence Vue d'ensemble
+- `design-ui-bank/04_PAGES_MOBILE_PARCOURS/` — référence mobile Collecter / Exporter
+- `design-ui-bank/06_APP_ACTUELLE_REFERENCES/` — état de référence avant refonte
