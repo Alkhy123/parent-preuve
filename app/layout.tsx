@@ -14,6 +14,7 @@ import MajServiceWorker from "@/components/MajServiceWorker";
 import BoutonCaptureRapide from "@/components/BoutonCaptureRapide";
 import AssistantFlottant from "@/components/AssistantFlottant";
 import ThemeProvider from "@/components/theme/ThemeProvider";
+import UiPreferencesProvider from "@/components/ui-preferences/UiPreferencesProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,20 +72,30 @@ export default function RootLayout({
           }}
         />
 
+        {/* No-flash : applique les préférences d'interface mémorisées avant le rendu React. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var p=localStorage.getItem('parent-preuve-ui-preferences');if(p){var v=JSON.parse(p);if(v&&v.comfortMode){document.documentElement.setAttribute('data-comfort-mode',v.comfortMode);}if(v&&v.interfaceStyle){document.documentElement.setAttribute('data-interface-style',v.interfaceStyle);}}}catch(e){}",
+          }}
+        />
+
         <ThemeProvider />
 
-        <NavBar />
-        <BandeauProcedure />
+        <UiPreferencesProvider>
+          <NavBar />
+          <BandeauProcedure />
 
-        <main className="flex-1">
-          <GardeAcces>{children}</GardeAcces>
-        </main>
+          <main className="flex-1">
+            <GardeAcces>{children}</GardeAcces>
+          </main>
 
-        <Footer />
-        <BienvenueRGPD />
-        <MajServiceWorker />
-        <BoutonCaptureRapide />
-        <AssistantFlottant />
+          <Footer />
+          <BienvenueRGPD />
+          <MajServiceWorker />
+          <BoutonCaptureRapide />
+          <AssistantFlottant />
+        </UiPreferencesProvider>
       </body>
     </html>
   );
