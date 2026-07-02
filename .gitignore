@@ -86,5 +86,9 @@ cleapi.txt
 /blob-report/
 .last-run.json
 
-# captures UI locales (scripts/captures-ui.mjs)
+# captures UI locales (scripts/captures-ui.mjs, scripts/captures-ui-simple.mjs)
 /captures-ui/
+
+# session locale des captures simples (jamais commitée : cookies/tokens)
+/.playwright/
+/tmp/captures-*.json
