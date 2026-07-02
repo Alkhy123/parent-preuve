@@ -171,12 +171,17 @@ export async function verifierSessionActive(page, baseUrl) {
  */
 export async function etablirSession({ contexte, baseUrl, email, motDePasse }) {
   if (!email || !motDePasse) {
-    console.warn(
-      "⚠ Aucun identifiant fourni. Les pages protégées seront capturées\n" +
-      "  en redirection vers /connexion.\n" +
-      "  → Définir CAPTURES_TEST_EMAIL + CAPTURES_TEST_PASSWORD dans .env.local.",
+    throw new Error(
+      "Aucun identifiant de test trouvé.\n" +
+      "Ces scripts capturent des pages protégées : continuer sans session\n" +
+      "produirait des captures invalides de /connexion.\n\n" +
+      "→ Ajouter dans .env.local :\n" +
+      "    CAPTURES_TEST_EMAIL=votre-compte@example.com\n" +
+      "    CAPTURES_TEST_PASSWORD=votre-mot-de-passe\n\n" +
+      "  ou, en fallback :\n" +
+      "    TEST_EMAIL=...\n" +
+      "    TEST_PASSWORD=...",
     );
-    return { connecte: false, storageState: undefined, procedureActive: null };
   }
 
   const page = await contexte.newPage();
