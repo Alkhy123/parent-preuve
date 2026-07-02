@@ -721,30 +721,39 @@ export default function PageCopilote() {
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <a
             href="#copilote-orientation"
-            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+            className="flex items-start justify-between gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
           >
-            <p className="text-sm font-semibold text-[var(--app-text)]">Orientation</p>
-            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
-              Analyser une demande (dry-run)
-            </p>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-[var(--app-text)]">Orientation</span>
+              <span className="mt-1 block text-xs text-[var(--app-text-muted)]">
+                Analyser une demande (dry-run)
+              </span>
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-[var(--app-text-muted)]">›</span>
           </a>
           <a
             href="#copilote-preremplissage"
-            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+            className="flex items-start justify-between gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
           >
-            <p className="text-sm font-semibold text-[var(--app-text)]">Pré-remplissage</p>
-            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
-              Préparer des champs à vérifier
-            </p>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-[var(--app-text)]">Pré-remplissage</span>
+              <span className="mt-1 block text-xs text-[var(--app-text-muted)]">
+                Préparer des champs à vérifier
+              </span>
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-[var(--app-text-muted)]">›</span>
           </a>
           <a
             href="#copilote-question"
-            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+            className="flex items-start justify-between gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
           >
-            <p className="text-sm font-semibold text-[var(--app-text)]">Question dossier</p>
-            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
-              Réponse factuelle sur le dossier
-            </p>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-[var(--app-text)]">Question dossier</span>
+              <span className="mt-1 block text-xs text-[var(--app-text-muted)]">
+                Réponse factuelle sur le dossier
+              </span>
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-[var(--app-text-muted)]">›</span>
           </a>
         </div>
       )}
