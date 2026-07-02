@@ -253,7 +253,7 @@ export default function CalendrierPage() {
         <RegleDVH />
 
         <div className="text-sm">
-          <a href="/calendrier/avance" className="text-[#7A6326] underline">
+          <a href="/calendrier/avance" className="text-[var(--app-primary)] underline">
             Aperçu du calendrier avancé (bêta)
           </a>
         </div>
