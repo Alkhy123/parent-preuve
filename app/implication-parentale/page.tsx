@@ -167,7 +167,7 @@ export default function ImplicationParentalePage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
-            Retour Organiser
+            Retour à Organiser
           </AppButtonLink>
           <AppButtonLink href="/chronologie" variant="secondary">
             Voir la chronologie

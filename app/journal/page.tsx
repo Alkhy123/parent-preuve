@@ -397,7 +397,7 @@ export default function JournalPage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/collecter" variant="secondary">
-            Retour Collecter
+            Retour à Collecter
           </AppButtonLink>
           <AppButtonLink href="/chronologie" variant="secondary">
             Voir la chronologie
@@ -610,8 +610,8 @@ export default function JournalPage() {
               const implication = libelleImplication(ev.implication_categorie);
               return (
                 <div key={ev.id} className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-block rounded-full bg-[var(--app-tag-bg)] px-2.5 py-0.5 text-xs text-[var(--app-tag-text)]">
                           {ev.categorie}
@@ -666,7 +666,7 @@ export default function JournalPage() {
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:flex-col sm:items-end">
                       {ev.statut !== "valide" && (
                         <button
                           onClick={() => changerStatut(ev.id, "valide")}

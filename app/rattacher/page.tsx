@@ -172,7 +172,7 @@ export default function RattacherPage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
-            Retour Organiser
+            Retour à Organiser
           </AppButtonLink>
           <AppButtonLink href="/procedure" variant="secondary">
             Procedure active

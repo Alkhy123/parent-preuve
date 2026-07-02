@@ -158,7 +158,7 @@ export default function OrganiserBrouillonsPage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
-            Retour Organiser
+            Retour à Organiser
           </AppButtonLink>
           <AppButtonLink href="/collecter/rapide">
             Créer un brouillon

@@ -45,7 +45,9 @@ export default function AppShell({
       className="app-shell min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]"
       data-interface-style={interfaceStyle}
     >
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-8 lg:px-8">
+      {/* pb mobile généreux + safe-area : le contenu peut défiler au-dessus des
+          boutons flottants (« ? » / « + ») sans être masqué. Desktop inchangé. */}
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-6 lg:flex-row lg:gap-8 lg:px-8">
         {masquerSidebar ? null : <AppSidebar />}
 
         <div className="flex min-w-0 flex-1 flex-col gap-6 lg:gap-8">

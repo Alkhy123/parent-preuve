@@ -49,6 +49,9 @@ const ROUTES_MASQUEES = [
   "/reinitialiser-mot-de-passe",
   "/mentions-legales",
   "/confidentialite",
+  // Sur /copilote, le Copilote est déjà la page elle-même : le bouton flottant
+  // « ? » serait redondant et masquerait le contenu.
+  "/copilote",
 ];
 
 const TAILLE = 48;
