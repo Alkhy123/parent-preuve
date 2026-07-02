@@ -81,14 +81,45 @@ immédiat** avec message d'erreur clair et rapport JSON.
 La connexion est considérée réussie dès que l'un de ces signaux apparaît
 (pas de dépendance à un seul texte fragile) :
 
-- l'URL n'est plus `/connexion` ;
-- le bouton « Se deconnecter » apparaît (session active) ;
+- le token Supabase (`sb-*-auth-token`) est présent en `localStorage`
+  (signal principal, fiable) ;
+- le bouton « Se déconnecter » apparaît (session active) ;
 - le formulaire de connexion disparaît du DOM ;
-- à défaut, une page protégée (`/compte`) reste accessible sans redirection
-  vers `/connexion`.
+- l'URL n'est plus `/connexion`.
 
 En cas d'échec, l'erreur est journalisée clairement (sans jamais afficher le
-mot de passe) et le script continue les captures sans session, comme avant.
+mot de passe) et le script s'arrête plutôt que de produire des captures invalides.
+
+### Diagnostic d'authentification (`captures:auth-check`)
+
+Avant de lancer les captures, vérifier la session avec :
+
+```bash
+npm run captures:auth-check
+```
+
+Ce diagnostic ouvre `/connexion`, remplit et soumet le formulaire, puis contrôle
+l'accès à `/journal`, en produisant des captures d'étape dans
+`captures-ui/auth-debug/` (`01`→`05`). Il affiche source des identifiants, email,
+présence/longueur du mot de passe (jamais la valeur), nombre de clés
+`sb-*` (sans les tokens), URL après submit, URL et **état** de `/journal`.
+
+### État des captures et faux positifs
+
+Une page n'est considérée « ok » que si son contenu est réellement rendu. Chaque
+entrée de `rapport.json` porte un diagnostic :
+
+- `etat_page` : `"ok" | "chargement" | "connexion" | "timeout"` ;
+- `url_finale` : URL réellement atteinte ;
+- `texte_chargement_present` : `true`/`false` (écran « Chargement… » résiduel).
+
+Une capture bloquée sur « Chargement… », redirigée vers `/connexion`, ou avec un
+formulaire de connexion visible n'est **jamais** classée `ok` : elle passe en
+`redirigees` (connexion) ou `erreurs` (chargement/timeout) avec un message clair.
+
+> Astuce : en `next dev`, la première ouverture d'une page protégée compile à la
+> demande (lent) ; les captures sont plus fiables sur un build de production
+> (`npm run build` puis `npm run start`).
 
 ## Compte de test et audit authentifié
 
