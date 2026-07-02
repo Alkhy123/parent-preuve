@@ -19,6 +19,9 @@ import type { User } from "@supabase/supabase-js";
 import AppButtonLink from "@/components/app/AppButtonLink";
 import AppNotice from "@/components/app/AppNotice";
 import AppShell from "@/components/app/AppShell";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 
 import ConsentementIA from "@/components/ConsentementIA";
 
@@ -377,6 +380,9 @@ function BlocProposition({
 }
 
 export default function PageCopilote() {
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
+
   const [utilisateur, setUtilisateur] = useState<User | null>(null);
   const [verificationConnexion, setVerificationConnexion] = useState(true);
 
@@ -699,7 +705,62 @@ export default function PageCopilote() {
         Aucune ecriture automatique. Validation humaine obligatoire. Pas de conseil juridique.
       </AppNotice>
 
-      <section className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      {/* Board10 : action-first (CTA vers l'orientation). Vue d'ensemble :
+          tableau de bord des trois fonctions du Copilote. Purement présentationnel :
+          aucun changement de route API, aucun garde-fou retiré. */}
+      {isBoard10 ? (
+        <div className="mt-6">
+          <SecondaryHero
+            titre="Copilote"
+            ctaLabel="Analyser une demande"
+            sousTitre="Orientation, pré-remplissage et questions — avec validation humaine"
+            ctaHref="#copilote-orientation"
+          />
+        </div>
+      ) : (
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <a
+            href="#copilote-orientation"
+            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+          >
+            <p className="text-sm font-semibold text-[var(--app-text)]">Orientation</p>
+            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+              Analyser une demande (dry-run)
+            </p>
+          </a>
+          <a
+            href="#copilote-preremplissage"
+            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+          >
+            <p className="text-sm font-semibold text-[var(--app-text)]">Pré-remplissage</p>
+            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+              Préparer des champs à vérifier
+            </p>
+          </a>
+          <a
+            href="#copilote-question"
+            className="min-w-0 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4 transition hover:bg-[var(--app-accent-soft)]"
+          >
+            <p className="text-sm font-semibold text-[var(--app-text)]">Question dossier</p>
+            <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+              Réponse factuelle sur le dossier
+            </p>
+          </a>
+        </div>
+      )}
+
+      {/* Aide contextuelle — visible uniquement en mode guided */}
+      <div className="mt-6">
+        <HomeGuidedHint>
+          Le Copilote propose, vous vérifiez, vous validez. Rien n&apos;est
+          enregistré automatiquement et aucun conseil juridique n&apos;est fourni.
+        </HomeGuidedHint>
+      </div>
+
+      <section
+        id="copilote-orientation"
+        className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+      >
         <p className="mt-3 text-sm leading-6 text-[#5A6473]">
           Cette page permet de tester le dry-run, le Copilote Mistral, le
           resume factuel du dossier et le pre-remplissage Agent. Le
@@ -969,7 +1030,10 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <section
+        id="copilote-preremplissage"
+        className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+      >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
             Pré-remplissage Agent
@@ -1188,7 +1252,10 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <section
+        id="copilote-question"
+        className="mt-8 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+      >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-accent)]">
             Question dossier Agent

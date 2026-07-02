@@ -10,6 +10,10 @@ import { prochainsWeekends, JOURS, type RegleGarde } from "@/lib/gardeCalendrier
 import CalendrierMensuel from "@/components/CalendrierMensuel";
 import RegleDVH from '@/components/RegleDVH';
 import EncartPliable from "@/components/EncartPliable";
+import SecondaryHero from "@/components/secondary/SecondaryHero";
+import SecondaryMetrics from "@/components/secondary/SecondaryMetrics";
+import HomeGuidedHint from "@/components/home/HomeGuidedHint";
+import { useUiPreferences } from "@/lib/ui-preferences/useUiPreferences";
 import { getEnfantsDeProcedureActive } from "@/lib/procedureActive";
 import {
   isoJourLocal,
@@ -22,6 +26,9 @@ const CLE_ZONE = "zone_vacances";
 type Enfant = { id: string; prenom_ou_alias: string };
 
 export default function CalendrierPage() {
+  const { interfaceStyle } = useUiPreferences();
+  const isBoard10 = interfaceStyle === "board10";
+
   const [enfants, setEnfants] = useState<Enfant[]>([]);
   const [enfantId, setEnfantId] = useState("");
   const [regleId, setRegleId] = useState<string | null>(null);
@@ -190,10 +197,29 @@ export default function CalendrierPage() {
   const champ = "w-full rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] p-2";
   const labelCss = "block text-sm font-medium text-[var(--app-text)] mb-1";
 
+  // Métriques Vue d'ensemble : lecture rapide de l'état du calendrier à partir
+  // des données déjà chargées (aucune requête supplémentaire).
+  const prochainWeekend = apercu[0]
+    ? apercu[0].debut.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+    : "—";
+  const metriquesCalendrier = [
+    {
+      label: "Règle de garde",
+      value: regleId ? "Définie" : "À configurer",
+      variant: (regleId ? "success" : "warning") as "success" | "warning",
+    },
+    { label: "Prochain week-end", value: prochainWeekend, variant: "neutre" as const },
+    { label: "Zone vacances", value: `Zone ${zoneVacances}`, variant: "neutre" as const },
+  ];
+
   return (
     <AppShell
       titre="Calendrier"
-      description="Visualiser les week-ends, les regles de garde et les periodes de vacances a verifier dans le dossier."
+      description={
+        isBoard10
+          ? "Configurez la règle de garde et visualisez les prochains week-ends."
+          : "Visualiser les week-ends, les regles de garde et les periodes de vacances a verifier dans le dossier."
+      }
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
@@ -206,6 +232,20 @@ export default function CalendrierPage() {
       }
     >
       <div className="space-y-6">
+        {/* Board10 : action rapide en tête. Vue d'ensemble : métriques de synthèse. */}
+        {isBoard10 ? (
+          <SecondaryHero
+            titre="Action rapide"
+            ctaLabel="Configurer le calendrier de garde"
+            sousTitre="Règle de garde et prochains week-ends"
+            ctaHref="#calendrier-config"
+          />
+        ) : (
+          <SecondaryMetrics items={metriquesCalendrier} />
+        )}
+
+        <div id="calendrier-config" />
+
         <RegleDVH />
 
         <div className="text-sm">
@@ -369,6 +409,14 @@ export default function CalendrierPage() {
             avant tout usage.
           </p>
         </AppNotice>
+
+        {/* Aide contextuelle — visible uniquement en mode guided */}
+        <HomeGuidedHint>
+          Le calendrier calcule les week-ends de garde à partir de la règle que
+          vous renseignez. Les vacances scolaires ne sont qu&apos;une annotation :
+          leur répartition dépend de votre jugement, pas de la règle « un week-end
+          sur deux ».
+        </HomeGuidedHint>
       </div>
     </AppShell>
   );
