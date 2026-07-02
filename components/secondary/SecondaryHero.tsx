@@ -31,23 +31,28 @@ export default function SecondaryHero({
   ctaOnClick,
   icon = IconDefault,
 }: SecondaryHeroProps) {
+  // Contenu du CTA. Les enfants sont des éléments flex DIRECTS de l'élément CTA
+  // (voir `classes` : `flex`), sans span-conteneur intermédiaire — sinon un bloc
+  // flex imbriqué dans un <a> inline (`w-full` ignoré) fragmente le fond navy.
   const ctaContent = (
-    <span className="flex items-center gap-3">
+    <>
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--app-accent,#c2a24c)]/25 text-[var(--app-accent,#c2a24c)]">
         {icon}
       </span>
-      <span className="flex-1 text-left">
+      <span className="min-w-0 flex-1 text-left">
         <span className="block text-base font-semibold">{ctaLabel}</span>
         {sousTitre ? (
           <span className="block text-xs text-white/70">{sousTitre}</span>
         ) : null}
       </span>
       <span className="text-lg text-white/70" aria-hidden="true">›</span>
-    </span>
+    </>
   );
 
+  // `flex` (block-level) sur l'élément CTA lui-même : `w-full` s'applique aussi
+  // bien sur <a> que sur <button>, le fond navy couvre toute la largeur.
   const classes =
-    "w-full rounded-2xl bg-[var(--app-text)] px-5 py-4 text-[var(--app-surface)] transition hover:opacity-90 active:scale-[0.99]";
+    "flex w-full items-center gap-3 rounded-2xl bg-[var(--app-text)] px-5 py-4 text-left text-[var(--app-surface)] transition hover:opacity-90 active:scale-[0.99]";
 
   if (ctaHref) {
     return (
