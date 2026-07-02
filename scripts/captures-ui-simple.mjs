@@ -162,6 +162,41 @@ async function attendreStable(page) {
   await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
 }
 
+// Masque UNIQUEMENT l'overlay de développement Next.js (rond « N », badge
+// « Compiling… », toasts d'erreur dev) avant chaque screenshot, pour ne pas
+// polluer la baseline. Ces sélecteurs sont internes à Next — jamais des
+// éléments de l'application Parent Preuve (dont les boutons flottants « ? » et
+// « + » restent visibles).
+const SELECTEURS_OVERLAY_NEXT = [
+  "nextjs-portal",
+  "#__next-build-watcher",
+  "[data-nextjs-toast]",
+  "[data-next-badge-root]",
+  "[data-nextjs-dev-tools-button]",
+];
+
+async function masquerOverlayNextDev(page) {
+  const selecteur = SELECTEURS_OVERLAY_NEXT.join(", ");
+  await page
+    .addStyleTag({
+      content: `${selecteur} { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }`,
+    })
+    .catch(() => {});
+  await page
+    .evaluate((sels) => {
+      for (const s of sels) {
+        for (const el of document.querySelectorAll(s)) {
+          el.setAttribute("data-capture-hidden", "true");
+          el.style.setProperty("display", "none", "important");
+          el.style.setProperty("visibility", "hidden", "important");
+          el.style.setProperty("opacity", "0", "important");
+          el.style.setProperty("pointer-events", "none", "important");
+        }
+      }
+    }, SELECTEURS_OVERLAY_NEXT)
+    .catch(() => {});
+}
+
 async function capturerPage(page, dossier, variante, viewport, chemin, nom, resultats) {
   const dossierCible = `${dossier}/${variante.nom}/${viewport.nom}`;
   const cheminFichier = `${dossierCible}/${nom}.png`;
@@ -213,6 +248,9 @@ async function capturerPage(page, dossier, variante, viewport, chemin, nom, resu
         return textes.some((x) => t.includes(x)) && t.length < 400;
       }, TEXTES_TRANSITOIRES)
       .catch(() => false);
+
+    // Masquer l'overlay Next dev (rond « N » / badge « Compiling… ») avant capture.
+    await masquerOverlayNextDev(page);
 
     await page.screenshot({ path: cheminFichier, fullPage: FULL_PAGE });
     const cree = existsSync(cheminFichier);
