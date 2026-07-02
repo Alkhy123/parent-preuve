@@ -1,6 +1,6 @@
-// scripts/captures-ui-variants.mjs
+// scripts/captures-ui-secondary-variants.mjs
 //
-// Capture des 4 pages principales (/, /collecter, /organiser, /exporter)
+// Capture des 4 pages secondaires (/journal, /frais, /documents, /preuves)
 // dans les 4 combinaisons de préférences UI × 2 viewports = 32 images.
 //
 // Combinaisons :
@@ -12,8 +12,8 @@
 // Viewports : desktop 1440×900, mobile 390×844.
 //
 // Usage :
-//   npm run dev                 # dans un autre terminal
-//   npm run captures:ui-variants
+//   npm run dev                    # dans un autre terminal
+//   npm run captures:ui-secondary
 //
 // Variables d'environnement (.env.local) :
 //   PARENT_PREUVE_CAPTURE_URL        URL de base (défaut : http://localhost:3000)
@@ -23,7 +23,7 @@
 //   TEST_PASSWORD                    Mot de passe générique (fallback)
 //
 // Sortie :
-//   captures-ui/<AAAA-MM-JJ>_ui-variants/
+//   captures-ui/<AAAA-MM-JJ>_secondary-ui-variants/
 //     *.png      (32 captures)
 //     rapport.json
 //
@@ -64,7 +64,7 @@ const BASE_URL = (
 ).replace(/\/$/, "");
 
 const DATE = new Date().toISOString().slice(0, 10);
-const DOSSIER = `captures-ui/${DATE}_ui-variants`;
+const DOSSIER = `captures-ui/${DATE}_secondary-ui-variants`;
 
 // Clé localStorage telle que définie dans lib/ui-preferences/storage.ts.
 const CLE_UI_PREFERENCES = "parent-preuve-ui-preferences";
@@ -76,11 +76,12 @@ const COMBINAISONS = [
   { comfortMode: "comfort", interfaceStyle: "vue-ensemble" },
 ];
 
+// Pages secondaires modifiées au Lot 5.
 const PAGES = [
-  { chemin: "/",          nom: "home" },
-  { chemin: "/collecter", nom: "collecter" },
-  { chemin: "/organiser", nom: "organiser" },
-  { chemin: "/exporter",  nom: "exporter" },
+  { chemin: "/journal",   nom: "journal" },
+  { chemin: "/frais",     nom: "frais" },
+  { chemin: "/documents", nom: "documents" },
+  { chemin: "/preuves",   nom: "preuves" },
 ];
 
 const VIEWPORTS = [
@@ -171,7 +172,7 @@ async function capturerPage(page, viewport, page_def, combinaison, resultats) {
 // ── Script principal ──────────────────────────────────────────────────────────
 
 async function main() {
-  console.log(`\n▶ Captures UI Variantes — base : ${BASE_URL}`);
+  console.log(`\n▶ Captures UI Pages Secondaires — base : ${BASE_URL}`);
   console.log(`  Dossier de sortie : ${DOSSIER}/`);
   console.log(
     `  Captures attendues : ${COMBINAISONS.length} × ${PAGES.length} × ${VIEWPORTS.length} = ${COMBINAISONS.length * PAGES.length * VIEWPORTS.length}\n`,
@@ -236,6 +237,7 @@ async function main() {
     const prefsJSON = JSON.stringify({ comfortMode, interfaceStyle });
 
     for (const viewport of VIEWPORTS) {
+      // Nouveau contexte par combinaison × viewport pour garantir l'isolation.
       const contexte = await navigateur.newContext({
         viewport: { width: viewport.width, height: viewport.height },
         isMobile: viewport.isMobile,

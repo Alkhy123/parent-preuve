@@ -34,25 +34,47 @@ dossier est ignoré par git : ni les images ni le rapport ne sont commités.
   PARENT_PREUVE_CAPTURE_URL=https://mon-preview.vercel.app npm run capture:ui -- --label preview-pr-123
   ```
 
-- `TEST_EMAIL` / `TEST_PASSWORD` — optionnel. Si présents, le script se
-  connecte avant de capturer les pages protégées, avec le même compte de
-  test que les tests e2e.
+- **`CAPTURES_TEST_EMAIL` / `CAPTURES_TEST_PASSWORD`** *(recommandé)* —
+  Compte dédié aux captures visuelles, idéalement pré-rempli avec des données
+  de test représentatives (faits, frais, documents, preuves). Utilisé en
+  **priorité** par les scripts de captures.
 
-  Pour les renseigner localement, ajouter dans `.env.local` (jamais commité) :
+- **`TEST_EMAIL` / `TEST_PASSWORD`** *(fallback)* — Compte de test générique,
+  partagé avec les tests e2e. Utilisé si les variables `CAPTURES_TEST_*` sont
+  absentes.
+
+  Exemple dans `.env.local` :
 
   ```bash
-  TEST_EMAIL=compte-test@example.com
-  TEST_PASSWORD=mot-de-passe-du-compte-test
+  # Compte dédié aux captures visuelles (priorité)
+  CAPTURES_TEST_EMAIL=captures@example.com
+  CAPTURES_TEST_PASSWORD=mot-de-passe-captures
+
+  # Fallback si CAPTURES_TEST_* absents
+  TEST_EMAIL=test@example.com
+  TEST_PASSWORD=mot-de-passe-test
   ```
 
   **Rappel** : `.env.local` ne doit jamais être commité (déjà ignoré par
-  git, comme `captures-ui/`). N'utiliser que des identifiants d'un compte de
-  test dédié, jamais un compte réel.
+  git, comme `captures-ui/`). N'utiliser que des comptes de test dédiés.
 
-  Sans identifiants, les pages accessibles sont capturées quand même et les
-  redirections (ex. vers `/connexion`) sont journalisées dans le résumé
-  final. Dans ce cas, l'audit visuel des pages protégées reste à faire
-  manuellement (connexion dans un navigateur, puis revue écran par écran).
+  Si aucun identifiant n'est fourni, le script capture quand même les pages
+  publiques et journalise les redirections. Si des identifiants sont fournis
+  mais que la connexion échoue, le script s'arrête proprement avec une erreur
+  explicite plutôt que de produire 32 captures invalides.
+
+### Résolution des identifiants
+
+Les scripts lisent les identifiants dans cet ordre de priorité :
+
+1. `CAPTURES_TEST_EMAIL` / `CAPTURES_TEST_PASSWORD`
+2. `TEST_EMAIL` / `TEST_PASSWORD`
+
+Si aucune variable n'est définie → capture sans session (pages protégées
+redirigées journalisées).
+
+Si des variables sont définies mais que la connexion échoue → **arrêt
+immédiat** avec message d'erreur clair et rapport JSON.
 
 ### Détection de la connexion
 
