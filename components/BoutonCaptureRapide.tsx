@@ -3,12 +3,14 @@
 // components/BoutonCaptureRapide.tsx
 //
 // ⚠️ COMPOSANT VOLONTAIREMENT CONSERVÉ — NE PAS SUPPRIMER COMME "CODE MORT".
-// Monté une seule fois dans app/layout.tsx, il flotte sur toutes les pages du dossier.
+// Monté une seule fois dans app/layout.tsx.
 // Point d'ancrage de la future CAPTURE PHOTO NATIVE mobile (React Native/Expo ou PWA).
 //
 // Rôle (web) : un appui ouvre un petit menu de raccourcis vers les gestes quotidiens
 // (fait, dépense, preuve). Bouton DEPLACABLE (voir lib/useDeplacable). Visible
-// uniquement quand le parent est connecté ; masqué sur les pages auth/légales.
+// uniquement quand le parent est connecté, et UNIQUEMENT sur les pages de
+// collecte / action où une saisie rapide a du sens (voir ROUTES_AVEC_CAPTURE) —
+// pas sur les réglages (/compte), les hubs (/organiser, /exporter) ni /copilote.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,13 +18,21 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useDeplacable } from "@/lib/useDeplacable";
 
-const ROUTES_MASQUEES = [
-  "/connexion",
-  "/mot-de-passe-oublie",
-  "/reinitialiser-mot-de-passe",
-  "/mentions-legales",
-  "/confidentialite",
+// Allowlist : pages où l'ajout rapide est réellement utile (accueil + collecte).
+// Tout le reste (réglages, hubs, copilote, auth/légales) ne montre pas le « + ».
+const ROUTES_AVEC_CAPTURE = [
+  "/",
+  "/collecter",
+  "/journal",
+  "/frais",
+  "/documents",
+  "/preuves",
+  "/calendrier",
 ];
+
+function doitAfficherCaptureRapide(pathname: string) {
+  return ROUTES_AVEC_CAPTURE.includes(pathname);
+}
 
 const RACCOURCIS = [
   { href: "/journal", label: "Noter un fait" },
@@ -56,7 +66,7 @@ export default function BoutonCaptureRapide() {
     setOuvert(false);
   }, [pathname]);
 
-  if (!connecte || ROUTES_MASQUEES.includes(pathname) || !pos) {
+  if (!connecte || !doitAfficherCaptureRapide(pathname) || !pos) {
     return null;
   }
 
