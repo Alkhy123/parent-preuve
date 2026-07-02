@@ -8,36 +8,31 @@
 //
 //   npm run capture:ui -- --label baseline-main
 //
+// Authentification : mécanisme partagé et robuste de scripts/captures-auth.mjs
+// (mêmes fonctions que captures:ui-variants). Résolution des identifiants avec
+// priorité CAPTURES_TEST_EMAIL/PASSWORD puis TEST_EMAIL/PASSWORD.
+//
 // Variables d'environnement :
 //   PARENT_PREUVE_CAPTURE_URL   URL de base (défaut : http://localhost:3000)
-//   TEST_EMAIL / TEST_PASSWORD  Optionnel : connexion avant capture des pages
-//                                protégées (mêmes identifiants que les tests e2e).
+//   CAPTURES_TEST_EMAIL / CAPTURES_TEST_PASSWORD  Compte dédié captures (priorité)
+//   TEST_EMAIL / TEST_PASSWORD                    Compte de test générique (fallback)
 //
-// Si aucun identifiant n'est fourni, le script capture quand même les pages
-// accessibles et journalise celles qui ont redirigé (ex. vers /connexion).
-// Une page en erreur n'interrompt jamais le reste des captures.
+// Si aucun identifiant n'est fourni (ou si la connexion échoue), le script
+// capture quand même les pages accessibles et journalise celles qui ont
+// redirigé (ex. vers /connexion). Une page en erreur n'interrompt jamais le
+// reste des captures.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import {
+  chargerEnv,
+  etablirSession,
+  resoudreIdentifiants,
+  attendreContenuStable,
+  classifierEtatPage,
+} from "./captures-auth.mjs";
 
-// Petit chargeur .env.local (même convention que les autres scripts/*.mjs).
-function chargerEnvLocal() {
-  if (!existsSync(".env.local")) return;
-  for (const ligne of readFileSync(".env.local", "utf8").split("\n")) {
-    const m = ligne.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-    if (!m) continue;
-    let val = m[2].trim();
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1);
-    }
-    if (process.env[m[1]] === undefined) process.env[m[1]] = val;
-  }
-}
-
-chargerEnvLocal();
+chargerEnv();
 
 // --label valeur (ou --label=valeur). Défaut : "capture".
 function lireLabel() {
@@ -89,110 +84,36 @@ const CSS_SANS_ANIMATION = `
   }
 `;
 
-// Délai laissé à chaque signal de connexion pour apparaître (en millisecondes).
-const TIMEOUT_SIGNAL_CONNEXION = 12000;
-
-// Connexion réussie si l'UN de ces signaux arrive en premier (pas de dépendance
-// à un seul texte fragile, ex. accents qui diffèrent entre le code et la page) :
-//   - l'URL n'est plus /connexion ;
-//   - le bouton "Se deconnecter" apparaît (session active côté formulaire) ;
-//   - le formulaire de connexion (champ e-mail) disparaît du DOM.
-// Si aucun de ces signaux n'arrive, on tente en dernier recours une page
-// protégée (/compte) et on regarde si elle redirige vers /connexion.
-async function attendreSignalConnexion(page) {
-  try {
-    return await Promise.any([
-      page
-        .waitForURL((url) => url.pathname !== "/connexion", { timeout: TIMEOUT_SIGNAL_CONNEXION })
-        .then(() => "url"),
-      page
-        .getByRole("button", { name: "Se deconnecter" })
-        .waitFor({ timeout: TIMEOUT_SIGNAL_CONNEXION })
-        .then(() => "session-active"),
-      page
-        .getByPlaceholder("Adresse e-mail")
-        .waitFor({ state: "hidden", timeout: TIMEOUT_SIGNAL_CONNEXION })
-        .then(() => "formulaire-disparu"),
-    ]);
-  } catch {
-    return null;
-  }
-}
-
-async function seConnecter(page) {
-  const email = process.env.TEST_EMAIL;
-  const motDePasse = process.env.TEST_PASSWORD;
-  if (!email || !motDePasse) return false;
-
-  try {
-    await page.goto(`${BASE_URL}/connexion`, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.getByPlaceholder("Adresse e-mail").fill(email);
-    await page.getByPlaceholder("Mot de passe").fill(motDePasse);
-    await page.getByRole("button", { name: "Se connecter" }).click();
-
-    let signal = await attendreSignalConnexion(page);
-
-    if (!signal) {
-      // Dernier recours : une page protégée redirige-t-elle encore vers /connexion ?
-      // Les pages protégées sont des composants client : elles répondent d'abord
-      // 200 (coquille), puis redirigent via JS après vérification de session.
-      // On laisse donc le temps à cette vérification client de s'exécuter avant
-      // de lire l'URL finale, sinon le signal est lu trop tôt et toujours faux positif.
-      await page
-        .goto(`${BASE_URL}/compte`, { waitUntil: "domcontentloaded", timeout: 15000 })
-        .catch(() => {});
-      await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
-      if (new URL(page.url()).pathname !== "/connexion") signal = "page-protegee-accessible";
-    }
-
-    if (!signal) {
-      console.warn("⚠ Connexion impossible : aucun signal de session active détecté. Capture sans session.");
-      return false;
-    }
-
-    // Modale RGPD éventuelle (compte neuf) : on l'accepte si présente.
-    await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded", timeout: 30000 });
-    const accepter = page.getByRole("button", { name: "J'ai lu et j'accepte" });
-    try {
-      await accepter.click({ timeout: 8000 });
-    } catch {
-      // Déjà acceptée, ou non affichée : rien à faire.
-    }
-
-    // Le mot de passe n'est jamais journalisé, seul l'e-mail et le signal détecté le sont.
-    console.log(`✅ Connecté en tant que ${email} (signal : ${signal}).`);
-    return true;
-  } catch (e) {
-    console.warn(`⚠ Connexion impossible (${e.message ?? e}). Capture sans session.`);
-    return false;
-  }
-}
-
 async function capturerPage(page, viewport, chemin, nomFichier, resultats) {
   const url = `${BASE_URL}${chemin}`;
   const cible = `${viewport.nom}_${nomFichier}.png`;
 
   try {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-    // Best-effort : certaines pages gardent une connexion réseau ouverte
-    // (Supabase realtime) et n'atteignent jamais networkidle.
-    await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+    // Attendre un contenu stable (fin de « Chargement… » / redirection tranchée)
+    // avant de classifier et capturer : évite les captures d'écran transitoire.
+    await attendreContenuStable(page, 20000);
     await page.addStyleTag({ content: CSS_SANS_ANIMATION }).catch(() => {});
 
-    const urlFinale = page.url();
-    const redirigee =
-      !chemin.startsWith("/connexion") &&
-      new URL(urlFinale).pathname !== chemin &&
-      (urlFinale.includes("/connexion") || urlFinale.includes("/rgpd"));
+    // Diagnostic d'état : ok / chargement / connexion.
+    const { etat, urlFinale } = await classifierEtatPage(page);
 
     await page.screenshot({ path: `${DOSSIER}/${cible}`, fullPage: true });
 
-    if (redirigee) {
+    if (etat === "ok") {
+      resultats.ok.push({ chemin, viewport: viewport.nom, fichier: cible });
+      console.log(`✅ ${viewport.nom} ${chemin} -> ${cible}`);
+    } else if (etat === "connexion") {
       resultats.redirigees.push({ chemin, viewport: viewport.nom, vers: urlFinale });
       console.warn(`↪ ${viewport.nom} ${chemin} -> redirigée vers ${urlFinale} (capturée quand même)`);
     } else {
-      resultats.ok.push({ chemin, viewport: viewport.nom, fichier: cible });
-      console.log(`✅ ${viewport.nom} ${chemin} -> ${cible}`);
+      // "chargement" : capture invalide (contenu non stabilisé).
+      resultats.erreurs.push({
+        chemin,
+        viewport: viewport.nom,
+        erreur: "Page bloquée sur « Chargement… » après attente.",
+      });
+      console.error(`❌ ${viewport.nom} ${chemin} -> bloquée sur Chargement`);
     }
   } catch (e) {
     resultats.erreurs.push({ chemin, viewport: viewport.nom, erreur: e.message ?? String(e) });
@@ -204,18 +125,33 @@ async function main() {
   console.log(`Captures UI — base ${BASE_URL}, dossier ${DOSSIER}`);
 
   const navigateur = await chromium.launch();
-  const resultats = { ok: [], erreurs: [], redirigees: [], connecte: false };
+  const resultats = { ok: [], erreurs: [], redirigees: [], connecte: false, procedure_active: null };
 
-  // Connexion (une fois, viewport desktop) puis réutilisation de la session
-  // pour le contexte mobile, comme playwright.config.ts (storageState).
+  // Connexion (une fois, viewport desktop) via le helper robuste partagé, puis
+  // réutilisation du storageState pour les contextes desktop et mobile.
+  const { email, motDePasse, source } = resoudreIdentifiants();
+  console.log(`Identifiants : ${source ?? "AUCUN"}${email ? ` (${email})` : ""}`);
+
   let storageState;
   const contexteAuth = await navigateur.newContext({
     viewport: { width: VIEWPORTS[0].width, height: VIEWPORTS[0].height },
   });
-  const pageAuth = await contexteAuth.newPage();
-  const connecte = await seConnecter(pageAuth);
-  resultats.connecte = connecte;
-  if (connecte) storageState = await contexteAuth.storageState();
+  try {
+    const session = await etablirSession({
+      contexte: contexteAuth,
+      baseUrl: BASE_URL,
+      email,
+      motDePasse,
+    });
+    resultats.connecte = session.connecte;
+    resultats.procedure_active = session.procedureActive;
+    storageState = session.storageState;
+  } catch (e) {
+    // Best-effort : sans session, on capture quand même les pages publiques et
+    // on journalise les redirections (comportement historique de cet outil).
+    console.warn(`⚠ Connexion impossible (${e.message ?? e}). Capture sans session.`);
+  }
+  await contexteAuth.close();
 
   for (const viewport of VIEWPORTS) {
     const contexte = await navigateur.newContext({
@@ -233,7 +169,6 @@ async function main() {
     await contexte.close();
   }
 
-  await contexteAuth.close();
   await navigateur.close();
 
   console.log("\n— Résumé —");
@@ -260,6 +195,7 @@ async function main() {
           label: LABEL,
           date: DATE,
           connecte: resultats.connecte,
+          procedure_active: resultats.procedure_active,
           ok: resultats.ok,
           redirigees: resultats.redirigees,
           erreurs: resultats.erreurs,
