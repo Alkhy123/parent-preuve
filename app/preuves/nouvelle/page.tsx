@@ -295,7 +295,7 @@ export default function NouvellePreuvePage() {
             Retour Preuves
           </AppButtonLink>
           <AppButtonLink href="/collecter" variant="secondary">
-            Retour Collecter
+            Retour à Collecter
           </AppButtonLink>
         </div>
       }

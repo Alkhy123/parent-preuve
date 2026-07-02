@@ -128,7 +128,7 @@ export default function ResumeMoisPage() {
 
   return (
     <AppShell
-      titre="Resume du mois"
+      titre="Résumé du mois"
       description="Consulter une lecture mensuelle des frais, pensions et faits de la procedure active."
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">

@@ -287,10 +287,10 @@ export default function PensionPage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/collecter" variant="secondary">
-            Retour Collecter
+            Retour à Collecter
           </AppButtonLink>
           <AppButtonLink href="/resume-mois" variant="secondary">
-            Resume du mois
+            Résumé du mois
           </AppButtonLink>
         </div>
       }

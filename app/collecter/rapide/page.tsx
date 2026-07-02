@@ -262,7 +262,7 @@ export default function CollecteRapidePage() {
       description="Creer un brouillon factuel en moins d une minute avant de l envoyer vers le bon module."
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
-          <AppButtonLink href="/collecter" variant="secondary">Retour Collecter</AppButtonLink>
+          <AppButtonLink href="/collecter" variant="secondary">Retour à Collecter</AppButtonLink>
           <AppButtonLink href="/organiser/brouillons" variant="secondary">Brouillons locaux</AppButtonLink>
         </div>
       }

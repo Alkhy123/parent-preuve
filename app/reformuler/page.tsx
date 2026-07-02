@@ -88,7 +88,7 @@ export default function ReformulerPage() {
       description="Reformuler un texte de facon plus neutre, factuelle et relisible avant usage."
       actions={
         <AppButtonLink href="/collecter" variant="secondary">
-          Retour Collecter
+          Retour à Collecter
         </AppButtonLink>
       }
     >

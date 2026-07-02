@@ -197,7 +197,7 @@ export default function CalendrierPage() {
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
           <AppButtonLink href="/organiser" variant="secondary">
-            Retour Organiser
+            Retour à Organiser
           </AppButtonLink>
           <AppButtonLink href="/journal" variant="secondary">
             Noter un fait

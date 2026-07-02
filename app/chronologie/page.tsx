@@ -305,7 +305,7 @@ export default function ChronologiePage() {
       description="Relire les faits, frais, pensions, documents, preuves et regles de garde dans l ordre du dossier."
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
-          <AppButtonLink href="/organiser" variant="secondary">Retour Organiser</AppButtonLink>
+          <AppButtonLink href="/organiser" variant="secondary">Retour à Organiser</AppButtonLink>
           <AppButtonLink href="/exporter/chronologie" variant="secondary">Exporter</AppButtonLink>
         </div>
       }

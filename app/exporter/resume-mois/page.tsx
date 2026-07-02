@@ -54,7 +54,7 @@ const CONTROLES = [
 export default function ExporterResumeMoisPage() {
   return (
     <AppShell
-      titre="Resume du mois"
+      titre="Résumé du mois"
       description="Preparer une lecture mensuelle des frais, pensions et faits enregistres dans la procedure active."
       actions={
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -123,7 +123,7 @@ export default function ExporterResumeMoisPage() {
             <p className="text-sm leading-6 text-[var(--app-text-muted)]">
               La consultation reste dans l outil existant{" "}
               <span className="font-semibold text-[var(--app-text)]">
-                Resume du mois
+                Résumé du mois
               </span>
               . Cette page sert uniquement de point d entree clair depuis l
               espace Exporter.
