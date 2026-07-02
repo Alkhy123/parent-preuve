@@ -333,7 +333,7 @@ export default function DocumentsPage() {
 
             <div>
               <label className="block text-sm font-medium text-[var(--app-text)]">
-                Libellé <span className="text-[#9B2C2C]">*</span>
+                Libellé <span className="text-[var(--app-danger,#9b2c2c)]">*</span>
               </label>
               <input
                 type="text" placeholder="Ex : Facture orthodontiste mars"
@@ -344,7 +344,7 @@ export default function DocumentsPage() {
 
             <div>
               <label className="block text-sm font-medium text-[var(--app-text)]">
-                Fichier <span className="text-[#9B2C2C]">*</span>
+                Fichier <span className="text-[var(--app-danger,#9b2c2c)]">*</span>
               </label>
               <input
                 id="champ-fichier"
