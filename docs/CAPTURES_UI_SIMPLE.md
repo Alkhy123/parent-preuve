@@ -30,13 +30,33 @@ npm run e2e:install        # Chromium pour Playwright (si pas déjà installé)
 
 ## 4. Lancer le serveur local
 
+### Méthode recommandée pour une baseline propre (production locale)
+
 Dans un terminal dédié :
+
+```powershell
+npm run build
+npm run start
+```
+
+`npm run start` sert le build de production sur `http://localhost:3000` : rendu
+plus proche de la production et **sans overlay de développement Next.js** (pas
+de rond « N », pas de badge « Compiling… »). C'est la méthode à privilégier pour
+une baseline officielle.
+
+### Méthode rapide (développement)
+
+Pour un test rapide uniquement :
 
 ```powershell
 npm run dev
 ```
 
-Laisser tourner sur `http://localhost:3000`.
+`npm run dev` est acceptable mais peut afficher l'**overlay Next.js** en bas à
+gauche. Le script de capture masque cet overlay (`nextjs-portal` & co.) avant
+chaque screenshot, mais `npm run start` reste plus fiable pour une référence.
+
+Dans les deux cas, laisser le serveur tourner sur `http://localhost:3000`.
 
 ## 5. Créer une session auth locale
 
