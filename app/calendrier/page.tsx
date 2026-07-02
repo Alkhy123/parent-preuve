@@ -202,14 +202,18 @@ export default function CalendrierPage() {
   const prochainWeekend = apercu[0]
     ? apercu[0].debut.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
     : "—";
+  // Valeurs volontairement courtes (un seul mot) : dans SecondaryMetrics, la
+  // valeur est en text-2xl ; sur mobile (grille 3 colonnes), une valeur avec
+  // espace se casse en deux lignes. Le libellé porte le contexte (ex. « Zone
+  // vacances » → valeur « A »).
   const metriquesCalendrier = [
     {
       label: "Règle de garde",
-      value: regleId ? "Définie" : "À configurer",
+      value: regleId ? "Définie" : "Absente",
       variant: (regleId ? "success" : "warning") as "success" | "warning",
     },
     { label: "Prochain week-end", value: prochainWeekend, variant: "neutre" as const },
-    { label: "Zone vacances", value: `Zone ${zoneVacances}`, variant: "neutre" as const },
+    { label: "Zone vacances", value: zoneVacances, variant: "neutre" as const },
   ];
 
   return (
