@@ -358,7 +358,7 @@ function BlocProposition({
       )}
 
       {proposition.type === "aucun" && (
-        <p className="mt-4 text-sm leading-6 text-[#5A6473]">
+        <p className="mt-4 text-sm leading-6 text-[var(--app-text-muted)]">
           Aucun pré-remplissage exploitable proposé.
         </p>
       )}
@@ -770,7 +770,7 @@ export default function PageCopilote() {
         id="copilote-orientation"
         className="mt-6 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
       >
-        <p className="mt-3 text-sm leading-6 text-[#5A6473]">
+        <p className="mt-3 text-sm leading-6 text-[var(--app-text-muted)]">
           Cette page permet de tester le dry-run, le Copilote Mistral, le
           resume factuel du dossier et le pre-remplissage Agent. Le
           pre-remplissage Agent est desormais la version utilisee par le bouton
@@ -845,7 +845,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                       : "Tester avec Mistral"}
                   </button>
 
-                  <label className="flex items-start gap-2 text-xs leading-5 text-[#5A6473]">
+                  <label className="flex items-start gap-2 text-xs leading-5 text-[var(--app-text-muted)]">
                     <input
                       type="checkbox"
                       checked={inclureResume}
@@ -963,7 +963,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
             <h3 className="font-semibold text-[var(--app-text)]">Résumé</h3>
-            <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+            <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
               {reponse.resume}
             </p>
           </div>
@@ -972,7 +972,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
               <h3 className="font-semibold text-[var(--app-text)]">Messages</h3>
 
-              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
+              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[var(--app-text-muted)]">
                 {reponse.messages.map((item, index) => (
                   <li key={`${item}-${index}`}>{item}</li>
                 ))}
@@ -986,7 +986,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                 {reponse.actionProposee.titre}
               </h3>
 
-              <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+              <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                 {reponse.actionProposee.raison}
               </p>
 
@@ -1052,7 +1052,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             Test du pré-remplissage Agent
           </h2>
 
-          <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+          <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
             Ce bloc permet de tester le pré-remplissage Agent utilisé par le
             bouton flottant. Aucune donnée n&apos;est créée automatiquement.
           </p>
@@ -1116,7 +1116,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
               </button>
             </div>
 
-            <p className="mt-3 text-xs leading-5 text-[#5A6473]">
+            <p className="mt-3 text-xs leading-5 text-[var(--app-text-muted)]">
               Test expérimental : appel IA réel, quota IA consommé, aucune
               écriture automatique.
             </p>
@@ -1178,12 +1178,12 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
           <div className="mt-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
             <h3 className="font-semibold text-[var(--app-text)]">Résumé Agent</h3>
 
-            <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+            <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
               {reponsePreRemplissage.resume}
             </p>
 
             {reponsePreRemplissage.messages.length > 0 && (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-[#5A6473]">
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-[var(--app-text-muted)]">
                 {reponsePreRemplissage.messages.map((item, index) => (
                   <li key={`${item}-${index}`}>{item}</li>
                 ))}
@@ -1274,7 +1274,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             Test de la question dossier Agent
           </h2>
 
-          <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+          <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
             Ce bloc teste la nouvelle route{" "}
             <span className="font-medium">/api/agent/question-dossier</span>{" "}
             avant tout branchement du bouton flottant. La réponse s&apos;appuie
@@ -1340,7 +1340,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                   : "Tester la question dossier"}
               </button>
 
-              <label className="flex items-start gap-2 text-xs leading-5 text-[#5A6473]">
+              <label className="flex items-start gap-2 text-xs leading-5 text-[var(--app-text-muted)]">
                 <input
                   type="checkbox"
                   checked={inclureResumeQuestion}
@@ -1355,7 +1355,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
                 </span>
               </label>
 
-              <p className="text-xs leading-5 text-[#5A6473]">
+              <p className="text-xs leading-5 text-[var(--app-text-muted)]">
                 Test expérimental : appel IA réel, quota IA consommé, aucune
                 écriture automatique.
               </p>
@@ -1455,14 +1455,14 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
 
           <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-accent-soft)] p-4">
             <h3 className="font-semibold text-[var(--app-text)]">Résumé</h3>
-            <p className="mt-2 text-sm leading-6 text-[#5A6473]">
+            <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
               {reponseQuestionDossier.resume}
             </p>
           </div>
 
           <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
             <h3 className="font-semibold text-[var(--app-text)]">Réponse</h3>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#5A6473]">
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--app-text-muted)]">
               {reponseQuestionDossier.reponse}
             </p>
           </div>
@@ -1471,7 +1471,7 @@ Il ne fournit aucun conseil juridique, ne rédige pas de conclusions judiciaires
             <div className="mt-4 rounded-xl border border-[var(--app-border)] p-4">
               <h3 className="font-semibold text-[var(--app-text)]">Points d&apos;appui</h3>
 
-              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[#5A6473]">
+              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-[var(--app-text-muted)]">
                 {reponseQuestionDossier.pointsAppui.map((item, index) => (
                   <li key={`${item}-${index}`}>{item}</li>
                 ))}
