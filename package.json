@@ -16,6 +16,7 @@
     "e2e:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "capture:ui": "node scripts/captures-ui.mjs",
+    "captures:auth-check": "node scripts/captures-auth-check.mjs",
     "captures:ui-variants": "node scripts/captures-ui-variants.mjs",
     "captures:ui-secondary": "node scripts/captures-ui-secondary-variants.mjs"
   },

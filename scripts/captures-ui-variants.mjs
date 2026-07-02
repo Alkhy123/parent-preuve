@@ -29,33 +29,18 @@
 //
 // Aucune écriture en base. captures-ui/ est ignoré par git.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { chromium } from "@playwright/test";
 import {
+  chargerEnv,
   etablirSession,
   resoudreIdentifiants,
+  attendreContenuStable,
+  classifierEtatPage,
 } from "./captures-auth.mjs";
 
-// ── Chargeur .env.local ───────────────────────────────────────────────────────
-
-function chargerEnvLocal() {
-  if (!existsSync(".env.local")) return;
-  for (const ligne of readFileSync(".env.local", "utf8").split("\n")) {
-    const m = ligne.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-    if (!m) continue;
-    let val = m[2].trim();
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1);
-    }
-    if (process.env[m[1]] === undefined) process.env[m[1]] = val;
-  }
-}
-
-chargerEnvLocal();
+chargerEnv();
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -110,7 +95,8 @@ async function capturerPage(page, viewport, page_def, combinaison, resultats) {
 
   try {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+    // Attendre un contenu stable (fin de « Chargement… » / redirection tranchée).
+    await attendreContenuStable(page, 20000);
     await page.addStyleTag({ content: CSS_SANS_ANIMATION }).catch(() => {});
 
     // Attendre que les préférences UI soient appliquées sur <html>.
@@ -123,11 +109,9 @@ async function capturerPage(page, viewport, page_def, combinaison, resultats) {
       )
       .catch(() => {});
 
-    const urlFinale = page.url();
-    const redirigee =
-      !page_def.chemin.startsWith("/connexion") &&
-      new URL(urlFinale).pathname !== page_def.chemin &&
-      (urlFinale.includes("/connexion") || urlFinale.includes("/rgpd"));
+    // Diagnostic d'état : ok / chargement / connexion.
+    const { etat, urlFinale, texteChargementPresent } =
+      await classifierEtatPage(page);
 
     await page.screenshot({ path: cheminFichier, fullPage: true });
 
@@ -140,17 +124,26 @@ async function capturerPage(page, viewport, page_def, combinaison, resultats) {
       interfaceStyle,
       comfortMode,
       duree_ms: duree,
+      etat_page: etat,
+      url_finale: urlFinale,
+      texte_chargement_present: texteChargementPresent,
     };
 
-    if (redirigee) {
+    if (etat === "ok") {
+      resultats.ok.push(entree);
+      console.log(`✅ ${nomFichier} (${duree}ms)`);
+    } else if (etat === "connexion") {
       entree.redirigee_vers = urlFinale;
       resultats.redirigees.push(entree);
       console.warn(
-        `↪ ${viewport.nom} ${page_def.chemin} [${interfaceStyle}+${comfortMode}] → redirigée`,
+        `↪ ${viewport.nom} ${page_def.chemin} [${interfaceStyle}+${comfortMode}] → connexion (${urlFinale})`,
       );
     } else {
-      resultats.ok.push(entree);
-      console.log(`✅ ${nomFichier} (${duree}ms)`);
+      // "chargement" : capture invalide, classée en erreur avec message clair.
+      entree.erreur =
+        "Page bloquée sur « Chargement… » après attente (session/contenu non stabilisé).";
+      resultats.erreurs.push(entree);
+      console.error(`❌ ${nomFichier} — bloquée sur Chargement`);
     }
   } catch (e) {
     const duree = Math.round(performance.now() - debut);
@@ -161,8 +154,11 @@ async function capturerPage(page, viewport, page_def, combinaison, resultats) {
       viewport: viewport.nom,
       interfaceStyle,
       comfortMode,
-      erreur: e.message ?? String(e),
       duree_ms: duree,
+      etat_page: "timeout",
+      url_finale: page.url(),
+      texte_chargement_present: false,
+      erreur: e.message ?? String(e),
     });
     console.error(`❌ ${nomFichier} — ${e.message ?? e}`);
   }
@@ -192,7 +188,8 @@ async function main() {
 
   // ── Résolution des identifiants + établissement de session ────────────────
 
-  const { email, motDePasse } = resoudreIdentifiants();
+  const { email, motDePasse, source } = resoudreIdentifiants();
+  console.log(`  Identifiants       : ${source ?? "AUCUN"}${email ? ` (${email})` : ""}`);
 
   const contexteAuth = await navigateur.newContext({
     viewport: { width: VIEWPORTS[0].width, height: VIEWPORTS[0].height },
