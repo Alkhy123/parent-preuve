@@ -1,9 +1,13 @@
 // components/app/appShellNavigation.ts
 //
-// Liste partagée des routes couvertes par le shell applicatif (AppSidebar +
-// NavBar) : sert à construire la navigation de la sidebar desktop et à
-// décider quand masquer l'ancienne NavBar en desktop pour éviter la double
-// navigation. Aucune logique métier ici, seulement des chemins.
+// Source unique de vérité de la navigation applicative (AppSidebar desktop +
+// drawer NavBar mobile). Sert à construire la sidebar/drawer et à décider quand
+// masquer l'ancienne NavBar en desktop pour éviter la double navigation.
+// Aucune logique métier ici, seulement des chemins.
+//
+// Structure « hybride » : chaque groupe expose des liens PRINCIPAUX (structure
+// épurée mise en avant) et des liens SECONDAIRES (repliés derrière « Voir plus »)
+// afin de préserver l'accès à toutes les pages existantes sans les orpheliner.
 
 export type AppNavItem = {
   href: string;
@@ -15,8 +19,10 @@ export type AppNavGroupe = {
   label: string;
   /** Route principale du hub — détermine si le groupe est actif. */
   hrefPrincipal: string;
-  /** Sous-liens affichés quand le groupe est ouvert. */
-  liens: AppNavItem[];
+  /** Liens mis en avant, toujours visibles quand le groupe est ouvert. */
+  liensPrincipaux: AppNavItem[];
+  /** Liens secondaires, repliés derrière « Voir plus ». */
+  liensSecondaires: AppNavItem[];
 };
 
 // "/" matche en exact uniquement ; les autres routes couvrent aussi leurs
@@ -36,43 +42,50 @@ export const APP_SHELL_ROUTES: string[] = [
   "/copilote",
 ];
 
-// Groupes structurés utilisés par AppSidebar (desktop) et éventuellement
-// d'autres surfaces. NavBar mobile conserve ses propres GROUPES pour l'instant.
+// Groupes structurés partagés par AppSidebar (desktop) et le drawer NavBar
+// (mobile). L'ordre et les libellés suivent la structure de navigation
+// obligatoire (Lot 13A).
 export const APP_NAV_GROUPS: AppNavGroupe[] = [
   {
     label: "Collecter",
     hrefPrincipal: "/collecter",
-    liens: [
-      { href: "/collecter", label: "Vue Collecter" },
+    liensPrincipaux: [
+      { href: "/journal", label: "Journal factuel" },
+      { href: "/frais", label: "Frais" },
+      { href: "/documents", label: "Documents" },
+      { href: "/preuves", label: "Preuves photo" },
+    ],
+    liensSecondaires: [
       { href: "/collecter/rapide", label: "Collecte rapide" },
-      { href: "/journal", label: "Noter un fait" },
-      { href: "/preuves", label: "Ajouter une preuve" },
-      { href: "/documents", label: "Importer un document" },
-      { href: "/frais", label: "Ajouter un frais" },
       { href: "/pension", label: "Paiement de pension" },
-      { href: "/calendrier", label: "Ajouter une échéance" },
+      { href: "/collecter", label: "Vue Collecter" },
     ],
   },
   {
     label: "Organiser",
     hrefPrincipal: "/organiser",
-    liens: [
+    liensPrincipaux: [
+      { href: "/calendrier", label: "Calendrier" },
+      { href: "/copilote", label: "Copilote" },
+    ],
+    liensSecondaires: [
       { href: "/organiser", label: "Vue Organiser" },
+      { href: "/chronologie", label: "Chronologie" },
       { href: "/organiser/brouillons", label: "Brouillons locaux" },
+      { href: "/documents/coffre-fort", label: "Coffre-fort" },
       { href: "/dossier", label: "Dossier" },
       { href: "/enfants", label: "Enfants" },
       { href: "/procedure", label: "Procédure et jugement" },
       { href: "/rattacher", label: "Éléments à rattacher" },
-      { href: "/documents/coffre-fort", label: "Coffre-fort" },
-      { href: "/chronologie", label: "Chronologie" },
-      { href: "/calendrier", label: "Calendrier" },
+      { href: "/reformuler", label: "Reformuler un message" },
+      { href: "/implication-parentale", label: "Implication parentale" },
     ],
   },
   {
     label: "Exporter",
     hrefPrincipal: "/exporter",
-    liens: [
-      { href: "/exporter", label: "Vue Exporter" },
+    liensPrincipaux: [{ href: "/exporter", label: "Exporter" }],
+    liensSecondaires: [
       { href: "/exporter/checklist", label: "Checklist export" },
       { href: "/exporter/chronologie", label: "Chronologie" },
       { href: "/exporter/note-synthese", label: "Note de synthèse" },
@@ -83,19 +96,10 @@ export const APP_NAV_GROUPS: AppNavGroupe[] = [
   },
 ];
 
-// Conservé pour compatibilité descendante. AppSidebar utilise désormais
-// APP_NAV_GROUPS ; ce tableau n'est plus rendu dans la sidebar.
-export const APP_NAV_ITEMS: AppNavItem[] = [
-  { href: "/", label: "Tableau de bord" },
-  { href: "/journal", label: "Journal" },
-  { href: "/frais", label: "Frais" },
-  { href: "/documents", label: "Documents" },
-  { href: "/preuves", label: "Preuves" },
-  { href: "/calendrier", label: "Calendrier" },
-  { href: "/exporter", label: "Exporter" },
-  { href: "/copilote", label: "Copilote" },
-  { href: "/compte", label: "Compte" },
-];
+/** Tous les liens d'un groupe (principaux puis secondaires). */
+export function tousLiensGroupe(groupe: AppNavGroupe): AppNavItem[] {
+  return [...groupe.liensPrincipaux, ...groupe.liensSecondaires];
+}
 
 function estCheminCouvert(route: string, pathname: string): boolean {
   if (route === "/") return pathname === "/";
@@ -109,12 +113,12 @@ export function estRouteAppShell(pathname: string): boolean {
 
 /**
  * Renvoie le label du groupe actif pour un pathname donné.
- * Priorité : hrefPrincipal (préfixe) > sous-lien (exact). Premier match gagne.
- * Retourne null si aucun groupe ne correspond (ex. "/" ou routes orphelines).
+ * Priorité : hrefPrincipal (préfixe) > lien exact (principal ou secondaire).
+ * Premier match gagne. Retourne null si aucun groupe ne correspond
+ * (ex. "/" ou routes orphelines).
  */
 export function groupeActifPour(pathname: string): string | null {
   for (const groupe of APP_NAV_GROUPS) {
-    // Vérifie si le pathname est sous la route principale du groupe.
     if (
       pathname === groupe.hrefPrincipal ||
       pathname.startsWith(groupe.hrefPrincipal + "/")
@@ -122,11 +126,21 @@ export function groupeActifPour(pathname: string): string | null {
       return groupe.label;
     }
   }
-  // Second passage : correspondance exacte sur les sous-liens.
+  // Second passage : correspondance exacte sur les liens (principaux + secondaires).
   for (const groupe of APP_NAV_GROUPS) {
-    if (groupe.liens.some((l) => l.href !== "/" && pathname === l.href)) {
+    if (tousLiensGroupe(groupe).some((l) => l.href !== "/" && pathname === l.href)) {
       return groupe.label;
     }
   }
   return null;
+}
+
+/** Vrai si la route active se trouve dans les liens secondaires du groupe. */
+export function routeDansSecondaires(
+  groupe: AppNavGroupe,
+  pathname: string,
+): boolean {
+  return groupe.liensSecondaires.some(
+    (l) => l.href !== "/" && (pathname === l.href || pathname.startsWith(l.href + "/")),
+  );
 }
